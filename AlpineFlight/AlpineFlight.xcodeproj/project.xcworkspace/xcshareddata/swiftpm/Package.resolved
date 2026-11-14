@@ -1,0 +1,14 @@
+{
+  "originHash" : "cef8f201797be9538cb83fa9aac1493465c4eea8c23d18d6760aab3175848dc8",
+  "pins" : [
+    {
+      "identity" : "aether",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/zuhayrkhan/Aether.git",
+      "state" : {
+        "revision" : "2a5f844f316228771fbb713017de21c50f6e172d"
+      }
+    }
+  ],
+  "version" : 3
+}

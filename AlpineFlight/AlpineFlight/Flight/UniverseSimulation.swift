@@ -104,10 +104,11 @@ struct UniverseFlight {
     mutating func begin(_ destination:UniverseDestination,state:FlightState) -> Bool {
         guard !jumping else { return false }
         if case .star(let hip?) = destination,StarCatalogue.star(hip) == nil { return false }
-        if case .surface(let name) = destination {
+        if case .surface(let name) = destination, name != AetherPlanet.name {
             guard galaxy == .milkyWay, sector == .solarSystem,
                   SolarBody.all.contains(where: { $0.name == name && $0.name != "Sun" }) else { return false }
         }
+        if destination == .surface(AetherPlanet.name), !AetherPlanet.enabled { return false }
         self.destination = destination; remaining = Self.jumpDuration; departure = state; return true
     }
     mutating func cancel(state:inout FlightState) {
@@ -122,7 +123,7 @@ struct UniverseFlight {
         guard remaining == 0 else { return nil }
         surfaceBody = nil
         switch destination {
-        case .surface(let name): galaxy = .milkyWay; sector = .solarSystem; observerHIP = nil; surfaceBody = SolarBody.all.first { $0.name == name }
+        case .surface(let name): galaxy = .milkyWay; sector = .solarSystem; observerHIP = nil; surfaceBody = name == AetherPlanet.name ? AetherPlanet.body : SolarBody.all.first { $0.name == name }
         case .galaxy(let next): galaxy = next; sector = next == .milkyWay ? .home:.stellar; observerHIP = nil
         case .star(let hip): galaxy = .milkyWay; sector = .stellar; observerHIP = hip
         case .solarSystem: galaxy = .milkyWay; sector = .solarSystem; observerHIP = nil
@@ -213,6 +214,7 @@ struct SolarLandscape {
     static let scenicStep = extent * 2 / Float(scenicDivisions)
     var usesScenicTerrain: Bool { ["Mercury", "Venus", "Earth", "Mars"].contains(body.name) }
     func height(x:Float,z:Float) -> Float {
+        if body.name == AetherPlanet.name { return AetherPlanet.height(x:x,z:z) }
         guard usesScenicTerrain else { return legacyHeight(x:x,z:z) }
         let step = Self.scenicStep
         let gx = (x + Self.extent) / step, gz = (z + Self.extent) / step
@@ -388,6 +390,7 @@ struct SolarLandscape {
     }()
     var scenerySolids:[ScenicSolid] { Self.scenicSolidCache[body.name] ?? [] }
     func impact(from a:SIMD3<Float>,to b:SIMD3<Float>,radius:Float) -> Bool {
+        if body.name == AetherPlanet.name, AetherPlanet.hitsArch(from:a,to:b,radius:radius) { return true }
         guard !body.isCloudWorld else { return b.y < -400 }
         if scenerySolids.contains(where:{ $0.hits(from:a,to:b,radius:radius) }) { return true }
         let steps = min(256,max(1,Int(ceil(simd_distance(a,b)/20))))

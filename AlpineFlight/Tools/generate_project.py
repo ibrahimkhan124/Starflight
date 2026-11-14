@@ -5,6 +5,9 @@ import hashlib
 import json
 
 ROOT = Path(__file__).resolve().parents[1]
+project_file = ROOT / 'AlpineFlight.xcodeproj' / 'project.pbxproj'
+if project_file.exists() and 'XCRemoteSwiftPackageReference' in project_file.read_text():
+    raise SystemExit('This project uses Swift packages. Add files through Xcode; the legacy generator would remove dependency settings.')
 objects = {}
 def uid(name): return hashlib.sha1(name.encode()).hexdigest()[:24].upper()
 def quote(value): return json.dumps(str(value))

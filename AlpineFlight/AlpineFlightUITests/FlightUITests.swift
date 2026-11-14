@@ -45,6 +45,33 @@ final class FlightUITests: XCTestCase {
         app.buttons["Done"].tap()
     }
 
+    @MainActor
+    func testAetherReachEntryFlightAndReturnWithBaseline() {
+        for enhanced in [false,true] {
+            let app = XCUIApplication()
+            startUniverseFlight(app,extraArguments:["-aetherPlanetEnabled","YES","-aetherSurfaceEnabled",enhanced ? "YES":"NO"])
+            app.buttons["Hyperspace"].tap()
+            let enter = app.buttons["Explore Aether Reach"]
+            revealStoryControl(enter,in:app)
+            expectation(for:NSPredicate(format:"isEnabled == true"),evaluatedWith:enter)
+            waitForExpectations(timeout:60)
+            capture(app,name:"Aether Reach exploration entry")
+            enter.tap(); waitForUniverseArrival(app)
+            XCTAssertTrue(app.buttons["Return solar orbit"].waitForExistence(timeout:10))
+            Thread.sleep(forTimeInterval:2)
+            capture(app,name:enhanced ? "Aether Reach enhanced surface":"Aether Reach baseline same geometry")
+            let throttle = app.sliders["Throttle"]
+            throttle.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).press(forDuration:0.1,
+                thenDragTo:throttle.coordinate(withNormalizedOffset:CGVector(dx:0.64,dy:0.5)))
+            Thread.sleep(forTimeInterval:8)
+            XCTAssertTrue(app.buttons["Pause flight"].exists)
+            capture(app,name:enhanced ? "Aether Reach moving flight":"Aether Reach baseline flight")
+            app.buttons["Return solar orbit"].tap(); waitForUniverseArrival(app)
+            XCTAssertTrue(app.buttons["Enter selected solar planet"].waitForExistence(timeout:10))
+            app.terminate()
+        }
+    }
+
     /// Exercises normal travel and captures the nine scenery destinations accepted for this update.
     @MainActor
     func testScenicExpeditionTravelAndCaptures() { captureScenicExpeditions(includeHomePlanets: true) }
@@ -237,9 +264,9 @@ final class FlightUITests: XCTestCase {
         app.buttons["Close universe map"].tap(); app.buttons["Pause flight"].tap()
     }
     @MainActor
-    private func startUniverseFlight(_ app:XCUIApplication) {
+    private func startUniverseFlight(_ app:XCUIApplication, extraArguments:[String] = []) {
         XCUIDevice.shared.orientation = .landscapeLeft
-        app.launchArguments = ["-aircraft","xwing","-level","freeRoam","-spaceFreeRoam","YES","-introStyle","canva","-flightWeather","clear","-performanceMode","NO","-tiltEnabled","NO","-handControlEnabled","NO"]
+        app.launchArguments = ["-aircraft","xwing","-level","freeRoam","-spaceFreeRoam","YES","-introStyle","canva","-flightWeather","clear","-performanceMode","NO","-tiltEnabled","NO","-handControlEnabled","NO"] + extraArguments
         app.launchEnvironment["STARFLIGHT_ECONOMY_FIXTURE"] = "funded"; app.launch(); settleStoryLaunch(app)
         let start = app.buttons["Take flight"]
         expectation(for:NSPredicate(format:"isEnabled == true"),evaluatedWith:start); waitForExpectations(timeout:120); start.tap()

@@ -7,6 +7,7 @@ struct UniverseNavigationView:View {
     @ObservedObject var engine:GameEngine
     @Environment(\.dismiss) private var dismiss
     @Environment(\.verticalSizeClass) private var verticalSize
+    @ObservedObject private var aetherStatus = AetherPlanetRenderer.status
     @State private var section = 0
     @State private var selectedGalaxy:Galaxy = .andromeda
     @State private var selectedHIP = 32349
@@ -29,6 +30,16 @@ struct UniverseNavigationView:View {
                     Text(restriction).font(.subheadline).foregroundStyle(FlightPalette.gold)
                 }
                 if section == 0 {
+                    if AetherPlanet.enabled {
+                        Text("Experimental planet · Aether Reach").font(.headline).foregroundStyle(FlightPalette.teal)
+                        Text("A separate fictional highland world built with Aether terrain and rock arches. Existing planets are unchanged. Return to orbit uses the Solar System transit hub.").font(.caption)
+                        Button { engine.engageUniverseJump(.surface(AetherPlanet.name)); dismiss() } label: {
+                            Label(aetherStatus.ready ? "Explore Aether Reach" : "Preparing Aether Reach…",systemImage:"globe.europe.africa.fill")
+                        }.buttonStyle(MenuActionButtonStyle(accent:FlightPalette.teal))
+                            .disabled(!aetherStatus.ready || engine.universeTravelRestriction != nil)
+                            .accessibilityIdentifier("Explore Aether Reach")
+                        if let failure = aetherStatus.failure { Text("Aether preparation failed: " + failure).font(.caption).foregroundStyle(.orange) }
+                    }
                     GalaxyChartView(selection:$selectedGalaxy).frame(height:verticalSize == .compact ? 240:300)
                         .clipShape(RoundedRectangle(cornerRadius:20)).accessibilityIdentifier("3D galaxy map")
                     Text("Drag to orbit · Pinch to zoom · Tap a galaxy. Schematic Local Group chart; distances and sizes are not to scale.")

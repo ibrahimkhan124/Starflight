@@ -855,6 +855,8 @@ final class GameEngine: ObservableObject {
         rebuildWorld()
     }
 
+    func prepareAetherPlanet() { world?.prepareAetherPlanet() }
+
     func prepareNextLevel() {
         guard phase == .completed, let next = nextLevel else { return }
         phase = .title

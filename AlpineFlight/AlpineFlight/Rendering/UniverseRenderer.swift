@@ -102,6 +102,8 @@ final class UniverseRenderer {
     private let solar = Entity()
     private let landscape = Entity()
     private var landscapeName: String?
+    private var aetherWorld: Entity?
+    private var aetherPreparation: Task<Void,Never>?
     private var cloudCyclone: Entity?
     private var planetDetails: [PlanetOrbitDetail] = []
     private let courseMarker:ModelEntity
@@ -167,7 +169,24 @@ final class UniverseRenderer {
         root.addChild(landscape)
         courseMarker = ModelEntity(mesh:UniverseMeshes.ring(inner:18,outer:21),materials:[UniverseMeshes.material(.cyan)])
         root.addChild(courseMarker); root.isEnabled = false
+        prepareAetherPlanet()
     }
+    func prepareAetherPlanet() {
+        guard aetherWorld == nil, aetherPreparation == nil else { return }
+        if AetherPlanet.enabled {
+            AetherPlanetRenderer.ready = false
+            aetherPreparation = Task { [weak self] in
+                let result = await Task.detached(priority:.userInitiated) { AetherPlanet.prepared }.value
+                guard !Task.isCancelled, let self else { return }
+                do {
+                    self.aetherWorld = try AetherPlanetRenderer.make(result.get(),enhanced:UserDefaults.standard.object(forKey:"aetherSurfaceEnabled") as? Bool ?? true)
+                    AetherPlanetRenderer.failure = nil; AetherPlanetRenderer.ready = true
+                } catch { AetherPlanetRenderer.failure = error.localizedDescription }
+            }
+        }
+
+    }
+    deinit { aetherPreparation?.cancel() }
     func update(flight:UniverseFlight,active:Bool,camera:PerspectiveCamera,state:FlightState,dt:Float,reduced:Bool,target:SIMD3<Float>?) {
         root.isEnabled = active; guard active else { return }
         clock += dt; skyClock += dt
@@ -183,7 +202,11 @@ final class UniverseRenderer {
         }
         if landscapeName != flight.surfaceBody?.name {
             landscape.children.removeAll()
-            if let body = flight.surfaceBody { SolarArtwork.populate(landscape,body:body) }
+            if let body = flight.surfaceBody {
+                if body.name == AetherPlanet.name {
+                    if let aetherWorld { landscape.addChild(aetherWorld) }
+                } else { SolarArtwork.populate(landscape,body:body) }
+            }
             cloudCyclone = landscape.findEntity(named: "Jupiter rotating cyclone")
             landscapeName = flight.surfaceBody?.name
         }

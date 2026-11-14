@@ -110,6 +110,12 @@
 		F00D00000000000000000015 /* WorkshopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00D00000000000000000016 /* WorkshopView.swift */; };
 		F827CE26AD5CAE7F43ECB795 /* FlightStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074FE2E6AD43D323F465512E /* FlightStyle.swift */; };
 		FC63AEFB9EAA9DB4BC19700C /* CheckpointSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A79EE1CA892B29AB60D730B /* CheckpointSystem.swift */; };
+		AF1411000000000000000001 /* ProceduralCore in Frameworks */ = {isa = PBXBuildFile; productRef = AF1411000000000000000002 /* ProceduralCore */; };
+		AF1411010000000000000001 /* ProceduralGeometry in Frameworks */ = {isa = PBXBuildFile; productRef = AF1411010000000000000002 /* ProceduralGeometry */; };
+		AF1411020000000000000001 /* ProceduralTerrain in Frameworks */ = {isa = PBXBuildFile; productRef = AF1411020000000000000002 /* ProceduralTerrain */; };
+		AF1411030000000000000001 /* ProceduralSurface in Frameworks */ = {isa = PBXBuildFile; productRef = AF1411030000000000000002 /* ProceduralSurface */; };
+		AF1412000000000000000001 /* AetherPlanet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1412000000000000000002; };
+		AF1412010000000000000001 /* AetherPlanetRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1412010000000000000002; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -259,6 +265,8 @@
 		F49173BA5680EF9A6D6FEA04 /* FlightPhysics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FlightPhysics.swift; path = AlpineFlight/Flight/FlightPhysics.swift; sourceTree = "<group>"; };
 		FA44C7A882E4070174C78712 /* AircraftFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AircraftFactory.swift; path = AlpineFlight/Rendering/AircraftFactory.swift; sourceTree = "<group>"; };
 		FEA896F8D3FA8522590393E3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = AlpineFlight/UI/SettingsView.swift; sourceTree = "<group>"; };
+		AF1412000000000000000002 /* AetherPlanet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlight/Rendering/AetherPlanet.swift; sourceTree = "<group>"; };
+		AF1412010000000000000002 /* AetherPlanetRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlight/Rendering/AetherPlanetRenderer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -304,6 +312,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AF1411030000000000000001 /* ProceduralSurface in Frameworks */,
+				AF1411020000000000000001 /* ProceduralTerrain in Frameworks */,
+				AF1411010000000000000001 /* ProceduralGeometry in Frameworks */,
+				AF1411000000000000000001 /* ProceduralCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -373,6 +385,8 @@
 				AD0032000000000000000002 /* PlanetSurfaceRenderer.swift */,
 				AE1311000000000000000002 /* ScenicMaterials.swift */,
 				AE1411030000000000000002 /* PlanetOrbitDetail.swift */,
+				AF1412010000000000000002,
+				AF1412000000000000000002,
 				AE1411020000000000000002 /* PlanetShaders.metal */,
 				AE1411010000000000000002 /* PlanetLighting.swift */,
 				AD0033000000000000000002 /* HandGestures.swift */,
@@ -526,6 +540,7 @@
 				AD008000000000000000000E /* PBXTargetDependency */,
 			);
 			name = AlpineFlight;
+			packageProductDependencies = (AF1411030000000000000002 /* ProceduralSurface */, AF1411020000000000000002 /* ProceduralTerrain */, AF1411010000000000000002 /* ProceduralGeometry */, AF1411000000000000000002 /* ProceduralCore */,);
 			productName = AlpineFlight;
 			productReference = AC7EC5B1B52EA112298973F9 /* AlpineFlight.app */;
 			productType = "com.apple.product-type.application";
@@ -566,6 +581,7 @@
 			);
 			mainGroup = B28B7AF69320201D1CF206EB;
 			productRefGroup = FBDC4F23F93125BBEEAE800C /* Products */;
+			packageReferences = (AF1411000000000000000090 /* Aether */);
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -665,6 +681,8 @@
 				AD0032000000000000000001 /* PlanetSurfaceRenderer.swift in Sources */,
 				AE1311000000000000000001 /* ScenicMaterials.swift in Sources */,
 				AE1411030000000000000001 /* PlanetOrbitDetail.swift in Sources */,
+				AF1412010000000000000001,
+				AF1412000000000000000001,
 				AE1411020000000000000001 /* PlanetShaders.metal in Sources */,
 				AE1411010000000000000001 /* PlanetLighting.swift in Sources */,
 				AD0033000000000000000001 /* HandGestures.swift in Sources */,
@@ -759,6 +777,16 @@
 			targetProxy = 207B1DE256FF4DE7C9B25480 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		AF1411000000000000000090 /* Aether */ = {isa = XCRemoteSwiftPackageReference; repositoryURL = "https://github.com/zuhayrkhan/Aether.git"; requirement = {kind = revision; revision = 2a5f844f316228771fbb713017de21c50f6e172d; }; };
+/* End XCRemoteSwiftPackageReference section */
+/* Begin XCSwiftPackageProductDependency section */
+		AF1411000000000000000002 /* ProceduralCore */ = {isa = XCSwiftPackageProductDependency; package = AF1411000000000000000090 /* Aether */; productName = ProceduralCore; };
+		AF1411010000000000000002 /* ProceduralGeometry */ = {isa = XCSwiftPackageProductDependency; package = AF1411000000000000000090 /* Aether */; productName = ProceduralGeometry; };
+		AF1411020000000000000002 /* ProceduralTerrain */ = {isa = XCSwiftPackageProductDependency; package = AF1411000000000000000090 /* Aether */; productName = ProceduralTerrain; };
+		AF1411030000000000000002 /* ProceduralSurface */ = {isa = XCSwiftPackageProductDependency; package = AF1411000000000000000090 /* Aether */; productName = ProceduralSurface; };
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1AFDE2E638D6FD92867ED408 /* Release */ = {

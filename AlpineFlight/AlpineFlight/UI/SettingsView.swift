@@ -5,6 +5,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showAccount = false
     @State private var previewIntro = false
+    @AppStorage("aetherPlanetEnabled") private var aetherPlanetEnabled = true
     private var settingsSections: [String] {
         var sections = ["About Starflight", "Account", "App icon", "Camera hand control", "Droid copilot", "Flight controls", "Hangar preview", "Help & voice commands", "Navigation & activities", "Opening intro", "Sound & graphics", "The expedition"]
 #if os(iOS) && !targetEnvironment(macCatalyst)
@@ -27,6 +28,7 @@ struct SettingsView: View {
                     LabeledContent("Version", value: Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? "—")
                         .accessibilityIdentifier("App version")
                     LabeledContent("Build", value: Bundle.main.object(forInfoDictionaryKey:"CFBundleVersion") as? String ?? "—")
+                    Text("Aether procedural libraries · Portals / Ethan Mollick. Noncommercial experiment, CC BY-NC-SA 4.0.").font(.caption).foregroundStyle(FlightPalette.secondary)
                     DisclosureGroup("Planet imagery credits") {
                         Text("Earth: NASA/GSFC Scientific Visualization Studio, Reto Stockli and NASA Earth Observatory. Mars: NASA/JPL & Caltech, Viking imagery processed at USGS. Venus radar surface: NASA/JPL-Caltech. Jupiter: NASA/JPL/Space Science Institute. Procedural flight landscapes are artistic, not measured terrain.")
                             .font(.caption).foregroundStyle(FlightPalette.secondary)
@@ -161,6 +163,9 @@ struct SettingsView: View {
                         .accessibilityIdentifier("Game sound test status")
                     Text("Sound effects use media volume and can play in Silent Mode. The in-game sound switch and volume still control them.")
                         .font(.caption).foregroundStyle(FlightPalette.secondary)
+                    FlightSwitchRow("Aether experimental planet",isOn:$aetherPlanetEnabled).tint(FlightPalette.teal)
+                        .onChange(of:aetherPlanetEnabled) { _, enabled in if enabled { engine.prepareAetherPlanet() } }
+                    Text("Adds Aether Reach to Galaxy map & hyperspace. The complete region prepares before entry. Disabling hides new trips; an active expedition remains safe. Existing planets keep their original terrain.").font(.caption).foregroundStyle(FlightPalette.secondary)
                     FlightSwitchRow("Performance mode", isOn: $engine.settings.performanceMode)
                         .tint(FlightPalette.teal)
                     Text("For older devices: targets 30 flight updates per second, simplifies terrain, reduces clouds, uses a light glow on buttons and panels, and turns off HDR and grounding shadows. Turn this off for the full interface glow. Terrain changes apply when the next region is prepared.")

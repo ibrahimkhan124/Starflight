@@ -1,0 +1,56 @@
+# Provenance and distribution terms
+
+Aether is a noncommercial Swift graphics experiment. This repository, including
+adapted material, is distributed under CC BY-NC-SA 4.0; see [LICENSE](LICENSE).
+This is not an MIT-licensed toolkit. Preserve this notice and the licence when
+sharing adaptations. No commercial-use or App Store distribution clearance is claimed.
+
+## Portals adaptation
+
+Credit: **Portals — Ethan Mollick / emollick/ai-portals**.
+Snapshot: `210133f4e718acb7b461f2a40c90661a40a2397f`.
+Original: [terrain/material.js](https://github.com/emollick/ai-portals/blob/210133f4e718acb7b461f2a40c90661a40a2397f/src/kit/terrain/material.js).
+Original licence: [CC BY-NC-SA 4.0](https://github.com/emollick/ai-portals/blob/210133f4e718acb7b461f2a40c90661a40a2397f/LICENSE).
+
+| Aether component | Origin and changes |
+|---|---|
+| `TerrainSurface.weights` and `aetherWeights` | Adapted `FRAG_TERRAIN` rock/snow transitions: normal-Y rock exposure, macro perturbation and altitude/slope snow overlay. Removed mid/fine texture edge perturbations. Normalized final ground/rock/snow weights; new validated Swift inputs and explicit float4 ABI. |
+| `TerrainSurfaceRecipe` defaults | Rock/snow slope defaults, snow blend and roughness values informed by `makeTerrainMaterial` and `FRAG_ROUGH`; new colours and narrower scope. |
+| `aetherSurface` | Newly authored small composition around adapted masks; integer-lattice value detail/gradient and warped sinusoidal strata bands replace Portals textures, cellular kit and geology table. Not a translation of its full material. |
+| Core validation, Metal diagnostic runner, demo meshes/camera/lighting, tests | Newly authored for Aether. No Three.js, Portals world meshes/textures, Portals RNG/hash functions, GLSL noise helpers or art copied. SeededRandom uses the separately verified SplitMix64 recurrence; see THIRD-PARTY-NOTICES.md. |
+| `docs/assessment` | Original Phase 1 assessment, copied unchanged from Lifecycle commit `88c04236c4110930029b652ebedb19425fb5aacb`. Historical proposals and limits; current implementation status is in the root README. |
+
+New implementation changes dated 2026-11-13: Swift CPU reference, MSL adaptation,
+original fixtures and diagnostic host. The full Portals licence is included
+verbatim. Upstream third-party code with unresolved provenance is excluded.
+
+Engineering assessment only: licence boundaries and distribution packaging still
+need review before any public toolkit/game release. See the Phase 1 licensing
+assessment for the source audit and unresolved issues.
+
+## Native world milestone (2026-11-14)
+
+TerrainGrid, ValueNoise, FractalHeightField, TerrainScatter, RockArch,
+AtmosphereRecipe and the AppKit/MetalKit host are newly authored Aether work.
+Alpine Dawn, Ember Gorge and Jade Highlands are original compositions, not
+copies of particular Portals worlds. Their meshes and screenshots are generated
+by this repository. No external art or textures are used. The new surface detail
+field replaces the initial periodic wave fixture; the Portals-derived mask
+provenance and repository terms remain in force.
+
+## Hall of Light (2026-11-14)
+
+Reference inspected at the same pinned Portals commit above:
+[src/parts/million-mirrors.js](https://github.com/emollick/ai-portals/blob/210133f4e718acb7b461f2a40c90661a40a2397f/src/parts/million-mirrors.js) and
+[src/worlds/million-mirrors.js](https://github.com/emollick/ai-portals/blob/210133f4e718acb7b461f2a40c90661a40a2397f/src/worlds/million-mirrors.js).
+Credit Ethan Mollick / Portals for the mirror-hall concept and the shared
+analytical-room, tilted-facet, coloured-window and chandelier reflection strategy.
+Aether's Architecture.swift, OpticalMaterial.swift, Optics.metal, Bloom.metal
+and HallScene.swift are newly authored Swift/MSL implementations, with different
+geometry, patterns and layout; no line-for-line GLSL translation or source assets.
+Treat this inspiration/adaptation conservatively under the repository's existing
+CC BY-NC-SA 4.0 terms. No Three.js code, fauna, fonts, textures, noise helpers or
+other transitively imported Portals dependencies are bundled. No new external
+runtime dependencies. Standard Schlick/filmic formulae are newly expressed here;
+no third-party implementation is copied. This does not resolve the broader
+upstream provenance questions recorded in the licensing assessment.

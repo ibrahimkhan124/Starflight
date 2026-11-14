@@ -1968,3 +1968,62 @@ extension ScenicExpeditionIntegrationTests {
         XCTAssertLessThanOrEqual(abs(clouds.position.z),120)
     }
 }
+
+
+final class AetherPlanetIntegrationTests: XCTestCase {
+    func testPreparedGridMatchesContactAndHasBoundedCost() throws {
+        let asset = try AetherPlanet.prepared.get()
+        XCTAssertEqual(asset.grid.mesh.positions.count,193*193)
+        XCTAssertEqual(asset.grid.mesh.indices.count,192*192*6)
+        XCTAssertEqual(asset.pixels.count,512*512*4)
+        for (index,p) in asset.grid.mesh.positions.enumerated() where index.isMultiple(of:37) {
+            XCTAssertEqual(AetherPlanet.height(x:p.x,z:p.z),p.y,accuracy:0.02)
+            XCTAssertEqual(simd_length(asset.grid.mesh.normals[index]),1,accuracy:0.001)
+        }
+        let field = SolarLandscape(body:AetherPlanet.body)
+        let y = field.height(x:0,z:1200)
+        XCTAssertFalse(field.impact(from:[0,y+400,1200],to:[0,y+350,1200],radius:3))
+        XCTAssertTrue(field.impact(from:[0,y+100,1200],to:[0,y-20,1200],radius:3))
+        let center = AetherPlanet.archPosition(asset)
+        XCTAssertTrue(AetherPlanet.hitsArch(from:center+[0,300,200],to:center+[0,300,-200],radius:3))
+        XCTAssertFalse(AetherPlanet.hitsArch(from:center+[0,140,200],to:center+[0,140,-200],radius:3))
+    }
+    func testFlagControlsNewTravelWithoutChangingExistingWorlds() {
+        let defaults = UserDefaults.standard, old = defaults.object(forKey:"aetherPlanetEnabled")
+        defer { if let old { defaults.set(old,forKey:"aetherPlanetEnabled") } else { defaults.removeObject(forKey:"aetherPlanetEnabled") } }
+        defaults.set(false,forKey:"aetherPlanetEnabled")
+        var flight = UniverseFlight(), state = FlightState()
+        XCTAssertFalse(flight.begin(.surface(AetherPlanet.name),state:state))
+        XCTAssertTrue(flight.begin(.solarSystem,state:state))
+        for _ in 0..<601 { _ = flight.advanceJump(state:&state,dt:1/120) }
+        XCTAssertTrue(flight.begin(.surface("Earth"),state:state))
+        flight.cancel(state:&state)
+        defaults.set(true,forKey:"aetherPlanetEnabled")
+        XCTAssertTrue(flight.begin(.surface(AetherPlanet.name),state:state))
+        for _ in 0..<601 { _ = flight.advanceJump(state:&state,dt:1/120) }
+        XCTAssertEqual(flight.surfaceBody?.name,AetherPlanet.name)
+        XCTAssertGreaterThan(state.position.y-AetherPlanet.height(x:state.position.x,z:state.position.z),399)
+        XCTAssertTrue(flight.begin(.solarSystem,state:state))
+        for _ in 0..<601 { _ = flight.advanceJump(state:&state,dt:1/120) }
+        XCTAssertNil(flight.surfaceBody)
+        XCTAssertEqual(SolarBody.all.count,10,"Real Solar System list stays unchanged")
+    }
+    @MainActor
+    func testRealityKitBridgeKeepsBaselineGeometryAndUVs() throws {
+        let asset = try AetherPlanet.prepared.get()
+        for enhanced in [false,true] {
+            let root = try AetherPlanetRenderer.make(asset,enhanced:enhanced)
+            let ground = try XCTUnwrap(root.findEntity(named:"Aether triangle-aligned ground") as? ModelEntity)
+            let mesh = try XCTUnwrap(ground.model?.mesh)
+            var count = 0
+            for model in mesh.contents.models { for part in model.parts {
+                count += (part.triangleIndices?.count ?? 0)/3
+                XCTAssertEqual(part.positions.count,part.normals?.count)
+                XCTAssertEqual(part.positions.count,part.textureCoordinates?.count)
+            } }
+            XCTAssertEqual(count,192*192*2)
+            XCTAssertNotNil(root.findEntity(named:"Aether rock arch"))
+            XCTAssertEqual(root.children.count,3)
+        }
+    }
+}
