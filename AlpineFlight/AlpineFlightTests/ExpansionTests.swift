@@ -1936,6 +1936,9 @@ extension ScenicExpeditionIntegrationTests {
 
     @MainActor
     func testHomeExpeditionBindsShadersAndKeepsTerrainStableDuringFlight() throws {
+        let defaults=UserDefaults.standard,old=defaults.object(forKey:"aetherTatooineTerrainEnabled")
+        defaults.set(false,forKey:"aetherTatooineTerrainEnabled")
+        defer { if let old { defaults.set(old,forKey:"aetherTatooineTerrainEnabled") } else { defaults.removeObject(forKey:"aetherTatooineTerrainEnabled") } }
         let renderer = PlanetSurfaceRenderer(planet:.tatooine,reducedDetail:true)
         let terrain = renderer.root.children.compactMap { $0 as? ModelEntity }.filter { $0.name.hasPrefix("Terrain stratum") }
         XCTAssertFalse(terrain.isEmpty)
@@ -2127,5 +2130,39 @@ final class AetherWorldDetailTests:XCTestCase {
         } }
         XCTAssertLessThan(triangles,60000)
         XCTAssertEqual(root.children.count,4)
+    }
+}
+
+final class AetherSelectiveMigrationTests:XCTestCase {
+    func testEachWorldRetainsItsOwnTriangleContactAndPreparationCache() throws {
+        for planet:SpacePlanet in [.tatooine,.endor] {
+            let asset=try AetherHomeTerrain.prepared(for:planet).get(),surface=PlanetExploration(planet:planet)
+            XCTAssertEqual(asset.tiles.count,16)
+            for z in stride(from:Float(-12000),through:12000,by:311) { for x in stride(from:Float(-12000),through:12000,by:277) {
+                XCTAssertEqual(try XCTUnwrap(asset.height(x:x,z:z)),surface.groundHeight(x:x,z:z),accuracy:0.02)
+            } }
+            XCTAssertEqual(asset.grid.mesh.positions,try AetherHomeTerrain.prepared(for:planet).get().grid.mesh.positions)
+            for landmark in surface.landmarks { XCTAssertEqual(try XCTUnwrap(asset.height(x:landmark.position.x,z:landmark.position.z)),surface.groundHeight(x:landmark.position.x,z:landmark.position.z),accuracy:0.02) }
+        }
+        XCTAssertThrowsError(try AetherHomeTerrain.prepared(for:.coruscant).get())
+    }
+    @MainActor
+    func testIndependentWorldSwitchesPreserveSceneryAndFlightEntities() throws {
+        let defaults=UserDefaults.standard,keys=["aetherTatooineTerrainEnabled","aetherEndorTerrainEnabled"]
+        let old=keys.map { defaults.object(forKey:$0) }
+        defer { for (i,key) in keys.enumerated() { if let value=old[i] { defaults.set(value,forKey:key) } else { defaults.removeObject(forKey:key) } } }
+        for enabled in [false,true] {
+            defaults.set(enabled,forKey:keys[0]);defaults.set(!enabled,forKey:keys[1])
+            for planet:SpacePlanet in [.tatooine,.endor] {
+                let pilot=planet == .tatooine ? enabled:!enabled
+                let renderer=PlanetSurfaceRenderer(planet:planet,reducedDetail:true)
+                XCTAssertEqual(renderer.root.children.filter { $0.name.hasPrefix(planet.name+" Aether ground") }.count,pilot ? 16:0)
+                XCTAssertNotNil(renderer.root.findEntity(named:"Scout beacon 1"))
+                XCTAssertNotNil(renderer.root.findEntity(named:"District 0"))
+                let ids=renderer.root.children.map(\.id)
+                for i in 0..<120 { renderer.update(camera:[Float(i)*50,900,8400-Float(i)*40],dt:1/60,passed:0) }
+                XCTAssertEqual(renderer.root.children.map(\.id),ids)
+            }
+        }
     }
 }

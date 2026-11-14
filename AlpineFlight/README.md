@@ -721,3 +721,11 @@ corridors, and a native RealityKit custom-material study using Aether's prepared
 surface colours. **Settings → Sound & graphics → Aether Reach surface & scenery**
 controls it after restarting. See [stage-three notes](Docs/AetherStage3.md) for
 placement limits, renderer boundaries, comparisons and validation.
+
+### Stage-four selective home-world migration
+
+Tatooine and Endor now have independent Aether terrain switches alongside Hoth.
+They keep their original planet-expedition routes, collision heights and scenery.
+Restart after changing the switches, then visit through **Space free roam → Flight
+tools → Enter Tatooine / Enter Endor**. Authored story levels and Solar System
+surfaces retain their existing renderers. See [stage-four notes](Docs/AetherStage4.md).

@@ -20,11 +20,11 @@ enum AetherPlanetRenderer {
         descriptor.primitives = .triangles(source.indices)
         return try MeshResource.generate(from:[descriptor])
     }
-    static func hothTiles(_ asset:AetherHothTerrain.Prepared,reducedDetail:Bool) throws -> [ModelEntity] {
-        let material = ScenicMaterials.terrain(color:.white,kind:"snow",planet:"Hoth",continuous:true,reducedDetail:reducedDetail)
+    static func homeTiles(_ asset:AetherHomeTerrain.Prepared,planet:SpacePlanet,reducedDetail:Bool) throws -> [ModelEntity] {
+        let material = ScenicMaterials.terrain(color:.white,kind:planet == .tatooine ? "sand" : planet == .endor ? "moss":"snow",planet:planet.name,continuous:true,reducedDetail:reducedDetail)
         return try asset.tiles.map { tile in
-            let entity = ModelEntity(mesh:try mesh(tile.renderMesh,name:"Hoth Aether tile",worldUVScale:180),materials:[material])
-            entity.name = "Hoth Aether ground \(tile.x),\(tile.z)"
+            let entity = ModelEntity(mesh:try mesh(tile.renderMesh,name:planet.name+" Aether tile",worldUVScale:180),materials:[material])
+            entity.name = "\(planet.name) Aether ground \(tile.x),\(tile.z)"
             return entity
         }
     }

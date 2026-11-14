@@ -95,6 +95,29 @@ final class FlightUITests: XCTestCase {
         }
     }
 
+    @MainActor
+    func testSelectiveAetherWorldFlights() {
+        for pilot in [false,true] {
+            let app=XCUIApplication()
+            startUniverseFlight(app,extraArguments:["-aetherTatooineTerrainEnabled",pilot ? "YES":"NO","-aetherEndorTerrainEnabled",pilot ? "YES":"NO"])
+            for name in ["Tatooine","Endor"] {
+                app.buttons["Flight tools"].tap()
+                let enter=app.buttons["Enter "+name];revealStoryControl(enter,in:app);enter.tap()
+                XCTAssertTrue(app.buttons["Pause flight"].waitForExistence(timeout:15))
+                Thread.sleep(forTimeInterval:2)
+                capture(app,name:name+(pilot ? " Aether terrain":" legacy terrain"))
+                let throttle=app.sliders["Throttle"]
+                throttle.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).press(forDuration:0.1,thenDragTo:throttle.coordinate(withNormalizedOffset:CGVector(dx:0.62,dy:0.5)))
+                Thread.sleep(forTimeInterval:6)
+                XCTAssertTrue(app.buttons["Pause flight"].exists)
+                capture(app,name:name+(pilot ? " Aether flight":" legacy flight"))
+                app.buttons["Flight tools"].tap()
+                let orbit=app.buttons["Return to orbit"];revealStoryControl(orbit,in:app);orbit.tap()
+            }
+            app.terminate()
+        }
+    }
+
     /// Exercises normal travel and captures the nine scenery destinations accepted for this update.
     @MainActor
     func testScenicExpeditionTravelAndCaptures() { captureScenicExpeditions(includeHomePlanets: true) }

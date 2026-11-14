@@ -225,9 +225,9 @@ final class PlanetSurfaceRenderer {
         var scenery = [Batch(),Batch(),Batch()], lights = Batch(), accents = Batch(), signs = Batch(), violet = Batch(), trim = Batch(), foliage = Batch()
         // Prepare every section before publishing any of them. On failure keep
         // the complete legacy terrain rather than exposing a partially built region.
-        let aetherHoth:[ModelEntity]? = planet == .hoth && AetherHothTerrain.enabled
-            ? try? AetherPlanetRenderer.hothTiles(AetherHothTerrain.prepared.get(),reducedDetail:reducedDetail) : nil
-        if aetherHoth == nil {
+        let aetherTerrain:[ModelEntity]? = AetherHomeTerrain.enabled(for:planet)
+            ? try? AetherPlanetRenderer.homeTiles(AetherHomeTerrain.prepared(for:planet).get(),planet:planet,reducedDetail:reducedDetail) : nil
+        if aetherTerrain == nil {
         let row = PlanetExploration.grid+1
         var vertexGrid:[SIMD3<Float>] = [], normalGrid:[SIMD3<Float>] = []
         vertexGrid.reserveCapacity(row*row); normalGrid.reserveCapacity(row*row)
@@ -273,7 +273,7 @@ final class PlanetSurfaceRenderer {
             }
         }
         }
-        if let aetherHoth { for entity in aetherHoth { root.addChild(entity) } }
+        if let aetherTerrain { for entity in aetherTerrain { root.addChild(entity) } }
         let groundColors:[UIColor], colors:[UIColor]
         switch planet {
         case .coruscant:

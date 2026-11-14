@@ -3,12 +3,20 @@ import simd
 import ProceduralCore
 import ProceduralTerrain
 
-/// Stage-two pilot: retain Hoth's authored height recipe and diagonal exactly.
+/// Shared home-world pilots retain each original height recipe and diagonal.
 /// Reflecting X adapts Aether's opposite cell diagonal without changing contact.
-enum AetherHothTerrain {
-    static var enabled:Bool { AetherPlanet.flag("aetherHothTerrainEnabled") }
+enum AetherHomeTerrain {
+    static func enabled(for planet:SpacePlanet) -> Bool {
+        switch planet {
+        case .hoth:return AetherPlanet.flag("aetherHothTerrainEnabled")
+        case .tatooine:return AetherPlanet.flag("aetherTatooineTerrainEnabled")
+        case .endor:return AetherPlanet.flag("aetherEndorTerrainEnabled")
+        case .coruscant:return false
+        }
+    }
     struct Field:HeightField {
-        func height(at p:SIMD2<Float>) -> Float { PlanetExploration(planet:.hoth).vertexHeight(x:-p.x,z:p.y) }
+        let planet:SpacePlanet
+        func height(at p:SIMD2<Float>) -> Float { PlanetExploration(planet:planet).vertexHeight(x:-p.x,z:p.y) }
     }
     struct Tile:Sendable {
         let x:Int, z:Int
@@ -21,10 +29,20 @@ enum AetherHothTerrain {
         let tiles:[Tile]
         func height(x:Float,z:Float) -> Float? { grid.sample(at:[-x,z])?.position.y }
     }
-    static let prepared:Result<Prepared,Error> = Result { try build() }
-    static func build() throws -> Prepared {
+    private static let hoth:Result<Prepared,Error> = Result { try build(planet:.hoth) }
+    private static let tatooine:Result<Prepared,Error> = Result { try build(planet:.tatooine) }
+    private static let endor:Result<Prepared,Error> = Result { try build(planet:.endor) }
+    static func prepared(for planet:SpacePlanet) -> Result<Prepared,Error> {
+        switch planet {
+        case .hoth:return hoth
+        case .tatooine:return tatooine
+        case .endor:return endor
+        case .coruscant:return .failure(SurfaceError.invalidParameter("Coruscant keeps its city terrain"))
+        }
+    }
+    static func build(planet:SpacePlanet) throws -> Prepared {
         let extent = PlanetExploration.extent, n = PlanetExploration.grid, side = 40
-        let grid = try TerrainGrid.build(field:Field(),request:TerrainGridRequest(
+        let grid = try TerrainGrid.build(field:Field(planet:planet),request:TerrainGridRequest(
             bounds:WorldBounds(minimum:[-extent,-extent],maximum:[extent,extent]),cellsX:n,cellsZ:n))
         let row = n+1
         var tiles:[Tile] = []
@@ -56,4 +74,12 @@ enum AetherHothTerrain {
         } }
         return Prepared(grid:grid,tiles:tiles)
     }
+}
+
+/// Compatibility facade for the stage-two pilot and its regression fixtures.
+enum AetherHothTerrain {
+    typealias Prepared = AetherHomeTerrain.Prepared
+    static var enabled:Bool { AetherHomeTerrain.enabled(for:.hoth) }
+    static var prepared:Result<Prepared,Error> { AetherHomeTerrain.prepared(for:.hoth) }
+    static func build() throws -> Prepared { try AetherHomeTerrain.build(planet:.hoth) }
 }
