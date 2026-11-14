@@ -310,7 +310,7 @@ final class GameEngine: ObservableObject {
     }
 
     init(defaults: UserDefaults = .standard) {
-        account = StarflightAccount(defaults:defaults)
+        account = StarflightAccount(defaults:defaults,restoreSession:AetherReleaseValidation.configuration == nil)
         let pilotStore = PilotLogbookStore(defaults:defaults)
         self.pilotStore = pilotStore
         self.pilotBook = pilotStore.recover()
@@ -865,6 +865,8 @@ final class GameEngine: ObservableObject {
     }
 
     private func rebuildWorld() {
+        let diagnosticStart = AetherReleaseProbe.shared == nil ? 0 : CACurrentMediaTime()
+        defer { AetherReleaseProbe.shared?.event("worldConstructionSeconds",seconds:CACurrentMediaTime()-diagnosticStart) }
         world?.terrain.stop()
         world?.anchor.removeFromParent()
         world = nil
@@ -967,6 +969,9 @@ final class GameEngine: ObservableObject {
 
     func pause() {
         guard phase == .flying else { return }
+        if let probe = AetherReleaseProbe.shared {
+            probe.interruption("Pause requested: " + Thread.callStackSymbols.prefix(10).joined(separator:" | "))
+        }
         phase = .paused
         refreshPilotProgress()
         bankFlightRewards()
@@ -1001,6 +1006,7 @@ final class GameEngine: ObservableObject {
     }
 
     func setActive(_ active: Bool) {
+        AetherReleaseProbe.shared?.interruption(active ? "App became active":"App became inactive/backgrounded")
         suspended = !active
         if !active { pause(); motion.stop(); hand.stop(); audio.update(throttle: 0, enabled: false, flying: false) }
 #if os(macOS)
@@ -1271,6 +1277,8 @@ final class GameEngine: ObservableObject {
 
     fileprivate func frame(_ timestamp: CFTimeInterval) {
         guard !suspended, let world else { return }
+        let diagnosticStart = AetherReleaseProbe.shared == nil ? 0 : CACurrentMediaTime()
+        defer { AetherReleaseProbe.shared?.frame(at:diagnosticStart,workMS:(CACurrentMediaTime()-diagnosticStart)*1000) }
         let dt = lastTimestamp == 0 ? Float(1 / 60.0) : clamp(Float(timestamp - lastTimestamp), 0, 0.1)
         lastTimestamp = timestamp
         if !ready {
@@ -1753,6 +1761,103 @@ final class GameEngine: ObservableObject {
         if hyperspace.surfacePlanet == .coruscant || cityJobs.active != nil { cityJobs = cityJobState }
         if hyperspace.surfacePlanet == .coruscant || homeLanding.plot != nil { homeLanding = homeDock }
         if hyperspace.surfacePlanet == .coruscant || bounty.contract != nil { bounty = bountyState }
+    }
+}
+
+// MARK: Explicit local release check (never starts during ordinary play)
+extension GameEngine {
+    func runAetherReleaseCheck() async {
+        guard let initial = AetherReleaseValidation.configuration else { return }
+        guard initial.comparison else { await runSingleAetherReleaseCheck(); return }
+        let defaults = UserDefaults.standard
+        let originalArguments = defaults.volatileDomain(forName:UserDefaults.argumentDomain)
+        defer { defaults.setVolatileDomain(originalArguments,forName:UserDefaults.argumentDomain) }
+        for candidate in [false,true] {
+            var flags = originalArguments
+            for key in ["aetherHothTerrainEnabled","aetherTatooineTerrainEnabled","aetherEndorTerrainEnabled","aetherSurfaceEnabled"] {
+                flags[key] = candidate ? "YES":"NO"
+            }
+            defaults.setVolatileDomain(flags,forName:UserDefaults.argumentDomain)
+            if candidate {
+                AetherReleaseProbe.shared = AetherReleaseProbe(configuration:.init(candidate:true,performanceMode:initial.performanceMode,seconds:initial.seconds,passes:initial.passes))
+                returnToTitle(); rebuildWorld()
+            }
+            AetherReleaseProbe.shared?.interruption("Paired in-process comparison; immutable CPU caches may remain warm between variants.")
+            await runSingleAetherReleaseCheck()
+            guard AetherReleaseProbe.shared?.report.status == "completed" else { return }
+        }
+    }
+    private func runSingleAetherReleaseCheck() async {
+        guard let probe = AetherReleaseProbe.shared else { return }
+        let startup = CACurrentMediaTime()
+        func waitFor(_ predicate: () -> Bool, timeout: Double = 120) async throws {
+            let deadline = CACurrentMediaTime()+timeout
+            while !predicate() {
+                try Task.checkCancellation()
+                if CACurrentMediaTime() > deadline { throw CocoaError(.executableNotLoadable) }
+                try await Task.sleep(for:.milliseconds(100))
+            }
+        }
+        func fly(_ name: String) async throws {
+            // Identical safe scenario in both variants. Controls and physics run
+            // normally after this initial placement; no per-frame teleporting.
+            state.position.y = 2400
+            state.velocity = [0,0,-aircraft.cruiseSpeed*0.55]
+            state.pitch = 0; state.roll = 0; state.heading = 0
+            throttle = 0.4
+            setDroidAssist(.altitude)
+            try await Task.sleep(for:.seconds(2))
+            probe.begin(name)
+            let deadline = CACurrentMediaTime()+probe.configuration.seconds
+            while CACurrentMediaTime() < deadline {
+                try await Task.sleep(for:.milliseconds(250))
+                guard phase == .flying else {
+                    probe.end(outcome:"interrupted: \(phase) \(crashCause ?? "")")
+                    throw CocoaError(.userCancelled)
+                }
+            }
+            probe.end(outcome:"flying")
+            setDroidAssist(.off)
+        }
+        do {
+            try await waitFor { ready && AetherPlanetRenderer.ready && !suspended }
+            probe.event("startupUntilReadySeconds",seconds:CACurrentMediaTime()-startup)
+            start()
+            guard phase == .flying else { throw CocoaError(.executableNotLoadable) }
+            for pass in 1...probe.configuration.passes {
+                for planet in [SpacePlanet.hoth,.tatooine,.endor] {
+                    probe.begin("\(planet.name) entry \(pass)")
+                    enterPlanetSurface(planet)
+                    try await Task.sleep(for:.seconds(2))
+                    guard currentSurfacePlanet == planet else { throw CocoaError(.executableNotLoadable) }
+                    probe.end(outcome:"entered")
+                    try await fly("\(planet.name) flight \(pass)")
+                    probe.begin("\(planet.name) orbit \(pass)")
+                    returnToPlanetOrbit()
+                    try await Task.sleep(for:.seconds(2))
+                    guard currentSurfacePlanet == nil else { throw CocoaError(.executableNotLoadable) }
+                    probe.end(outcome:"returned")
+                }
+            }
+            // Exercise actual five-second jump cancellation before a real entry.
+            engageUniverseJump(.surface(AetherPlanet.name))
+            try await Task.sleep(for:.milliseconds(600))
+            cancelUniverseJump()
+            guard currentSolarSurface == nil,!galaxyJumpActive else { throw CocoaError(.executableNotLoadable) }
+            probe.event("cancelledJumpPreservedOrbit",seconds:1)
+            engageUniverseJump(.surface(AetherPlanet.name))
+            try await waitFor({ currentSolarSurface?.name == AetherPlanet.name && !galaxyJumpActive },timeout:20)
+            try await fly("Aether Reach flight")
+            engageUniverseJump(.solarSystem)
+            try await waitFor({ currentSolarSurface == nil && !galaxyJumpActive },timeout:20)
+            probe.event("aetherReachReturnedToOrbit",seconds:1)
+            pause()
+            probe.finish("completed")
+        } catch {
+            probe.end(outcome:"cancelled or failed")
+            probe.finish(error is CancellationError ? "cancelled":"failed: \(error.localizedDescription)")
+            pause()
+        }
     }
 }
 

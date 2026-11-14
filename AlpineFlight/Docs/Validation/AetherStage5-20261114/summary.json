@@ -1,0 +1,36 @@
+{
+  "baseline-30": {
+    "flights": 7,
+    "flightP95CallbackMSRange": [
+      51,
+      67
+    ],
+    "flightP95CPUWorkMSMaximum": 9,
+    "flightFootprintMBRange": [
+      674.3303146362305,
+      704.8459396362305
+    ],
+    "peakFootprintMB": 770.8771896362305,
+    "warmOrbitGrowthMB": 5.21875,
+    "worstThermalState": 1,
+    "memoryWarnings": 0,
+    "preparationUpperBoundSeconds": 5.587628333320026
+  },
+  "candidate-30": {
+    "flights": 7,
+    "flightP95CallbackMSRange": [
+      51,
+      67
+    ],
+    "flightP95CPUWorkMSMaximum": 10,
+    "flightFootprintMBRange": [
+      751.0024185180664,
+      753.7992935180664
+    ],
+    "peakFootprintMB": 804.8930435180664,
+    "warmOrbitGrowthMB": -1.828125,
+    "worstThermalState": 1,
+    "memoryWarnings": 0,
+    "preparationUpperBoundSeconds": 2.022210958355572
+  }
+}

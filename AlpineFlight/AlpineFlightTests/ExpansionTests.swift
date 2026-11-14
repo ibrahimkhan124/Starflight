@@ -2133,6 +2133,44 @@ final class AetherWorldDetailTests:XCTestCase {
     }
 }
 
+final class AetherReleaseValidationTests:XCTestCase {
+    @MainActor
+    func testAbandonedUniverseOwnerCannotPublishPreparedAetherScene() async {
+        let oldReady = AetherPlanetRenderer.ready, oldFailure = AetherPlanetRenderer.failure
+        defer { AetherPlanetRenderer.ready = oldReady; AetherPlanetRenderer.failure = oldFailure }
+        var owner:UniverseRenderer? = UniverseRenderer()
+        weak var abandoned = owner
+        // Let asynchronous CPU preparation begin, then abandon its scene owner.
+        await Task.yield()
+        owner = nil
+        XCTAssertNil(abandoned,"Preparation must not keep an abandoned scene alive")
+        AetherPlanetRenderer.ready = false; AetherPlanetRenderer.failure = nil
+        try? await Task.sleep(for:.milliseconds(200))
+        XCTAssertFalse(AetherPlanetRenderer.ready,"An abandoned owner cannot publish stale readiness")
+        XCTAssertNil(AetherPlanetRenderer.failure)
+    }
+    func testDiagnosticsRequireBothExplicitArgumentsAndKnownVariant() {
+        typealias Config = AetherReleaseValidation.Configuration
+        XCTAssertNil(Config.read(environment:[:],arguments:["--aether-release-check"]))
+        XCTAssertNil(Config.read(environment:["STARFLIGHT_AETHER_VALIDATION":"candidate"],arguments:[]))
+        XCTAssertNil(Config.read(environment:["STARFLIGHT_AETHER_VALIDATION":"invalid"],arguments:["--aether-release-check"]))
+        let config = Config.read(environment:["STARFLIGHT_AETHER_VALIDATION":"baseline","STARFLIGHT_AETHER_SECONDS":"nan","STARFLIGHT_AETHER_PASSES":"999"],arguments:["--aether-release-check"])
+        XCTAssertEqual(config?.seconds,45);XCTAssertEqual(config?.passes,5);XCTAssertEqual(config?.name,"baseline-30")
+        let paired = Config.read(environment:["STARFLIGHT_AETHER_VALIDATION":"comparison"],arguments:["--aether-release-check"])
+        XCTAssertEqual(paired?.comparison,true);XCTAssertEqual(paired?.candidate,false,"A paired check must start with the original terrain")
+    }
+    func testBoundedSamplingRetainsLargeStallsAndRejectsInvalidIntervals() {
+        var samples = AetherReleaseValidation.Histogram()
+        for _ in 0..<100_000 { samples.add(milliseconds:33.333) }
+        samples.add(milliseconds:2500);samples.add(milliseconds:.nan);samples.add(milliseconds:-1)
+        XCTAssertEqual(samples.count,100_001)
+        XCTAssertEqual(samples.bins.count,2001)
+        XCTAssertEqual(samples.maximum,2500)
+        XCTAssertEqual(samples.percentile(0.95),34)
+        XCTAssertEqual(samples.percentile(1),2000,"Overflow bucket must keep the long stall, not drop it")
+    }
+}
+
 final class AetherSelectiveMigrationTests:XCTestCase {
     func testEachWorldRetainsItsOwnTriangleContactAndPreparationCache() throws {
         for planet:SpacePlanet in [.tatooine,.endor] {

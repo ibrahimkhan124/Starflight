@@ -729,3 +729,13 @@ They keep their original planet-expedition routes, collision heights and scenery
 Restart after changing the switches, then visit through **Space free roam → Flight
 tools → Enter Tatooine / Enter Endor**. Authored story levels and Solar System
 surfaces retain their existing renderers. See [stage-four notes](Docs/AetherStage4.md).
+
+### Stage-five device validation
+
+The local Aether release check can compare original and Aether terrain in one
+session on a paired phone, using isolated progress and no account connection.
+It records bounded callback/update timing, physical footprint, thermal state,
+scene transitions and interruptions. Normal play does not enable diagnostics.
+See [stage-five instructions and release decision](Docs/AetherStage5.md) and the
+saved [validation evidence](Docs/Validation/AetherStage5-20261114/evidence.json).
+Display-link timing is not a measurement of GPU-presented frame rate.

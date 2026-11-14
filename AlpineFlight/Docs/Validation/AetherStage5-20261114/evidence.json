@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-14",
+  "sourceBaseline": "c78517e13687f1df9b001f58f925c38871d6a4b6",
+  "aetherRevision": "2a5f844f316228771fbb713017de21c50f6e172d",
+  "deviceExecutableSHA256": "a47f0a39ef517ecc38367eb5292a0ac2305c201cf009415044337d39eebbb05a",
+  "configuration": "Release, balanced, 30 Hz target, stock Kestrel, clear weather, 40 percent throttle, altitude assist at 2400 m",
+  "physicalRun": "paired in-process comparison; two 20 second flights per home world plus one 20 second Aether Reach flight per variant",
+  "unitTests": {
+    "count": 25,
+    "failures": 0,
+    "resultBundle": "/tmp/Starflight-Stage5-Final-Validation.xcresult"
+  },
+  "dependencyTests": {
+    "count": 19,
+    "failures": 0,
+    "host": "macOS"
+  },
+  "builds": {
+    "iOSDevice": "Release signed, signature verified",
+    "MacCatalyst": "Debug passed",
+    "iOSSimulator": "Debug build-for-testing passed"
+  },
+  "physicalIPad": "not measured: developer disk image could not be mounted on Bullet Pad",
+  "GPU": "Not measured. An earlier profiler attachment targeted a process that had exited; it produced no usable flight trace.",
+  "interruptedRuns": "Excluded from the completed comparison. An interrupted readiness wait of 64 seconds must not be attributed to terrain preparation.",
+  "privacy": "No user account, password, device serial/UDID, cloud save or player progression included.",
+  "initialLongBaselineExecutableSHA256": "9a7bf2f2d1f043c178b32a22efc11d8e3b57b8ea6c2d209fe28ddb77c37419db",
+  "initialLongBaselineNote": "Supporting earlier 45-second-window run, before paired-run diagnostic hardening; not mixed into the paired numeric comparison.",
+  "pairedRunID": "0ae3cb99-4a1f-4cd6-abca-ce338a2d422f",
+  "completedPhysicalFlights": 14,
+  "decision": "REVISE \u2014 retain private experiment; wider rollout not approved"
+}

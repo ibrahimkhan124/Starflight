@@ -2,7 +2,7 @@ import SwiftUI
 import RealityKit
 
 struct GameView: View {
-    @StateObject private var engine = GameEngine()
+    @StateObject private var engine = GameEngine(defaults:AetherReleaseValidation.defaults())
     @Environment(\.scenePhase) private var scenePhase
     @State private var showIntro = true
     @State private var inspectHangar = false
@@ -32,7 +32,7 @@ struct GameView: View {
 #endif
     }
 
-    private var keepsScreenAwake: Bool { scenePhase == .active && (engine.phase == .flying || engine.interiorHome != nil) }
+    private var keepsScreenAwake: Bool { scenePhase == .active && (engine.phase == .flying || engine.interiorHome != nil || AetherReleaseValidation.configuration != nil) }
 
     private func openPendingShortcut() {
         guard let shortcut = pendingShortcut else { return }
@@ -261,6 +261,15 @@ struct GameView: View {
             updateScreenIdleTimer(keepAwake)
         }
         .onDisappear { updateScreenIdleTimer(false) }
+        .onReceive(NotificationCenter.default.publisher(for:UIApplication.didReceiveMemoryWarningNotification)) { _ in
+            AetherReleaseProbe.shared?.memoryWarning()
+        }
+        .task {
+            if AetherReleaseValidation.configuration != nil {
+                showIntro = false
+                await engine.runAetherReleaseCheck()
+            }
+        }
         .onChange(of: scenePhase) { _, phase in
             // System permission sheets temporarily make the app inactive. Let the
             // requested microphone authorization finish; backgrounding still stops it.

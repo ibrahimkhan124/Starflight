@@ -176,11 +176,13 @@ final class UniverseRenderer {
         if AetherPlanet.enabled {
             AetherPlanetRenderer.ready = false
             aetherPreparation = Task { [weak self] in
+                let diagnosticStart = AetherReleaseProbe.shared == nil ? 0 : CACurrentMediaTime()
                 let result = await Task.detached(priority:.userInitiated) { AetherPlanet.prepared }.value
                 guard !Task.isCancelled, let self else { return }
                 do {
                     self.aetherWorld = try AetherPlanetRenderer.make(result.get(),enhanced:AetherPlanet.flag("aetherSurfaceEnabled"))
                     AetherPlanetRenderer.failure = nil; AetherPlanetRenderer.ready = true
+                    AetherReleaseProbe.shared?.event("aetherReachPreparationSeconds",seconds:CACurrentMediaTime()-diagnosticStart)
                 } catch { AetherPlanetRenderer.failure = error.localizedDescription }
             }
         }

@@ -119,6 +119,7 @@
 		AF1413000000000000000001 = {isa = PBXBuildFile; fileRef = AF1413000000000000000002; };
 		AF1414000000000000000001 = {isa = PBXBuildFile; fileRef = AF1414000000000000000002; };
 		AF1414000000000000000003 = {isa = PBXBuildFile; productRef = AF1414000000000000000004; };
+		AF1415000000000000000001 = {isa = PBXBuildFile; fileRef = AF1415000000000000000002; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -272,6 +273,7 @@
 		AF1412010000000000000002 /* AetherPlanetRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlight/Rendering/AetherPlanetRenderer.swift; sourceTree = "<group>"; };
 		AF1413000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlight/Rendering/AetherHothTerrain.swift; sourceTree = "<group>"; };
 		AF1414000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlight/Rendering/AetherWorldDetails.swift; sourceTree = "<group>"; };
+		AF1415000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlight/App/AetherReleaseValidation.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -394,6 +396,7 @@
 				AF1412010000000000000002,
 				AF1413000000000000000002,
 				AF1414000000000000000002,
+				AF1415000000000000000002,
 				AF1412000000000000000002,
 				AE1411020000000000000002 /* PlanetShaders.metal */,
 				AE1411010000000000000002 /* PlanetLighting.swift */,
@@ -692,6 +695,7 @@
 				AF1412010000000000000001,
 				AF1413000000000000000001,
 				AF1414000000000000000001,
+				AF1415000000000000000001,
 				AF1412000000000000000001,
 				AE1411020000000000000001 /* PlanetShaders.metal in Sources */,
 				AE1411010000000000000001 /* PlanetLighting.swift in Sources */,
