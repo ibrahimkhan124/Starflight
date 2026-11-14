@@ -1,3 +1,4 @@
+import ProceduralCore
 import XCTest
 import RealityKit
 import AVFoundation
@@ -2049,22 +2050,25 @@ final class AetherHothPilotTests:XCTestCase {
         XCTAssertEqual(asset.tiles.count,16)
         var seen:[SIMD2<Float>:(Float,SIMD3<Float>)] = [:], duplicates = 0, triangles = 0
         for tile in asset.tiles {
-            XCTAssertEqual(tile.mesh.positions.count,41*41)
-            triangles += tile.mesh.indices.count/3+tile.skirt.indices.count/3
-            for (i,p) in tile.mesh.positions.enumerated() {
-                let key = SIMD2(p.x,p.z), n = tile.mesh.normals[i]
+            let combined = tile.renderMesh, topVertices = 41*41, topIndices = 40*40*6
+            let top = try MeshData(positions:Array(combined.positions.prefix(topVertices)),normals:Array(combined.normals.prefix(topVertices)),indices:Array(combined.indices.prefix(topIndices)))
+            let skirt = try MeshData(positions:Array(combined.positions.dropFirst(topVertices)),normals:Array(combined.normals.dropFirst(topVertices)),indices:combined.indices.dropFirst(topIndices).map { $0-UInt32(topVertices) })
+            XCTAssertEqual(top.positions.count,41*41)
+            triangles += top.indices.count/3+skirt.indices.count/3
+            for (i,p) in top.positions.enumerated() {
+                let key = SIMD2(p.x,p.z), n = top.normals[i]
                 if let other = seen[key] {
                     duplicates += 1; XCTAssertEqual(p.y,other.0); XCTAssertEqual(n,other.1)
                 } else { seen[key] = (p.y,n) }
                 XCTAssertEqual(simd_length(n),1,accuracy:0.001)
             }
-            for i in stride(from:0,to:tile.mesh.indices.count,by:3) {
-                let ids = tile.mesh.indices[i..<i+3].map(Int.init)
-                let a = tile.mesh.positions[ids[0]], b = tile.mesh.positions[ids[1]], c = tile.mesh.positions[ids[2]]
+            for i in stride(from:0,to:top.indices.count,by:3) {
+                let ids = top.indices[i..<i+3].map(Int.init)
+                let a = top.positions[ids[0]], b = top.positions[ids[1]], c = top.positions[ids[2]]
                 XCTAssertGreaterThan(simd_cross(b-a,c-a).y,0)
             }
-            for i in stride(from:0,to:tile.skirt.positions.count,by:4) {
-                XCTAssertEqual(tile.skirt.positions[i].y-tile.skirt.positions[i+3].y,140,accuracy:0.001)
+            for i in stride(from:0,to:skirt.positions.count,by:4) {
+                XCTAssertEqual(skirt.positions[i].y-skirt.positions[i+3].y,140,accuracy:0.001)
             }
         }
         XCTAssertGreaterThan(duplicates,900)

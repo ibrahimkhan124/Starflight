@@ -20,8 +20,7 @@ enum AetherHomeTerrain {
     }
     struct Tile:Sendable {
         let x:Int, z:Int
-        let mesh:MeshData
-        let skirt:MeshData
+        // Keep one upload payload rather than retaining duplicate top/skirt arrays.
         let renderMesh:MeshData
     }
     struct Prepared:Sendable {
@@ -68,9 +67,7 @@ enum AetherHomeTerrain {
                 si += [base,base+2,base+1,base,base+3,base+2]
             } }
             let offset = UInt32(positions.count)
-            tiles.append(Tile(x:tx,z:tz,mesh:try MeshData(positions:positions,normals:normals,indices:indices),
-                skirt:try MeshData(positions:sp,normals:sn,indices:si),
-                renderMesh:try MeshData(positions:positions+sp,normals:normals+sn,indices:indices+si.map { $0+offset })))
+            tiles.append(Tile(x:tx,z:tz,renderMesh:try MeshData(positions:positions+sp,normals:normals+sn,indices:indices+si.map { $0+offset })))
         } }
         return Prepared(grid:grid,tiles:tiles)
     }
