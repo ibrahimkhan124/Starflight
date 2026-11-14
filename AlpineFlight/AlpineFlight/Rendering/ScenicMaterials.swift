@@ -98,6 +98,9 @@ enum ScenicMaterials {
         return shader("starflight_ground", base: paint, settings: [code, planetCode(planet), continuous ? 1 : 0, reducedDetail ? 1 : 0])
     }
 
+    static func aetherSurface(_ base:PhysicallyBasedMaterial) -> any RealityKit.Material {
+        shader("starflight_aether_surface",base:base,settings:[0.28,0,0,0])
+    }
     static func water(color: UIColor, planet: String = "Earth") -> any RealityKit.Material {
         var paint = PhysicallyBasedMaterial(); paint.baseColor = .init(tint: color)
         paint.roughness = .init(floatLiteral: 0.17); paint.specular = .init(floatLiteral: 0.95)

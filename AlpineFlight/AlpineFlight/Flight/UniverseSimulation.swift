@@ -390,6 +390,8 @@ struct SolarLandscape {
     }()
     var scenerySolids:[ScenicSolid] { Self.scenicSolidCache[body.name] ?? [] }
     func impact(from a:SIMD3<Float>,to b:SIMD3<Float>,radius:Float) -> Bool {
+        if body.name == AetherPlanet.name, AetherWorldDetails.enabled, let asset = try? AetherPlanet.prepared.get(),
+           AetherWorldDetails.hits(from:a,to:b,radius:radius,placements:asset.scatter.placements) { return true }
         if body.name == AetherPlanet.name, AetherPlanet.hitsArch(from:a,to:b,radius:radius) { return true }
         guard !body.isCloudWorld else { return b.y < -400 }
         if scenerySolids.contains(where:{ $0.hits(from:a,to:b,radius:radius) }) { return true }

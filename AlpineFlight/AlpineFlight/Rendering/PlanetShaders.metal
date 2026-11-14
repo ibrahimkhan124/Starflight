@@ -171,3 +171,21 @@ float3 sfGround(int body,float3 pos,float3 n,float macro) {
     float bump=(grain-.5)*fine*.13;
     s.set_normal(normalize(float3(bump,-bump*.7,1)));
 }
+
+// Aether CPU TerrainSurface reflectance map -> RealityKit PBR adapter.
+// Detail is app-owned; the library's direct-Metal renderer is not imported.
+[[visible]] void starflight_aether_surface(realitykit::surface_parameters p) {
+    float3 pos=p.geometry().world_position();
+    float pixel=max(length(dfdx(pos)),length(dfdy(pos)));
+    float fade=1-smoothstep(.5,9.0,pixel);
+    float grain=sfFbm(pos*.19,2);
+    float3 rgb=float3(p.textures().base_color().sample(sfRepeat,float2(p.geometry().uv0().x,1-p.geometry().uv0().y)).rgb);
+    rgb*=mix(1.0,.88+.24*grain,fade);
+    float e=.35;
+    float dx=sfNoise((pos+float3(e,0,0))*.19)-sfNoise((pos-float3(e,0,0))*.19);
+    float dz=sfNoise((pos+float3(0,0,e))*.19)-sfNoise((pos-float3(0,0,e))*.19);
+    p.surface().set_base_color(half3(rgb));
+    p.surface().set_normal(normalize(float3(-dx*fade,-dz*fade,1)));
+    p.surface().set_roughness(half(.82+.12*grain));
+    p.surface().set_metallic(0);p.surface().set_specular(.24);
+}

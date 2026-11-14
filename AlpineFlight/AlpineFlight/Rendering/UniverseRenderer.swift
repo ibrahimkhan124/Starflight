@@ -179,7 +179,7 @@ final class UniverseRenderer {
                 let result = await Task.detached(priority:.userInitiated) { AetherPlanet.prepared }.value
                 guard !Task.isCancelled, let self else { return }
                 do {
-                    self.aetherWorld = try AetherPlanetRenderer.make(result.get(),enhanced:UserDefaults.standard.object(forKey:"aetherSurfaceEnabled") as? Bool ?? true)
+                    self.aetherWorld = try AetherPlanetRenderer.make(result.get(),enhanced:AetherPlanet.flag("aetherSurfaceEnabled"))
                     AetherPlanetRenderer.failure = nil; AetherPlanetRenderer.ready = true
                 } catch { AetherPlanetRenderer.failure = error.localizedDescription }
             }

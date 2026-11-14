@@ -4,6 +4,7 @@ import ProceduralCore
 import ProceduralTerrain
 import ProceduralGeometry
 import ProceduralSurface
+import ProceduralPlacement
 
 /// App-owned composition. Aether supplies neutral geometry and CPU surface masks;
 /// Starflight still owns travel, physics, camera, collisions and RealityKit lighting.
@@ -11,13 +12,17 @@ enum AetherPlanet {
     static let name = "Aether Reach"
     static let seed: UInt64 = 73142
     static let extent: Float = 14000
-    static var enabled: Bool { UserDefaults.standard.object(forKey:"aetherPlanetEnabled") as? Bool ?? true }
+    static func flag(_ key:String,defaults:UserDefaults = .standard) -> Bool {
+        defaults.object(forKey:key) == nil ? true : defaults.bool(forKey:key)
+    }
+    static var enabled: Bool { flag("aetherPlanetEnabled") }
     static let body = SolarBody(name:name,radius:65,position:[3400,0,-5200],tint:[0.20,0.65,0.53])
     struct Prepared: Sendable {
         let grid: TerrainGrid
         let arch: MeshData
         let pixels: [UInt8]
         let textureSize: Int
+        let scatter:ScatterResult
     }
     /// One immutable bounded asset, evaluated during preparation, never per frame.
     static let prepared: Result<Prepared,Error> = Result { try build() }
@@ -91,6 +96,6 @@ enum AetherPlanet {
                 }
             }
         }
-        return Prepared(grid:grid,arch:arch,pixels:pixels,textureSize:size)
+        return Prepared(grid:grid,arch:arch,pixels:pixels,textureSize:size,scatter:try AetherWorldDetails.scatter(on:grid))
     }
 }

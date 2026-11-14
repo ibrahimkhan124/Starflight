@@ -6,7 +6,7 @@ import ProceduralTerrain
 /// Stage-two pilot: retain Hoth's authored height recipe and diagonal exactly.
 /// Reflecting X adapts Aether's opposite cell diagonal without changing contact.
 enum AetherHothTerrain {
-    static var enabled:Bool { UserDefaults.standard.object(forKey:"aetherHothTerrainEnabled") as? Bool ?? true }
+    static var enabled:Bool { AetherPlanet.flag("aetherHothTerrainEnabled") }
     struct Field:HeightField {
         func height(at p:SIMD2<Float>) -> Float { PlanetExploration(planet:.hoth).vertexHeight(x:-p.x,z:p.y) }
     }

@@ -2023,7 +2023,7 @@ final class AetherPlanetIntegrationTests: XCTestCase {
             } }
             XCTAssertEqual(count,192*192*2)
             XCTAssertNotNil(root.findEntity(named:"Aether rock arch"))
-            XCTAssertEqual(root.children.count,3)
+            XCTAssertEqual(root.children.count,AetherWorldDetails.enabled ? 4:3)
         }
     }
 }
@@ -2082,5 +2082,50 @@ final class AetherHothPilotTests:XCTestCase {
             for i in 0..<180 { renderer.update(camera:[Float(i)*30,800,8400-Float(i)*30],dt:1/60,passed:0) }
             XCTAssertEqual(renderer.root.children.map(\.id),ids)
         }
+    }
+}
+
+final class AetherWorldDetailTests:XCTestCase {
+    func testComparisonFlagsAcceptLaunchArgumentStrings() {
+        let defaults=UserDefaults(suiteName:UUID().uuidString)!
+        defaults.setVolatileDomain(["aetherSurfaceEnabled":"NO"],forName:UserDefaults.argumentDomain)
+        XCTAssertFalse(AetherPlanet.flag("aetherSurfaceEnabled",defaults:defaults))
+        defaults.setVolatileDomain(["aetherSurfaceEnabled":"YES"],forName:UserDefaults.argumentDomain)
+        XCTAssertTrue(AetherPlanet.flag("aetherSurfaceEnabled",defaults:defaults))
+    }
+    func testScatterIsRepeatableGroundedAndProtectsFlightSpace() throws {
+        let asset=try AetherPlanet.prepared.get(), repeated=try AetherWorldDetails.scatter(on:asset.grid)
+        XCTAssertEqual(asset.scatter.placements,repeated.placements)
+        XCTAssertGreaterThan(asset.scatter.placements.count,300)
+        XCTAssertLessThanOrEqual(asset.scatter.attempts,9000)
+        let surface=AetherWorldDetails.ProtectedSurface(grid:asset.grid)
+        for item in asset.scatter.placements {
+            XCTAssertTrue(surface.isClear([item.position.x,item.position.z]))
+            XCTAssertEqual(item.position.y,try XCTUnwrap(asset.grid.sample(at:[item.position.x,item.position.z])).position.y,accuracy:0.01)
+        }
+        let item=try XCTUnwrap(asset.scatter.placements.first), center=item.position+SIMD3<Float>(0,25,0)
+        XCTAssertTrue(AetherWorldDetails.hits(from:center-[200,0,0],to:center+[200,0,0],radius:4,placements:[item]))
+        XCTAssertFalse(AetherWorldDetails.hits(from:center+[0,300,0],to:center+[200,300,0],radius:4,placements:[item]))
+    }
+    @MainActor
+    func testCustomSurfaceBindsAndSceneryStaysBatched() throws {
+        let asset=try AetherPlanet.prepared.get(),root=try AetherPlanetRenderer.make(asset)
+        let ground=try XCTUnwrap(root.findEntity(named:"Aether triangle-aligned ground") as? ModelEntity)
+        XCTAssertTrue(ground.model?.materials.first is CustomMaterial)
+        let baseline=try AetherPlanetRenderer.make(asset,enhanced:false)
+        XCTAssertTrue((baseline.findEntity(named:"Aether triangle-aligned ground") as? ModelEntity)?.model?.materials.first is PhysicallyBasedMaterial)
+        let rocks=try XCTUnwrap(root.findEntity(named:"Aether protected scatter") as? ModelEntity)
+        let mesh=try XCTUnwrap(rocks.model?.mesh)
+        var triangles=0
+        for model in mesh.contents.models { for part in model.parts {
+            let indices=Array(try XCTUnwrap(part.triangleIndices)),normals=Array(try XCTUnwrap(part.normals)),positions=Array(part.positions)
+            triangles += indices.count/3
+            for i in stride(from:0,to:indices.count,by:3) {
+                let a=Int(indices[i]),b=Int(indices[i+1]),c=Int(indices[i+2])
+                XCTAssertGreaterThan(simd_dot(simd_cross(positions[b]-positions[a],positions[c]-positions[a]),normals[a]+normals[b]+normals[c]),0)
+            }
+        } }
+        XCTAssertLessThan(triangles,60000)
+        XCTAssertEqual(root.children.count,4)
     }
 }

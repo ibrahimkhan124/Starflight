@@ -5,6 +5,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showAccount = false
     @State private var previewIntro = false
+    @AppStorage("aetherWorldDetailEnabled") private var aetherWorldDetailEnabled = true
     @AppStorage("aetherHothTerrainEnabled") private var aetherHothTerrainEnabled = true
     @AppStorage("aetherPlanetEnabled") private var aetherPlanetEnabled = true
     private var settingsSections: [String] {
@@ -164,6 +165,8 @@ struct SettingsView: View {
                         .accessibilityIdentifier("Game sound test status")
                     Text("Sound effects use media volume and can play in Silent Mode. The in-game sound switch and volume still control them.")
                         .font(.caption).foregroundStyle(FlightPalette.secondary)
+                    FlightSwitchRow("Aether Reach surface & scenery",isOn:$aetherWorldDetailEnabled).tint(FlightPalette.teal)
+                    Text("Detailed surface and seeded rocks, with clear arrival and arch corridors. Restart Starflight after changing.").font(.caption).foregroundStyle(FlightPalette.secondary)
                     FlightSwitchRow("Aether Hoth terrain pilot",isOn:$aetherHothTerrainEnabled).tint(FlightPalette.teal)
                     Text("Builds Hoth through Aether with the same mountains and flight routes. Restart Starflight after changing this comparison switch.").font(.caption).foregroundStyle(FlightPalette.secondary)
                     FlightSwitchRow("Aether experimental planet",isOn:$aetherPlanetEnabled).tint(FlightPalette.teal)

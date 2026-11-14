@@ -713,3 +713,11 @@ edge normals and include below-ground skirts. Choose **Settings → Sound & grap
 → Aether Hoth terrain pilot**, then restart Starflight to compare it with the
 original path. This is fixed prepared terrain; it does not stream or reshape
 while flying. See [stage-two implementation notes](Docs/AetherStage2.md).
+
+### Stage-three Aether Reach scenery and surface
+
+Aether Reach now adds a repeatable, batched rock field around protected flight
+corridors, and a native RealityKit custom-material study using Aether's prepared
+surface colours. **Settings → Sound & graphics → Aether Reach surface & scenery**
+controls it after restarting. See [stage-three notes](Docs/AetherStage3.md) for
+placement limits, renderer boundaries, comparisons and validation.

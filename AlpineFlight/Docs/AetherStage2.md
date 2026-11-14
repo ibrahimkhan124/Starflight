@@ -72,3 +72,9 @@ entry into Hoth, moving flight, and return to orbit. Actual screenshots and a
 short flight clip are saved under `Screenshots/AetherStage2-20261114`. The updated
 signature-verified Mac application was installed; the simulator was shut down
 after checking. Physical-device frame-rate/thermal testing remains pending.
+
+Stage-three follow-up: command-line `NO` values were found to be strings and
+were not respected by the original optional-Bool decoder. This has been fixed
+for all Aether switches, with a regression test. The original UI screenshots
+should not be used as proof that the legacy launch argument selected a different
+renderer; the unit tests exercised both paths with actual stored Bool values.
