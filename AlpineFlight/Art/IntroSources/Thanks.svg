@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="600" viewBox="0 0 1000 600">
+<defs><linearGradient id="plane" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fffdf0"/><stop offset="1" stop-color="#89dfef"/></linearGradient></defs>
+<g fill="none" stroke-linecap="round">
+ <path d="M68 466C219 489 356 439 410 341S482 169 606 158" stroke="#6ed7e9" stroke-width="9"/>
+ <path d="M74 502c164 15 312-44 368-144" stroke="#d1f6ff" stroke-width="3" opacity=".75"/>
+ <path d="M113 431c115 9 228-28 272-102" stroke="#f1cf8d" stroke-width="4" opacity=".8"/>
+</g>
+<path d="M462 162 889 64 681 418 637 243 462 162Z" fill="url(#plane)" stroke="#e0faff" stroke-width="4" stroke-linejoin="round"/>
+<path d="m637 243 252-179-301 227 25 91 68 36Z" fill="#347391" stroke="#c4f4ff" stroke-width="3" stroke-linejoin="round"/>
+<path d="m637 243 44 175-67-71Z" fill="#b9f1f8"/>
+<path d="M192 177c-33-47-95-4-60 38l60 59 60-59c35-42-27-85-60-38Z" fill="#dfb780" stroke="#ffe2aa" stroke-width="4"/>
+<g fill="#fff0c5"><path d="m356 100 8 25 25 8-25 8-8 25-8-25-25-8 25-8Z"/><path d="m844 443 9 27 27 9-27 9-9 27-9-27-27-9 27-9Z"/><path d="m527 459 6 18 18 6-18 6-6 18-6-18-18-6 18-6Z"/></g>
+<g fill="#b8f2fa"><circle cx="91" cy="340" r="5"/><circle cx="301" cy="233" r="5"/><circle cx="729" cy="496" r="6"/><circle cx="910" cy="302" r="4"/></g>
+</svg>

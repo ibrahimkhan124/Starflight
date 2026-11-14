@@ -1,0 +1,1134 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 70;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0B583468676852A6FE6365C2 /* TerrainGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7705214CBC11519B89FE5799 /* TerrainGenerator.swift */; };
+		0F13081F32F78FED2CE2441F /* GameEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB12DA34D1EFFC4C704A6378 /* GameEngine.swift */; };
+		156787DB4457C0BB96CB0061 /* FlightAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 269BECF51DDD6F1CB7D7538F /* FlightAudio.swift */; };
+		1B0E1F4CF1FFD9FDEC8B6AFC /* engine.wav in Resources */ = {isa = PBXBuildFile; fileRef = A884AA5812B61B34D73D6D6D /* engine.wav */; };
+		2A8E5A316F842C9AE51948B9 /* FlightLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5671BB7F6902ABCC2F931F24 /* FlightLevel.swift */; };
+		2D2786DD6B04B5E78C531924 /* AircraftType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A546FAA82EB9D8A88C2F1 /* AircraftType.swift */; };
+		36E98FDA80A0C8E1DC54B450 /* TerrainRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97589FAF4277CC4DAE321CD1 /* TerrainRenderer.swift */; };
+		4125EBE417DBD965933BF120 /* FlightPlannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58C4BB38F4A64A0072B2EAA6 /* FlightPlannerView.swift */; };
+		44E66A80ADC7958D6451D3C7 /* impact.wav in Resources */ = {isa = PBXBuildFile; fileRef = D3744C81077CCB27A548D569 /* impact.wav */; };
+		46EA69E8D2C2DD0822CDC5C1 /* WeaponSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80AC4E7A60075D8DCBF63BFE /* WeaponSystem.swift */; };
+		483D1E9404657F2E384AA766 /* AircraftFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA44C7A882E4070174C78712 /* AircraftFactory.swift */; };
+		5A5C09B400587A2FCCE1F4D6 /* WorldRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49A77B191C48BBB0E40D8508 /* WorldRenderer.swift */; };
+		712B2768FFAA25DB33D09DEE /* GameSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0A737E804636B570A34CD12 /* GameSettings.swift */; };
+		75609282BA11A37136C3AC7F /* MotionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB481598E7B2F958C68A1E51 /* MotionController.swift */; };
+		898A5A916D67DAE55CB98223 /* DeathStarDefenses.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33C32234ADB0575BC231269 /* DeathStarDefenses.swift */; };
+		89F991C3E6B4AEA4A3B65D4A /* jet.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0C3297BB07E92F73B0AE833C /* jet.wav */; };
+		8AEDEEEC76539A673247C8AA /* FlightSceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58E58757BCBB811E0B744937 /* FlightSceneView.swift */; };
+		93EB1061B55F8CEAE048FB5A /* TouchControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73C8A36A6703127534C72C0B /* TouchControls.swift */; };
+		A2257CC41CF01653400843D6 /* AircraftModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFB2B4ADC98ED35BE08C051D /* AircraftModels.swift */; };
+		AA7701000000000000000001 /* FlightAdventures.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7701000000000000000002 /* FlightAdventures.swift */; };
+		AA7702000000000000000001 /* FlightAdventureRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7702000000000000000002 /* FlightAdventureRenderer.swift */; };
+		AA7703000000000000000001 /* FlightAdventuresView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7703000000000000000002 /* FlightAdventuresView.swift */; };
+		AA7801000000000000000001 /* StoryCampaign.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7801000000000000000002 /* StoryCampaign.swift */; };
+		AA7802000000000000000001 /* StoryCampaignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7802000000000000000002 /* StoryCampaignView.swift */; };
+		AA7901000000000000000001 /* UniverseSimulation.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7901000000000000000002 /* UniverseSimulation.swift */; };
+		AA7902000000000000000001 /* UniverseRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7902000000000000000002 /* UniverseRenderer.swift */; };
+		AA7903000000000000000001 /* UniverseNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7903000000000000000002 /* UniverseNavigationView.swift */; };
+		AA7904000000000000000001 /* Astronomy in Resources */ = {isa = PBXBuildFile; fileRef = AA7904000000000000000002 /* Astronomy */; };
+		AA7910000000000000000001 /* AlpineFlight/UI/RoomFlightView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7910000000000000000002 /* AlpineFlight/UI/RoomFlightView.swift */; };
+		AA7911000000000000000001 /* AlpineFlight/UI/PilotProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7911000000000000000002 /* AlpineFlight/UI/PilotProfileView.swift */; };
+		AB0011002200330044005501 /* FreeRoamActivities.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0011002200330044005500 /* FreeRoamActivities.swift */; };
+		AD0021000000000000000001 /* HandController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0021000000000000000002 /* HandController.swift */; };
+		AD0031000000000000000001 /* PlanetExploration.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0031000000000000000002 /* PlanetExploration.swift */; };
+		AD0032000000000000000001 /* PlanetSurfaceRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0032000000000000000002 /* PlanetSurfaceRenderer.swift */; };
+		AD0033000000000000000001 /* HandGestures.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0033000000000000000002 /* HandGestures.swift */; };
+		AD0034000000000000000001 /* FlightEconomy.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0034000000000000000002 /* FlightEconomy.swift */; };
+		AD0035000000000000000001 /* BlueprintShipModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0035000000000000000002 /* BlueprintShipModels.swift */; };
+		AD0036000000000000000001 /* FlightShopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0036000000000000000002 /* FlightShopView.swift */; };
+		AD0037000000000000000001 /* ScenicRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0037000000000000000002 /* ScenicRegion.swift */; };
+		AD0038000000000000000001 /* SpaceScenery.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0038000000000000000002 /* SpaceScenery.swift */; };
+		AD0039000000000000000001 /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = AD0039000000000000000002 /* Audio */; };
+		AD0040000000000000000001 /* EngineEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0040000000000000000002 /* EngineEffects.swift */; };
+		AD0041000000000000000001 /* SpaceMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0041000000000000000002 /* SpaceMapView.swift */; };
+		AD0042000000000000000001 /* PlanetInhabitants.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0042000000000000000002 /* PlanetInhabitants.swift */; };
+		AD0043000000000000000001 /* PilotLogbook.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0043000000000000000002 /* PilotLogbook.swift */; };
+		AD0044000000000000000001 /* PilotFlightTracking.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0044000000000000000002 /* PilotFlightTracking.swift */; };
+		AD0045000000000000000001 /* PilotLogbookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0045000000000000000002 /* PilotLogbookView.swift */; };
+		AD0046000000000000000001 /* PodRaceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0046000000000000000002 /* PodRaceManager.swift */; };
+		AD0050000000000000000001 /* AlpineFlightTests/CoruscantJobsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0050000000000000000002 /* AlpineFlightTests/CoruscantJobsTests.swift */; };
+		AD0054000000000000000001 /* AlpineFlightTests/CityCareerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0054000000000000000002 /* AlpineFlightTests/CityCareerTests.swift */; };
+		AD0059000000000000000001 /* CityHomePreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0059000000000000000002 /* CityHomePreview.swift */; };
+		AD0061000000000000000001 /* AlpineFlightTests/CityExpansionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0061000000000000000002 /* AlpineFlightTests/CityExpansionTests.swift */; };
+		AD0062000000000000000001 /* HomeDocking.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0062000000000000000002 /* HomeDocking.swift */; };
+		AD0063000000000000000001 /* HomeInteriorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0063000000000000000002 /* HomeInteriorView.swift */; };
+		AD0064000000000000000001 /* HomeRoomLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0064000000000000000002 /* HomeRoomLayout.swift */; };
+		AD0065000000000000000001 /* HomeArrangementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0065000000000000000002 /* HomeArrangementView.swift */; };
+		AD0066000000000000000001 /* HomeFurnishings.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0066000000000000000002 /* HomeFurnishings.swift */; };
+		AD0067000000000000000001 /* HomeFurnishingArt.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0067000000000000000002 /* HomeFurnishingArt.swift */; };
+		AD0068000000000000000001 /* HomeLoungeAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0068000000000000000002 /* HomeLoungeAudio.swift */; };
+		AD0069000000000000000001 /* ArenaDuel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0069000000000000000002 /* ArenaDuel.swift */; };
+		AD0070000000000000000001 /* ArenaDuelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0070000000000000000002 /* ArenaDuelView.swift */; };
+		AD0071000000000000000001 /* ArenaScenery.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0071000000000000000002 /* ArenaScenery.swift */; };
+		AD0072000000000000000001 /* PlayerSaveArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0072000000000000000002 /* PlayerSaveArchive.swift */; };
+		AD0073000000000000000001 /* StarflightAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0073000000000000000002 /* StarflightAccount.swift */; };
+		AD0074000000000000000001 /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0074000000000000000002 /* AccountView.swift */; };
+		AD0075000000000000000001 /* SpaceTrading.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0075000000000000000002 /* SpaceTrading.swift */; };
+		AD0076000000000000000001 /* SpaceTradeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0076000000000000000002 /* SpaceTradeView.swift */; };
+		AD0077000000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AD0077000000000000000002 /* Assets.xcassets */; };
+		AD0078000000000000000001 /* StarflightIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = AD0078000000000000000002 /* StarflightIcon.icon */; };
+		AD0080000000000000000001 /* StarflightWidgets/StarflightWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0080000000000000000002 /* StarflightWidgets/StarflightWidget.swift */; };
+		AD0080000000000000000003 /* StarflightWidgets.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = AD0080000000000000000004 /* StarflightWidgets.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AD0081000000000000000001 /* VideoLaunchIntro.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0081000000000000000002 /* VideoLaunchIntro.swift */; };
+		AD0081000000000000000003 /* StarflightIntro.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = AD0081000000000000000004 /* StarflightIntro.mp4 */; };
+		AD8B55980E463B2D634D38C4 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA896F8D3FA8522590393E3 /* SettingsView.swift */; };
+		AE1311000000000000000001 /* ScenicMaterials.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE1311000000000000000002 /* ScenicMaterials.swift */; };
+		AE1411010000000000000001 /* PlanetLighting.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE1411010000000000000002 /* PlanetLighting.swift */; };
+		AE1411020000000000000001 /* PlanetShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = AE1411020000000000000002 /* PlanetShaders.metal */; };
+		AE1411030000000000000001 /* PlanetOrbitDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE1411030000000000000002 /* PlanetOrbitDetail.swift */; };
+		B9295203105747A64C6C9365 /* AlpineFlightApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7C96D3A0E221357239D3BC7 /* AlpineFlightApp.swift */; };
+		BCCC14DE33F65B743C0082F0 /* CollisionSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD30E26BF8115023BFDDD70 /* CollisionSystem.swift */; };
+		BD78E8595FB41207AD09200E /* AlpineFlightTests/FlightSystemsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 642611F84635488F2B569AF3 /* AlpineFlightTests/FlightSystemsTests.swift */; };
+		C7A1606B7284A43DB07AA1C9 /* CameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52A3E326D42F9EA9EDBE916E /* CameraController.swift */; };
+		CD0BFFBF6BFC829D3FDD2373 /* laser.wav in Resources */ = {isa = PBXBuildFile; fileRef = 4313304C46034E3DFD7B25F6 /* laser.wav */; };
+		D34FC3C13274344FF4517BFB /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70402EB501494B2A28C28834 /* GameView.swift */; };
+		D40A7228F02AA2ACF9907D26 /* KeyboardControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D71AE3F599D032853D0C480 /* KeyboardControls.swift */; };
+		DD54B0FFE7B2D4C60BD4DA32 /* AlpineFlightTests/ExpansionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E9A7E18BAAF550870EBC680 /* AlpineFlightTests/ExpansionTests.swift */; };
+		DE1FCEBC6DE250B8A70530C3 /* AlpineFlightUITests/FlightUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B148B21B82E49E7826A0D977 /* AlpineFlightUITests/FlightUITests.swift */; };
+		E0CF96405F7EE8F09F0C5DDE /* HUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7C3EC207E34AA31A7574A16 /* HUDView.swift */; };
+		E50F07BF66261FF94D6C7B72 /* FlightPhysics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49173BA5680EF9A6D6FEA04 /* FlightPhysics.swift */; };
+		E80687EFA83208CB522B89A8 /* checkpoint.wav in Resources */ = {isa = PBXBuildFile; fileRef = EE0D930C53A7B7201B832863 /* checkpoint.wav */; };
+		F00D00000000000000000001 /* VoltwingPodracer.usdz in Resources */ = {isa = PBXBuildFile; fileRef = F00D00000000000000000002 /* VoltwingPodracer.usdz */; };
+		F00D00000000000000000003 /* Ships in Resources */ = {isa = PBXBuildFile; fileRef = F00D00000000000000000004 /* Ships */; };
+		F00D00000000000000000005 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F00D00000000000000000006 /* PrivacyInfo.xcprivacy */; };
+		F00D00000000000000000007 /* DroidCrew.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00D00000000000000000008 /* DroidCrew.swift */; };
+		F00D00000000000000000009 /* DroidVoiceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00D0000000000000000000A /* DroidVoiceController.swift */; };
+		F00D0000000000000000000B /* DroidVisionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00D0000000000000000000C /* DroidVisionView.swift */; };
+		F00D0000000000000000000D /* Starjedi.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F00D0000000000000000000E /* Starjedi.ttf */; };
+		F00D0000000000000000000F /* HangarSceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00D00000000000000000010 /* HangarSceneView.swift */; };
+		F00D00000000000000000011 /* CustomContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00D00000000000000000012 /* CustomContent.swift */; };
+		F00D00000000000000000013 /* CustomLevelDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00D00000000000000000014 /* CustomLevelDefinition.swift */; };
+		F00D00000000000000000015 /* WorkshopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00D00000000000000000016 /* WorkshopView.swift */; };
+		F827CE26AD5CAE7F43ECB795 /* FlightStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074FE2E6AD43D323F465512E /* FlightStyle.swift */; };
+		FC63AEFB9EAA9DB4BC19700C /* CheckpointSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A79EE1CA892B29AB60D730B /* CheckpointSystem.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		207B1DE256FF4DE7C9B25480 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 98F54143AB4E86B28C3AFEE0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7B7D4323B3CF20E5D5B11333;
+			remoteInfo = AlpineFlight;
+		};
+		9233BDF0699B190BF4FDB4A6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 98F54143AB4E86B28C3AFEE0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7B7D4323B3CF20E5D5B11333;
+			remoteInfo = AlpineFlight;
+		};
+		AD008000000000000000000D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 98F54143AB4E86B28C3AFEE0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AD008000000000000000000B;
+			remoteInfo = StarflightWidgets;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		AD008000000000000000000A /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				AD0080000000000000000003 /* StarflightWidgets.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		074FE2E6AD43D323F465512E /* FlightStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FlightStyle.swift; path = AlpineFlight/UI/FlightStyle.swift; sourceTree = "<group>"; };
+		0AD30E26BF8115023BFDDD70 /* CollisionSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CollisionSystem.swift; path = AlpineFlight/Flight/CollisionSystem.swift; sourceTree = "<group>"; };
+		0C3297BB07E92F73B0AE833C /* jet.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = jet.wav; path = AlpineFlight/Resources/jet.wav; sourceTree = "<group>"; };
+		0E9A7E18BAAF550870EBC680 /* AlpineFlightTests/ExpansionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlightTests/ExpansionTests.swift; sourceTree = "<group>"; };
+		269BECF51DDD6F1CB7D7538F /* FlightAudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FlightAudio.swift; path = AlpineFlight/Audio/FlightAudio.swift; sourceTree = "<group>"; };
+		4313304C46034E3DFD7B25F6 /* laser.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = laser.wav; path = AlpineFlight/Resources/laser.wav; sourceTree = "<group>"; };
+		49A77B191C48BBB0E40D8508 /* WorldRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WorldRenderer.swift; path = AlpineFlight/Rendering/WorldRenderer.swift; sourceTree = "<group>"; };
+		52A3E326D42F9EA9EDBE916E /* CameraController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CameraController.swift; path = AlpineFlight/Rendering/CameraController.swift; sourceTree = "<group>"; };
+		5671BB7F6902ABCC2F931F24 /* FlightLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FlightLevel.swift; path = AlpineFlight/Terrain/FlightLevel.swift; sourceTree = "<group>"; };
+		58C4BB38F4A64A0072B2EAA6 /* FlightPlannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FlightPlannerView.swift; path = AlpineFlight/UI/FlightPlannerView.swift; sourceTree = "<group>"; };
+		58E58757BCBB811E0B744937 /* FlightSceneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FlightSceneView.swift; path = AlpineFlight/Rendering/FlightSceneView.swift; sourceTree = "<group>"; };
+		5A79EE1CA892B29AB60D730B /* CheckpointSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CheckpointSystem.swift; path = AlpineFlight/Flight/CheckpointSystem.swift; sourceTree = "<group>"; };
+		642611F84635488F2B569AF3 /* AlpineFlightTests/FlightSystemsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlightTests/FlightSystemsTests.swift; sourceTree = "<group>"; };
+		66A2BAD5A945247CC12B3A3C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = AlpineFlight/Resources/Info.plist; sourceTree = "<group>"; };
+		70402EB501494B2A28C28834 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GameView.swift; path = AlpineFlight/UI/GameView.swift; sourceTree = "<group>"; };
+		73C8A36A6703127534C72C0B /* TouchControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TouchControls.swift; path = AlpineFlight/Controls/TouchControls.swift; sourceTree = "<group>"; };
+		7705214CBC11519B89FE5799 /* TerrainGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TerrainGenerator.swift; path = AlpineFlight/Terrain/TerrainGenerator.swift; sourceTree = "<group>"; };
+		7D2A546FAA82EB9D8A88C2F1 /* AircraftType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AircraftType.swift; path = AlpineFlight/Flight/AircraftType.swift; sourceTree = "<group>"; };
+		7D71AE3F599D032853D0C480 /* KeyboardControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KeyboardControls.swift; path = AlpineFlight/Controls/KeyboardControls.swift; sourceTree = "<group>"; };
+		80AC4E7A60075D8DCBF63BFE /* WeaponSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WeaponSystem.swift; path = AlpineFlight/Flight/WeaponSystem.swift; sourceTree = "<group>"; };
+		97589FAF4277CC4DAE321CD1 /* TerrainRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TerrainRenderer.swift; path = AlpineFlight/Rendering/TerrainRenderer.swift; sourceTree = "<group>"; };
+		A7C96D3A0E221357239D3BC7 /* AlpineFlightApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AlpineFlightApp.swift; path = AlpineFlight/App/AlpineFlightApp.swift; sourceTree = "<group>"; };
+		A884AA5812B61B34D73D6D6D /* engine.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = engine.wav; path = AlpineFlight/Resources/engine.wav; sourceTree = "<group>"; };
+		AA7701000000000000000002 /* FlightAdventures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FlightAdventures.swift; path = AlpineFlight/Flight/FlightAdventures.swift; sourceTree = "<group>"; };
+		AA7702000000000000000002 /* FlightAdventureRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FlightAdventureRenderer.swift; path = AlpineFlight/Rendering/FlightAdventureRenderer.swift; sourceTree = "<group>"; };
+		AA7703000000000000000002 /* FlightAdventuresView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FlightAdventuresView.swift; path = AlpineFlight/UI/FlightAdventuresView.swift; sourceTree = "<group>"; };
+		AA7801000000000000000002 /* StoryCampaign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = StoryCampaign.swift; path = AlpineFlight/App/StoryCampaign.swift; sourceTree = "<group>"; };
+		AA7802000000000000000002 /* StoryCampaignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = StoryCampaignView.swift; path = AlpineFlight/UI/StoryCampaignView.swift; sourceTree = "<group>"; };
+		AA7901000000000000000002 /* UniverseSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UniverseSimulation.swift; path = AlpineFlight/Flight/UniverseSimulation.swift; sourceTree = "<group>"; };
+		AA7902000000000000000002 /* UniverseRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UniverseRenderer.swift; path = AlpineFlight/Rendering/UniverseRenderer.swift; sourceTree = "<group>"; };
+		AA7903000000000000000002 /* UniverseNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UniverseNavigationView.swift; path = AlpineFlight/UI/UniverseNavigationView.swift; sourceTree = "<group>"; };
+		AA7904000000000000000002 /* Astronomy */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Astronomy; path = AlpineFlight/Resources/Astronomy; sourceTree = "<group>"; };
+		AA7910000000000000000002 /* AlpineFlight/UI/RoomFlightView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlight/UI/RoomFlightView.swift; sourceTree = "<group>"; };
+		AA7911000000000000000002 /* AlpineFlight/UI/PilotProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlight/UI/PilotProfileView.swift; sourceTree = "<group>"; };
+		AB0011002200330044005500 /* FreeRoamActivities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FreeRoamActivities.swift; path = AlpineFlight/Flight/FreeRoamActivities.swift; sourceTree = "<group>"; };
+		AC7EC5B1B52EA112298973F9 /* AlpineFlight.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AlpineFlight.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AD0021000000000000000002 /* HandController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HandController.swift; path = AlpineFlight/Controls/HandController.swift; sourceTree = "<group>"; };
+		AD0031000000000000000002 /* PlanetExploration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlanetExploration.swift; path = AlpineFlight/Flight/PlanetExploration.swift; sourceTree = "<group>"; };
+		AD0032000000000000000002 /* PlanetSurfaceRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlanetSurfaceRenderer.swift; path = AlpineFlight/Rendering/PlanetSurfaceRenderer.swift; sourceTree = "<group>"; };
+		AD0033000000000000000002 /* HandGestures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HandGestures.swift; path = AlpineFlight/Controls/HandGestures.swift; sourceTree = "<group>"; };
+		AD0034000000000000000002 /* FlightEconomy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FlightEconomy.swift; path = AlpineFlight/App/FlightEconomy.swift; sourceTree = "<group>"; };
+		AD0035000000000000000002 /* BlueprintShipModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BlueprintShipModels.swift; path = AlpineFlight/Rendering/BlueprintShipModels.swift; sourceTree = "<group>"; };
+		AD0036000000000000000002 /* FlightShopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FlightShopView.swift; path = AlpineFlight/UI/FlightShopView.swift; sourceTree = "<group>"; };
+		AD0037000000000000000002 /* ScenicRegion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ScenicRegion.swift; path = AlpineFlight/Rendering/ScenicRegion.swift; sourceTree = "<group>"; };
+		AD0038000000000000000002 /* SpaceScenery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SpaceScenery.swift; path = AlpineFlight/Rendering/SpaceScenery.swift; sourceTree = "<group>"; };
+		AD0039000000000000000002 /* Audio */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Audio; path = AlpineFlight/Resources/Audio; sourceTree = "<group>"; };
+		AD0040000000000000000002 /* EngineEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EngineEffects.swift; path = AlpineFlight/Rendering/EngineEffects.swift; sourceTree = "<group>"; };
+		AD0041000000000000000002 /* SpaceMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SpaceMapView.swift; path = AlpineFlight/UI/SpaceMapView.swift; sourceTree = "<group>"; };
+		AD0042000000000000000002 /* PlanetInhabitants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlanetInhabitants.swift; path = AlpineFlight/Flight/PlanetInhabitants.swift; sourceTree = "<group>"; };
+		AD0043000000000000000002 /* PilotLogbook.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PilotLogbook.swift; path = AlpineFlight/App/PilotLogbook.swift; sourceTree = "<group>"; };
+		AD0044000000000000000002 /* PilotFlightTracking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PilotFlightTracking.swift; path = AlpineFlight/Flight/PilotFlightTracking.swift; sourceTree = "<group>"; };
+		AD0045000000000000000002 /* PilotLogbookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PilotLogbookView.swift; path = AlpineFlight/UI/PilotLogbookView.swift; sourceTree = "<group>"; };
+		AD0046000000000000000002 /* PodRaceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PodRaceManager.swift; path = AlpineFlight/Flight/PodRaceManager.swift; sourceTree = "<group>"; };
+		AD0050000000000000000002 /* AlpineFlightTests/CoruscantJobsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlightTests/CoruscantJobsTests.swift; sourceTree = "<group>"; };
+		AD0054000000000000000002 /* AlpineFlightTests/CityCareerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlightTests/CityCareerTests.swift; sourceTree = "<group>"; };
+		AD0059000000000000000002 /* CityHomePreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CityHomePreview.swift; path = AlpineFlight/Rendering/CityHomePreview.swift; sourceTree = "<group>"; };
+		AD0061000000000000000002 /* AlpineFlightTests/CityExpansionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlightTests/CityExpansionTests.swift; sourceTree = "<group>"; };
+		AD0062000000000000000002 /* HomeDocking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HomeDocking.swift; path = AlpineFlight/Flight/HomeDocking.swift; sourceTree = "<group>"; };
+		AD0063000000000000000002 /* HomeInteriorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HomeInteriorView.swift; path = AlpineFlight/UI/HomeInteriorView.swift; sourceTree = "<group>"; };
+		AD0064000000000000000002 /* HomeRoomLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HomeRoomLayout.swift; path = AlpineFlight/Flight/HomeRoomLayout.swift; sourceTree = "<group>"; };
+		AD0065000000000000000002 /* HomeArrangementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HomeArrangementView.swift; path = AlpineFlight/UI/HomeArrangementView.swift; sourceTree = "<group>"; };
+		AD0066000000000000000002 /* HomeFurnishings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HomeFurnishings.swift; path = AlpineFlight/Flight/HomeFurnishings.swift; sourceTree = "<group>"; };
+		AD0067000000000000000002 /* HomeFurnishingArt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HomeFurnishingArt.swift; path = AlpineFlight/Rendering/HomeFurnishingArt.swift; sourceTree = "<group>"; };
+		AD0068000000000000000002 /* HomeLoungeAudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HomeLoungeAudio.swift; path = AlpineFlight/Audio/HomeLoungeAudio.swift; sourceTree = "<group>"; };
+		AD0069000000000000000002 /* ArenaDuel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ArenaDuel.swift; path = AlpineFlight/Flight/ArenaDuel.swift; sourceTree = "<group>"; };
+		AD0070000000000000000002 /* ArenaDuelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ArenaDuelView.swift; path = AlpineFlight/UI/ArenaDuelView.swift; sourceTree = "<group>"; };
+		AD0071000000000000000002 /* ArenaScenery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ArenaScenery.swift; path = AlpineFlight/Rendering/ArenaScenery.swift; sourceTree = "<group>"; };
+		AD0072000000000000000002 /* PlayerSaveArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlayerSaveArchive.swift; path = AlpineFlight/App/PlayerSaveArchive.swift; sourceTree = "<group>"; };
+		AD0073000000000000000002 /* StarflightAccount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = StarflightAccount.swift; path = AlpineFlight/App/StarflightAccount.swift; sourceTree = "<group>"; };
+		AD0074000000000000000002 /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AccountView.swift; path = AlpineFlight/UI/AccountView.swift; sourceTree = "<group>"; };
+		AD0075000000000000000002 /* SpaceTrading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SpaceTrading.swift; path = AlpineFlight/App/SpaceTrading.swift; sourceTree = "<group>"; };
+		AD0076000000000000000002 /* SpaceTradeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SpaceTradeView.swift; path = AlpineFlight/UI/SpaceTradeView.swift; sourceTree = "<group>"; };
+		AD0077000000000000000002 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = AlpineFlight/Resources/Assets.xcassets; sourceTree = "<group>"; };
+		AD0078000000000000000002 /* StarflightIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; name = StarflightIcon.icon; path = AlpineFlight/Resources/StarflightIcon.icon; sourceTree = "<group>"; };
+		AD0080000000000000000002 /* StarflightWidgets/StarflightWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarflightWidgets/StarflightWidget.swift; sourceTree = "<group>"; };
+		AD0080000000000000000004 /* StarflightWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = StarflightWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		AD0080000000000000000005 /* StarflightWidgets/Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = StarflightWidgets/Info.plist; sourceTree = "<group>"; };
+		AD0081000000000000000002 /* VideoLaunchIntro.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VideoLaunchIntro.swift; path = AlpineFlight/UI/VideoLaunchIntro.swift; sourceTree = "<group>"; };
+		AD0081000000000000000004 /* StarflightIntro.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = StarflightIntro.mp4; path = AlpineFlight/Resources/StarflightIntro.mp4; sourceTree = "<group>"; };
+		AE1311000000000000000002 /* ScenicMaterials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ScenicMaterials.swift; path = AlpineFlight/Rendering/ScenicMaterials.swift; sourceTree = "<group>"; };
+		AE1411010000000000000002 /* PlanetLighting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlanetLighting.swift; path = AlpineFlight/Rendering/PlanetLighting.swift; sourceTree = "<group>"; };
+		AE1411020000000000000002 /* PlanetShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; name = PlanetShaders.metal; path = AlpineFlight/Rendering/PlanetShaders.metal; sourceTree = "<group>"; };
+		AE1411030000000000000002 /* PlanetOrbitDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlanetOrbitDetail.swift; path = AlpineFlight/Rendering/PlanetOrbitDetail.swift; sourceTree = "<group>"; };
+		AFB2B4ADC98ED35BE08C051D /* AircraftModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AircraftModels.swift; path = AlpineFlight/Rendering/AircraftModels.swift; sourceTree = "<group>"; };
+		B148B21B82E49E7826A0D977 /* AlpineFlightUITests/FlightUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlightUITests/FlightUITests.swift; sourceTree = "<group>"; };
+		B9AA133E000C9E2B8B2EED63 /* AlpineFlightTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AlpineFlightTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BA0F356ABAD1560AC6BC5CD4 /* AlpineFlightUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AlpineFlightUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C0A737E804636B570A34CD12 /* GameSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GameSettings.swift; path = AlpineFlight/App/GameSettings.swift; sourceTree = "<group>"; };
+		D3744C81077CCB27A548D569 /* impact.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = impact.wav; path = AlpineFlight/Resources/impact.wav; sourceTree = "<group>"; };
+		DB12DA34D1EFFC4C704A6378 /* GameEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GameEngine.swift; path = AlpineFlight/App/GameEngine.swift; sourceTree = "<group>"; };
+		E7C3EC207E34AA31A7574A16 /* HUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HUDView.swift; path = AlpineFlight/UI/HUDView.swift; sourceTree = "<group>"; };
+		EB481598E7B2F958C68A1E51 /* MotionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MotionController.swift; path = AlpineFlight/Controls/MotionController.swift; sourceTree = "<group>"; };
+		EE0D930C53A7B7201B832863 /* checkpoint.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = checkpoint.wav; path = AlpineFlight/Resources/checkpoint.wav; sourceTree = "<group>"; };
+		F00D00000000000000000002 /* VoltwingPodracer.usdz */ = {isa = PBXFileReference; lastKnownFileType = file; name = VoltwingPodracer.usdz; path = AlpineFlight/Resources/Models/VoltwingPodracer.usdz; sourceTree = "<group>"; };
+		F00D00000000000000000004 /* Ships */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Ships; path = AlpineFlight/Resources/BlenderAssets/Ships; sourceTree = "<group>"; };
+		F00D00000000000000000006 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = AlpineFlight/Resources/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		F00D00000000000000000008 /* DroidCrew.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DroidCrew.swift; path = AlpineFlight/Droids/DroidCrew.swift; sourceTree = "<group>"; };
+		F00D0000000000000000000A /* DroidVoiceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DroidVoiceController.swift; path = AlpineFlight/Controls/DroidVoiceController.swift; sourceTree = "<group>"; };
+		F00D0000000000000000000C /* DroidVisionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DroidVisionView.swift; path = AlpineFlight/UI/DroidVisionView.swift; sourceTree = "<group>"; };
+		F00D0000000000000000000E /* Starjedi.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Starjedi.ttf; path = AlpineFlight/Resources/Fonts/Starjedi.ttf; sourceTree = "<group>"; };
+		F00D00000000000000000010 /* HangarSceneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HangarSceneView.swift; path = AlpineFlight/Rendering/HangarSceneView.swift; sourceTree = "<group>"; };
+		F00D00000000000000000012 /* CustomContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CustomContent.swift; path = AlpineFlight/App/CustomContent.swift; sourceTree = "<group>"; };
+		F00D00000000000000000014 /* CustomLevelDefinition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CustomLevelDefinition.swift; path = AlpineFlight/Terrain/CustomLevelDefinition.swift; sourceTree = "<group>"; };
+		F00D00000000000000000016 /* WorkshopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WorkshopView.swift; path = AlpineFlight/UI/WorkshopView.swift; sourceTree = "<group>"; };
+		F33C32234ADB0575BC231269 /* DeathStarDefenses.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DeathStarDefenses.swift; path = AlpineFlight/Flight/DeathStarDefenses.swift; sourceTree = "<group>"; };
+		F49173BA5680EF9A6D6FEA04 /* FlightPhysics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FlightPhysics.swift; path = AlpineFlight/Flight/FlightPhysics.swift; sourceTree = "<group>"; };
+		FA44C7A882E4070174C78712 /* AircraftFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AircraftFactory.swift; path = AlpineFlight/Rendering/AircraftFactory.swift; sourceTree = "<group>"; };
+		FEA896F8D3FA8522590393E3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = AlpineFlight/UI/SettingsView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		6C07F3873093E4E5003E8624 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CityCareer.swift,
+				CityContractsView.swift,
+				CityDocking.swift,
+				CityFactionJobs.swift,
+				CityHomesView.swift,
+				CityJobsView.swift,
+				CityMapView.swift,
+				CityResidenceRenderer.swift,
+				CityResidences.swift,
+				CoruscantJobs.swift,
+				PlanetComets.swift,
+			);
+			target = 7B7D4323B3CF20E5D5B11333 /* AlpineFlight */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		6C07F3863093E4C8003E8624 /* New Folder */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (6C07F3873093E4E5003E8624 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = "New Folder"; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		04E9C4CC3C87963F5528F193 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8FEB199A646CDA6CCC7357DE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A92FAA12D560D40CD8721E64 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AD0080000000000000000008 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		27FA7A689015C63C70CD203E /* AlpineFlightUITests */ = {
+			isa = PBXGroup;
+			children = (
+				B148B21B82E49E7826A0D977 /* AlpineFlightUITests/FlightUITests.swift */,
+			);
+			name = AlpineFlightUITests;
+			sourceTree = "<group>";
+		};
+		8B393F654B8F42DEF28CCAFB /* AlpineFlightTests */ = {
+			isa = PBXGroup;
+			children = (
+				0E9A7E18BAAF550870EBC680 /* AlpineFlightTests/ExpansionTests.swift */,
+				642611F84635488F2B569AF3 /* AlpineFlightTests/FlightSystemsTests.swift */,
+				AD0050000000000000000002 /* AlpineFlightTests/CoruscantJobsTests.swift */,
+				AD0054000000000000000002 /* AlpineFlightTests/CityCareerTests.swift */,
+				AD0061000000000000000002 /* AlpineFlightTests/CityExpansionTests.swift */,
+			);
+			name = AlpineFlightTests;
+			sourceTree = "<group>";
+		};
+		97C63D4B62A9FFB0D39E8BC3 /* AlpineFlight */ = {
+			isa = PBXGroup;
+			children = (
+				A7C96D3A0E221357239D3BC7 /* AlpineFlightApp.swift */,
+				DB12DA34D1EFFC4C704A6378 /* GameEngine.swift */,
+				C0A737E804636B570A34CD12 /* GameSettings.swift */,
+				269BECF51DDD6F1CB7D7538F /* FlightAudio.swift */,
+				AD0040000000000000000002 /* EngineEffects.swift */,
+				AD0041000000000000000002 /* SpaceMapView.swift */,
+				AD0042000000000000000002 /* PlanetInhabitants.swift */,
+				AD0046000000000000000002 /* PodRaceManager.swift */,
+				AD0065000000000000000002 /* HomeArrangementView.swift */,
+				AD0064000000000000000002 /* HomeRoomLayout.swift */,
+				AD0068000000000000000002 /* HomeLoungeAudio.swift */,
+				AD0071000000000000000002 /* ArenaScenery.swift */,
+				AD0074000000000000000002 /* AccountView.swift */,
+				AD0076000000000000000002 /* SpaceTradeView.swift */,
+				AD0075000000000000000002 /* SpaceTrading.swift */,
+				AD0073000000000000000002 /* StarflightAccount.swift */,
+				AD0072000000000000000002 /* PlayerSaveArchive.swift */,
+				AD0070000000000000000002 /* ArenaDuelView.swift */,
+				AD0069000000000000000002 /* ArenaDuel.swift */,
+				AD0067000000000000000002 /* HomeFurnishingArt.swift */,
+				AD0066000000000000000002 /* HomeFurnishings.swift */,
+				AD0063000000000000000002 /* HomeInteriorView.swift */,
+				AD0062000000000000000002 /* HomeDocking.swift */,
+				AD0059000000000000000002 /* CityHomePreview.swift */,
+				AD0045000000000000000002 /* PilotLogbookView.swift */,
+				AD0044000000000000000002 /* PilotFlightTracking.swift */,
+				AD0043000000000000000002 /* PilotLogbook.swift */,
+				7D71AE3F599D032853D0C480 /* KeyboardControls.swift */,
+				EB481598E7B2F958C68A1E51 /* MotionController.swift */,
+				AD0031000000000000000002 /* PlanetExploration.swift */,
+				AD0032000000000000000002 /* PlanetSurfaceRenderer.swift */,
+				AE1311000000000000000002 /* ScenicMaterials.swift */,
+				AE1411030000000000000002 /* PlanetOrbitDetail.swift */,
+				AE1411020000000000000002 /* PlanetShaders.metal */,
+				AE1411010000000000000002 /* PlanetLighting.swift */,
+				AD0033000000000000000002 /* HandGestures.swift */,
+				AD0034000000000000000002 /* FlightEconomy.swift */,
+				AD0035000000000000000002 /* BlueprintShipModels.swift */,
+				AD0036000000000000000002 /* FlightShopView.swift */,
+				AD0038000000000000000002 /* SpaceScenery.swift */,
+				AD0037000000000000000002 /* ScenicRegion.swift */,
+				AD0021000000000000000002 /* HandController.swift */,
+				73C8A36A6703127534C72C0B /* TouchControls.swift */,
+				F00D0000000000000000000A /* DroidVoiceController.swift */,
+				F00D00000000000000000008 /* DroidCrew.swift */,
+				7D2A546FAA82EB9D8A88C2F1 /* AircraftType.swift */,
+				5A79EE1CA892B29AB60D730B /* CheckpointSystem.swift */,
+				0AD30E26BF8115023BFDDD70 /* CollisionSystem.swift */,
+				F33C32234ADB0575BC231269 /* DeathStarDefenses.swift */,
+				AA7701000000000000000002 /* FlightAdventures.swift */,
+				AA7702000000000000000002 /* FlightAdventureRenderer.swift */,
+				AA7703000000000000000002 /* FlightAdventuresView.swift */,
+				AA7901000000000000000002 /* UniverseSimulation.swift */,
+				AA7902000000000000000002 /* UniverseRenderer.swift */,
+				AA7903000000000000000002 /* UniverseNavigationView.swift */,
+				AA7910000000000000000002 /* AlpineFlight/UI/RoomFlightView.swift */,
+				AA7911000000000000000002 /* AlpineFlight/UI/PilotProfileView.swift */,
+				AA7904000000000000000002 /* Astronomy */,
+				AA7801000000000000000002 /* StoryCampaign.swift */,
+				AA7802000000000000000002 /* StoryCampaignView.swift */,
+				F49173BA5680EF9A6D6FEA04 /* FlightPhysics.swift */,
+				AB0011002200330044005500 /* FreeRoamActivities.swift */,
+				80AC4E7A60075D8DCBF63BFE /* WeaponSystem.swift */,
+				FA44C7A882E4070174C78712 /* AircraftFactory.swift */,
+				AFB2B4ADC98ED35BE08C051D /* AircraftModels.swift */,
+				52A3E326D42F9EA9EDBE916E /* CameraController.swift */,
+				58E58757BCBB811E0B744937 /* FlightSceneView.swift */,
+				97589FAF4277CC4DAE321CD1 /* TerrainRenderer.swift */,
+				5671BB7F6902ABCC2F931F24 /* FlightLevel.swift */,
+				7705214CBC11519B89FE5799 /* TerrainGenerator.swift */,
+				58C4BB38F4A64A0072B2EAA6 /* FlightPlannerView.swift */,
+				074FE2E6AD43D323F465512E /* FlightStyle.swift */,
+				70402EB501494B2A28C28834 /* GameView.swift */,
+				E7C3EC207E34AA31A7574A16 /* HUDView.swift */,
+				FEA896F8D3FA8522590393E3 /* SettingsView.swift */,
+				F00D0000000000000000000C /* DroidVisionView.swift */,
+				F00D00000000000000000010 /* HangarSceneView.swift */,
+				F00D00000000000000000012 /* CustomContent.swift */,
+				F00D00000000000000000014 /* CustomLevelDefinition.swift */,
+				F00D00000000000000000016 /* WorkshopView.swift */,
+				AD0081000000000000000002 /* VideoLaunchIntro.swift */,
+				6C07F3863093E4C8003E8624 /* New Folder */,
+				AD0081000000000000000004 /* StarflightIntro.mp4 */,
+				49A77B191C48BBB0E40D8508 /* WorldRenderer.swift */,
+				AD0039000000000000000002 /* Audio */,
+				A884AA5812B61B34D73D6D6D /* engine.wav */,
+				D3744C81077CCB27A548D569 /* impact.wav */,
+				EE0D930C53A7B7201B832863 /* checkpoint.wav */,
+				0C3297BB07E92F73B0AE833C /* jet.wav */,
+				4313304C46034E3DFD7B25F6 /* laser.wav */,
+				F00D00000000000000000002 /* VoltwingPodracer.usdz */,
+				F00D00000000000000000004 /* Ships */,
+				AD0077000000000000000002 /* Assets.xcassets */,
+				AD0078000000000000000002 /* StarflightIcon.icon */,
+				F00D00000000000000000006 /* PrivacyInfo.xcprivacy */,
+				66A2BAD5A945247CC12B3A3C /* Info.plist */,
+				F00D0000000000000000000E /* Starjedi.ttf */,
+			);
+			name = AlpineFlight;
+			sourceTree = "<group>";
+		};
+		AD0080000000000000000006 /* StarflightWidgets */ = {
+			isa = PBXGroup;
+			children = (
+				AD0080000000000000000002 /* StarflightWidgets/StarflightWidget.swift */,
+				AD0080000000000000000005 /* StarflightWidgets/Info.plist */,
+			);
+			name = StarflightWidgets;
+			sourceTree = "<group>";
+		};
+		B28B7AF69320201D1CF206EB = {
+			isa = PBXGroup;
+			children = (
+				97C63D4B62A9FFB0D39E8BC3 /* AlpineFlight */,
+				AD0080000000000000000006 /* StarflightWidgets */,
+				8B393F654B8F42DEF28CCAFB /* AlpineFlightTests */,
+				27FA7A689015C63C70CD203E /* AlpineFlightUITests */,
+				FBDC4F23F93125BBEEAE800C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		FBDC4F23F93125BBEEAE800C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AD0080000000000000000004 /* StarflightWidgets.appex */,
+				AC7EC5B1B52EA112298973F9 /* AlpineFlight.app */,
+				B9AA133E000C9E2B8B2EED63 /* AlpineFlightTests.xctest */,
+				BA0F356ABAD1560AC6BC5CD4 /* AlpineFlightUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		4CB61E973038039296F004A6 /* AlpineFlightTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F457917987757747DF2816DB /* Build configuration list for PBXNativeTarget "AlpineFlightTests" */;
+			buildPhases = (
+				0C45464CAA9903FABE3D1DB8 /* Sources */,
+				04E9C4CC3C87963F5528F193 /* Frameworks */,
+				7B84FFC25B61C8395AB31F2E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CFEA129760CF4A660523EB00 /* PBXTargetDependency */,
+			);
+			name = AlpineFlightTests;
+			productName = AlpineFlightTests;
+			productReference = B9AA133E000C9E2B8B2EED63 /* AlpineFlightTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		6DC363513445140FA640C24D /* AlpineFlightUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 21AAC1C12D6194D52EBA8DC4 /* Build configuration list for PBXNativeTarget "AlpineFlightUITests" */;
+			buildPhases = (
+				4EE12EAC864EE0295142C3B2 /* Sources */,
+				8FEB199A646CDA6CCC7357DE /* Frameworks */,
+				82FB9AAEB864E97F71A4B38C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				13EF160A4C3FE407DAC89864 /* PBXTargetDependency */,
+			);
+			name = AlpineFlightUITests;
+			productName = AlpineFlightUITests;
+			productReference = BA0F356ABAD1560AC6BC5CD4 /* AlpineFlightUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		7B7D4323B3CF20E5D5B11333 /* AlpineFlight */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C9C9C949CA8BBEBAF270DE24 /* Build configuration list for PBXNativeTarget "AlpineFlight" */;
+			buildPhases = (
+				EB385C32B51A0D3D8492FBEF /* Sources */,
+				A92FAA12D560D40CD8721E64 /* Frameworks */,
+				8AFA3766D02441A3F246E576 /* Resources */,
+				AD008000000000000000000A /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AD008000000000000000000E /* PBXTargetDependency */,
+			);
+			name = AlpineFlight;
+			productName = AlpineFlight;
+			productReference = AC7EC5B1B52EA112298973F9 /* AlpineFlight.app */;
+			productType = "com.apple.product-type.application";
+		};
+		AD008000000000000000000B /* StarflightWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AD008000000000000000000C /* Build configuration list for PBXNativeTarget "StarflightWidgets" */;
+			buildPhases = (
+				AD0080000000000000000007 /* Sources */,
+				AD0080000000000000000008 /* Frameworks */,
+				AD0080000000000000000009 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = StarflightWidgets;
+			productName = StarflightWidgets;
+			productReference = AD0080000000000000000004 /* StarflightWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		98F54143AB4E86B28C3AFEE0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2700;
+			};
+			buildConfigurationList = 4BA304E783CFBB9FA6E56552 /* Build configuration list for PBXProject "AlpineFlight" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = B28B7AF69320201D1CF206EB;
+			productRefGroup = FBDC4F23F93125BBEEAE800C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AD008000000000000000000B /* StarflightWidgets */,
+				7B7D4323B3CF20E5D5B11333 /* AlpineFlight */,
+				4CB61E973038039296F004A6 /* AlpineFlightTests */,
+				6DC363513445140FA640C24D /* AlpineFlightUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7B84FFC25B61C8395AB31F2E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		82FB9AAEB864E97F71A4B38C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8AFA3766D02441A3F246E576 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AD0081000000000000000003 /* StarflightIntro.mp4 in Resources */,
+				1B0E1F4CF1FFD9FDEC8B6AFC /* engine.wav in Resources */,
+				44E66A80ADC7958D6451D3C7 /* impact.wav in Resources */,
+				E80687EFA83208CB522B89A8 /* checkpoint.wav in Resources */,
+				89F991C3E6B4AEA4A3B65D4A /* jet.wav in Resources */,
+				CD0BFFBF6BFC829D3FDD2373 /* laser.wav in Resources */,
+				F00D00000000000000000001 /* VoltwingPodracer.usdz in Resources */,
+				F00D00000000000000000003 /* Ships in Resources */,
+				AD0077000000000000000001 /* Assets.xcassets in Resources */,
+				AD0078000000000000000001 /* StarflightIcon.icon in Resources */,
+				AA7904000000000000000001 /* Astronomy in Resources */,
+				AD0039000000000000000001 /* Audio in Resources */,
+				F00D00000000000000000005 /* PrivacyInfo.xcprivacy in Resources */,
+				F00D0000000000000000000D /* Starjedi.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AD0080000000000000000009 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0C45464CAA9903FABE3D1DB8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DD54B0FFE7B2D4C60BD4DA32 /* AlpineFlightTests/ExpansionTests.swift in Sources */,
+				BD78E8595FB41207AD09200E /* AlpineFlightTests/FlightSystemsTests.swift in Sources */,
+				AD0050000000000000000001 /* AlpineFlightTests/CoruscantJobsTests.swift in Sources */,
+				AD0054000000000000000001 /* AlpineFlightTests/CityCareerTests.swift in Sources */,
+				AD0061000000000000000001 /* AlpineFlightTests/CityExpansionTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4EE12EAC864EE0295142C3B2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DE1FCEBC6DE250B8A70530C3 /* AlpineFlightUITests/FlightUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AD0080000000000000000007 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AD0080000000000000000001 /* StarflightWidgets/StarflightWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EB385C32B51A0D3D8492FBEF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B9295203105747A64C6C9365 /* AlpineFlightApp.swift in Sources */,
+				0F13081F32F78FED2CE2441F /* GameEngine.swift in Sources */,
+				712B2768FFAA25DB33D09DEE /* GameSettings.swift in Sources */,
+				156787DB4457C0BB96CB0061 /* FlightAudio.swift in Sources */,
+				D40A7228F02AA2ACF9907D26 /* KeyboardControls.swift in Sources */,
+				75609282BA11A37136C3AC7F /* MotionController.swift in Sources */,
+				AD0031000000000000000001 /* PlanetExploration.swift in Sources */,
+				AD0032000000000000000001 /* PlanetSurfaceRenderer.swift in Sources */,
+				AE1311000000000000000001 /* ScenicMaterials.swift in Sources */,
+				AE1411030000000000000001 /* PlanetOrbitDetail.swift in Sources */,
+				AE1411020000000000000001 /* PlanetShaders.metal in Sources */,
+				AE1411010000000000000001 /* PlanetLighting.swift in Sources */,
+				AD0033000000000000000001 /* HandGestures.swift in Sources */,
+				AD0034000000000000000001 /* FlightEconomy.swift in Sources */,
+				AD0035000000000000000001 /* BlueprintShipModels.swift in Sources */,
+				AD0040000000000000000001 /* EngineEffects.swift in Sources */,
+				AD0041000000000000000001 /* SpaceMapView.swift in Sources */,
+				AD0042000000000000000001 /* PlanetInhabitants.swift in Sources */,
+				AD0046000000000000000001 /* PodRaceManager.swift in Sources */,
+				AD0065000000000000000001 /* HomeArrangementView.swift in Sources */,
+				AD0064000000000000000001 /* HomeRoomLayout.swift in Sources */,
+				AD0068000000000000000001 /* HomeLoungeAudio.swift in Sources */,
+				AD0071000000000000000001 /* ArenaScenery.swift in Sources */,
+				AD0074000000000000000001 /* AccountView.swift in Sources */,
+				AD0076000000000000000001 /* SpaceTradeView.swift in Sources */,
+				AD0075000000000000000001 /* SpaceTrading.swift in Sources */,
+				AD0073000000000000000001 /* StarflightAccount.swift in Sources */,
+				AD0072000000000000000001 /* PlayerSaveArchive.swift in Sources */,
+				AD0070000000000000000001 /* ArenaDuelView.swift in Sources */,
+				AD0069000000000000000001 /* ArenaDuel.swift in Sources */,
+				AD0067000000000000000001 /* HomeFurnishingArt.swift in Sources */,
+				AD0066000000000000000001 /* HomeFurnishings.swift in Sources */,
+				AD0063000000000000000001 /* HomeInteriorView.swift in Sources */,
+				AD0062000000000000000001 /* HomeDocking.swift in Sources */,
+				AD0059000000000000000001 /* CityHomePreview.swift in Sources */,
+				AD0045000000000000000001 /* PilotLogbookView.swift in Sources */,
+				AD0044000000000000000001 /* PilotFlightTracking.swift in Sources */,
+				AD0043000000000000000001 /* PilotLogbook.swift in Sources */,
+				AD0036000000000000000001 /* FlightShopView.swift in Sources */,
+				AD0038000000000000000001 /* SpaceScenery.swift in Sources */,
+				AD0037000000000000000001 /* ScenicRegion.swift in Sources */,
+				AD0021000000000000000001 /* HandController.swift in Sources */,
+				93EB1061B55F8CEAE048FB5A /* TouchControls.swift in Sources */,
+				2D2786DD6B04B5E78C531924 /* AircraftType.swift in Sources */,
+				FC63AEFB9EAA9DB4BC19700C /* CheckpointSystem.swift in Sources */,
+				BCCC14DE33F65B743C0082F0 /* CollisionSystem.swift in Sources */,
+				898A5A916D67DAE55CB98223 /* DeathStarDefenses.swift in Sources */,
+				AA7701000000000000000001 /* FlightAdventures.swift in Sources */,
+				AA7702000000000000000001 /* FlightAdventureRenderer.swift in Sources */,
+				AA7703000000000000000001 /* FlightAdventuresView.swift in Sources */,
+				AA7901000000000000000001 /* UniverseSimulation.swift in Sources */,
+				AA7902000000000000000001 /* UniverseRenderer.swift in Sources */,
+				AA7903000000000000000001 /* UniverseNavigationView.swift in Sources */,
+				AA7910000000000000000001 /* AlpineFlight/UI/RoomFlightView.swift in Sources */,
+				AA7911000000000000000001 /* AlpineFlight/UI/PilotProfileView.swift in Sources */,
+				AA7801000000000000000001 /* StoryCampaign.swift in Sources */,
+				AA7802000000000000000001 /* StoryCampaignView.swift in Sources */,
+				E50F07BF66261FF94D6C7B72 /* FlightPhysics.swift in Sources */,
+				AB0011002200330044005501 /* FreeRoamActivities.swift in Sources */,
+				46EA69E8D2C2DD0822CDC5C1 /* WeaponSystem.swift in Sources */,
+				483D1E9404657F2E384AA766 /* AircraftFactory.swift in Sources */,
+				A2257CC41CF01653400843D6 /* AircraftModels.swift in Sources */,
+				C7A1606B7284A43DB07AA1C9 /* CameraController.swift in Sources */,
+				8AEDEEEC76539A673247C8AA /* FlightSceneView.swift in Sources */,
+				36E98FDA80A0C8E1DC54B450 /* TerrainRenderer.swift in Sources */,
+				5A5C09B400587A2FCCE1F4D6 /* WorldRenderer.swift in Sources */,
+				2A8E5A316F842C9AE51948B9 /* FlightLevel.swift in Sources */,
+				0B583468676852A6FE6365C2 /* TerrainGenerator.swift in Sources */,
+				4125EBE417DBD965933BF120 /* FlightPlannerView.swift in Sources */,
+				F827CE26AD5CAE7F43ECB795 /* FlightStyle.swift in Sources */,
+				D34FC3C13274344FF4517BFB /* GameView.swift in Sources */,
+				E0CF96405F7EE8F09F0C5DDE /* HUDView.swift in Sources */,
+				AD8B55980E463B2D634D38C4 /* SettingsView.swift in Sources */,
+				F00D00000000000000000007 /* DroidCrew.swift in Sources */,
+				F00D00000000000000000009 /* DroidVoiceController.swift in Sources */,
+				F00D0000000000000000000B /* DroidVisionView.swift in Sources */,
+				F00D0000000000000000000F /* HangarSceneView.swift in Sources */,
+				F00D00000000000000000011 /* CustomContent.swift in Sources */,
+				F00D00000000000000000013 /* CustomLevelDefinition.swift in Sources */,
+				F00D00000000000000000015 /* WorkshopView.swift in Sources */,
+				AD0081000000000000000001 /* VideoLaunchIntro.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		13EF160A4C3FE407DAC89864 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7B7D4323B3CF20E5D5B11333 /* AlpineFlight */;
+			targetProxy = 9233BDF0699B190BF4FDB4A6 /* PBXContainerItemProxy */;
+		};
+		AD008000000000000000000E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			platformFilter = ios;
+			target = AD008000000000000000000B /* StarflightWidgets */;
+			targetProxy = AD008000000000000000000D /* PBXContainerItemProxy */;
+		};
+		CFEA129760CF4A660523EB00 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7B7D4323B3CF20E5D5B11333 /* AlpineFlight */;
+			targetProxy = 207B1DE256FF4DE7C9B25480 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1AFDE2E638D6FD92867ED408 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon HyperspaceIcon GoldIcon";
+				ASSETCATALOG_COMPILER_APPICON_NAME = StarflightIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "AlpineFlight/Resources/Camera-Mac.entitlements";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 31;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 3C594V2263;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AlpineFlight/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 2.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ibrahimkhan.alpineflight;
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = com.alpineflight.prototype;
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphonesimulator*]" = com.alpineflight.prototype;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		1FC24718A9415CA7197708AB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alpineflight.prototype.AlpineFlightTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AlpineFlight.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AlpineFlight";
+			};
+			name = Release;
+		};
+		5283471FF90C511CFE244FFF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		68B365465721839AF9BC75DA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alpineflight.prototype.AlpineFlightTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AlpineFlight.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AlpineFlight";
+			};
+			name = Debug;
+		};
+		AB52CB08E0FDF02BF6C67C33 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AD008000000000000000000F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 31;
+				DEVELOPMENT_TEAM = 3C594V2263;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = StarflightWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 2.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alpineflight.prototype.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AD0080000000000000000010 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 31;
+				DEVELOPMENT_TEAM = 3C594V2263;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = StarflightWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 2.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alpineflight.prototype.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BA58F0AE2110B8337FEC5A17 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alpineflight.prototype.AlpineFlightUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = AlpineFlight;
+			};
+			name = Release;
+		};
+		C3250F91E5796E07E99B2C1A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon HyperspaceIcon GoldIcon";
+				ASSETCATALOG_COMPILER_APPICON_NAME = StarflightIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "AlpineFlight/Resources/Camera-Mac.entitlements";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 31;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 3C594V2263;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AlpineFlight/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 2.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ibrahimkhan.alpineflight;
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = com.alpineflight.prototype;
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphonesimulator*]" = com.alpineflight.prototype;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E7D508977988DD0B1E3AF7F4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alpineflight.prototype.AlpineFlightUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = AlpineFlight;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		21AAC1C12D6194D52EBA8DC4 /* Build configuration list for PBXNativeTarget "AlpineFlightUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E7D508977988DD0B1E3AF7F4 /* Debug */,
+				BA58F0AE2110B8337FEC5A17 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4BA304E783CFBB9FA6E56552 /* Build configuration list for PBXProject "AlpineFlight" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AB52CB08E0FDF02BF6C67C33 /* Debug */,
+				5283471FF90C511CFE244FFF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AD008000000000000000000C /* Build configuration list for PBXNativeTarget "StarflightWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AD008000000000000000000F /* Debug */,
+				AD0080000000000000000010 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C9C9C949CA8BBEBAF270DE24 /* Build configuration list for PBXNativeTarget "AlpineFlight" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C3250F91E5796E07E99B2C1A /* Debug */,
+				1AFDE2E638D6FD92867ED408 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F457917987757747DF2816DB /* Build configuration list for PBXNativeTarget "AlpineFlightTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				68B365465721839AF9BC75DA /* Debug */,
+				1FC24718A9415CA7197708AB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 98F54143AB4E86B28C3AFEE0 /* Project object */;
+}

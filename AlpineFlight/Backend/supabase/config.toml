@@ -1,0 +1,4 @@
+[functions.delete-account]
+# The legacy gateway rejects this project's ES256 user tokens. The handler
+# verifies the bearer token with Supabase Auth getUser before any admin action.
+verify_jwt = false

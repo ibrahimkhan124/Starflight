@@ -1,0 +1,42 @@
+{
+  "weather_rain": {
+    "seconds": 4.0,
+    "peak": 0.58,
+    "rms": 0.17008,
+    "loop": true,
+    "seam": 0.0,
+    "bytes": 705644
+  },
+  "weather_snow": {
+    "seconds": 4.0,
+    "peak": 0.58,
+    "rms": 0.09804,
+    "loop": true,
+    "seam": 0.0,
+    "bytes": 705644
+  },
+  "weather_mist": {
+    "seconds": 4.0,
+    "peak": 0.58,
+    "rms": 0.1145,
+    "loop": true,
+    "seam": 0.0,
+    "bytes": 705644
+  },
+  "weather_dust": {
+    "seconds": 4.0,
+    "peak": 0.58,
+    "rms": 0.11986,
+    "loop": true,
+    "seam": 0.0,
+    "bytes": 705644
+  },
+  "weather_thunder": {
+    "seconds": 4.5,
+    "peak": 0.76,
+    "rms": 0.09389,
+    "loop": false,
+    "seam": 5e-06,
+    "bytes": 793844
+  }
+}

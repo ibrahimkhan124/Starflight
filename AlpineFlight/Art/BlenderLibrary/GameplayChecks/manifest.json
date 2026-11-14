@@ -1,0 +1,26 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "3C960CE9-410C-4CEC-9C47-7D1D5D1BB9E3",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "4659F7E9-7DEE-411C-8C44-140C43DDAAC0.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Blender – voltwingPodracer – boontaEve_0_4E08F3B3-22C8-45CD-9058-8C08E9E905FF.png",
+        "timestamp" : 1790497718.816
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "3C960CE9-410C-4CEC-9C47-7D1D5D1BB9E3",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "6BEC85B8-9FD8-4C2E-A624-91C20AE4B22E.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Blender – millenniumFalcon – deathStar_0_119E692C-B61C-4B00-A32B-A54A7B5E7AB8.png",
+        "timestamp" : 1790497705.319
+      }
+    ],
+    "testIdentifier" : "FlightUITests/testBlenderFalconAndPodRaceScenes()",
+    "testIdentifierURL" : "test://com.apple.xcode/AlpineFlight/AlpineFlightUITests/FlightUITests/testBlenderFalconAndPodRaceScenes"
+  }
+]

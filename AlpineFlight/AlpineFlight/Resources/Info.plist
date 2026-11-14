@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>StarflightAccountURL</key>
+	<string>https://yzjzkwcwysstqptcrjvs.supabase.co</string>
+	<key>StarflightAccountPublicKey</key>
+	<string>sb_publishable_JU1dgpuZ5p1gri1pMFV6fA_fM3uHpVZ</string>
+	<key>CFBundleDisplayName</key>
+	<string>Starflight</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleName</key>
+	<string>Starflight</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Use the camera for optional hand steering and rear-camera room flight on supported devices. Camera frames are processed on your device and are not saved or uploaded.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Use device tilt to steer your aircraft when tilt controls are enabled.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Listen for optional in-cockpit commands such as setting the throttle after you tap the droid microphone.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Recognize optional “Hey droid” flight commands while the cockpit droid microphone is enabled.</string>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+	</dict>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Starjedi.ttf</string>
+	</array>
+	<key>UIRequiresFullScreen</key>
+	<true/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>Starflight shortcuts</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>starflight</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+		</dict>
+	</array>
+</dict>
+</plist>

@@ -1,0 +1,138 @@
+{
+  "arrival": {
+    "seconds": 1.15,
+    "peak": 0.76,
+    "rms": 0.09097,
+    "loop": false,
+    "seam": 2e-06,
+    "bytes": 202904
+  },
+  "boost": {
+    "seconds": 1.0,
+    "peak": 0.76,
+    "rms": 0.12119,
+    "loop": false,
+    "seam": 9e-06,
+    "bytes": 176444
+  },
+  "checkpoint": {
+    "seconds": 0.85,
+    "peak": 0.76,
+    "rms": 0.16844,
+    "loop": false,
+    "seam": 3e-06,
+    "bytes": 149984
+  },
+  "droid": {
+    "seconds": 0.65,
+    "peak": 0.76,
+    "rms": 0.3167,
+    "loop": false,
+    "seam": 7e-06,
+    "bytes": 114704
+  },
+  "engine": {
+    "seconds": 4.0,
+    "peak": 0.58,
+    "rms": 0.26594,
+    "loop": true,
+    "seam": 0.0,
+    "bytes": 705644
+  },
+  "hyperspace": {
+    "seconds": 5.0,
+    "peak": 0.76,
+    "rms": 0.14573,
+    "loop": false,
+    "seam": 2e-06,
+    "bytes": 882044
+  },
+  "impact": {
+    "seconds": 2.0,
+    "peak": 0.76,
+    "rms": 0.08976,
+    "loop": false,
+    "seam": 0.0,
+    "bytes": 352844
+  },
+  "ion": {
+    "seconds": 4.0,
+    "peak": 0.58,
+    "rms": 0.22191,
+    "loop": true,
+    "seam": 0.0,
+    "bytes": 705644
+  },
+  "jet": {
+    "seconds": 4.0,
+    "peak": 0.58,
+    "rms": 0.1974,
+    "loop": true,
+    "seam": 0.0,
+    "bytes": 705644
+  },
+  "laser": {
+    "seconds": 0.3,
+    "peak": 0.76,
+    "rms": 0.15376,
+    "loop": false,
+    "seam": 1.2e-05,
+    "bytes": 52964
+  },
+  "laser_heavy": {
+    "seconds": 0.48,
+    "peak": 0.76,
+    "rms": 0.12048,
+    "loop": false,
+    "seam": 5e-06,
+    "bytes": 84716
+  },
+  "laser_ion": {
+    "seconds": 0.32,
+    "peak": 0.76,
+    "rms": 0.14575,
+    "loop": false,
+    "seam": 1e-05,
+    "bytes": 56492
+  },
+  "pod": {
+    "seconds": 4.0,
+    "peak": 0.58,
+    "rms": 0.19347,
+    "loop": true,
+    "seam": 0.0,
+    "bytes": 705644
+  },
+  "shield": {
+    "seconds": 0.55,
+    "peak": 0.76,
+    "rms": 0.13124,
+    "loop": false,
+    "seam": 2e-06,
+    "bytes": 97064
+  },
+  "skid": {
+    "seconds": 4.0,
+    "peak": 0.58,
+    "rms": 0.16094,
+    "loop": true,
+    "seam": 0.0,
+    "bytes": 705644
+  },
+  "warp": {
+    "seconds": 4.0,
+    "peak": 0.58,
+    "rms": 0.25724,
+    "loop": true,
+    "seam": 0.0,
+    "bytes": 705644
+  },
+  "wind": {
+    "seconds": 4.0,
+    "peak": 0.58,
+    "rms": 0.13034,
+    "loop": true,
+    "seam": 0.0,
+    "bytes": 705644
+  }
+}

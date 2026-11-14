@@ -1,0 +1,98 @@
+{
+  "checked_on": "2026-11-13",
+  "scope": "Bundled orbital maps for Earth, Mars, Venus and Jupiter. Procedural flight terrain is original and does not reproduce measured topography.",
+  "reuse_summary": "NASA 3D hub says its assets are free to download/use subject to NASA media guidelines. NASA media guidelines generally permit factual and computer graphical simulation uses with source acknowledgement; protected NASA identifiers, marked third-party copyright and implied endorsement are excluded. JPL policy permits image use subject to credit, no endorsement and its stated special cases. No NASA/JPL logos or people are included.",
+  "policy_urls": [
+    "https://science.nasa.gov/3d-resources/",
+    "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+    "https://www.jpl.nasa.gov/jpl-image-use-policy/"
+  ],
+  "recommended_assets": [
+    {
+      "body": "Earth",
+      "file": "Earth.png",
+      "source_page": "https://svs.gsfc.nasa.gov/2915",
+      "download_url": "https://svs.gsfc.nasa.gov/vis/a000000/a002900/a002915/bluemarble-2048.png",
+      "credit": "NASA/Goddard Space Flight Center Scientific Visualization Studio; Blue Marble data courtesy of Reto Stockli (NASA/GSFC) and NASA Earth Observatory",
+      "projection": "Full-world equirectangular map",
+      "recommended": true,
+      "notes": "Inspected: land/ocean/ice map without baked clouds. Original 2048x1024. Add cloud shell separately.",
+      "policy_urls": [
+        "https://www.nasa.gov/nasa-brand-center/images-and-media/"
+      ],
+      "width": 2048,
+      "height": 1024,
+      "image_format": "PNG",
+      "bytes": 1511379,
+      "sha256": "ae6214b078ed0864c96f74bcb10ae3021f6eb116f8059797efe0fa9ea8b89d35"
+    },
+    {
+      "body": "Jupiter",
+      "file": "Jupiter-Cassini.jpg",
+      "source_page": "https://www.jpl.nasa.gov/images/pia07782-cassinis-best-maps-of-jupiter-cylindrical-map/",
+      "download_url": "https://d2pn8kiwq2w21t.cloudfront.net/original_images/jpegPIA07782.jpg",
+      "credit": "NASA/JPL/Space Science Institute",
+      "projection": "Planetocentric latitude-longitude cylindrical, full 360 degrees longitude and 180 degrees latitude",
+      "recommended": true,
+      "notes": "Inspected: grid-free Cassini December 2000 colour mosaic; includes Great Red Spot and faint polar haze. 3601x1801 original. Parent may resize for 2K runtime budget. No third-party copyright restriction identified in caption; retain full stated credit.",
+      "policy_urls": [
+        "https://www.jpl.nasa.gov/jpl-image-use-policy/",
+        "https://www.nasa.gov/nasa-brand-center/images-and-media/"
+      ],
+      "width": 3601,
+      "height": 1801,
+      "image_format": "JPEG",
+      "bytes": 441285,
+      "sha256": "6b835ddd8036ea9efd25def04f75aa60b69b096025a37eeae5e9b6978e0a2281",
+      "runtime_variant": {
+        "file": "Jupiter-Cassini-2048.jpg",
+        "width": 2048,
+        "height": 1024,
+        "bytes": 338207,
+        "sha256": "f254a56865c4355c276fa60767da53ab82ea9b0fe5fda516be667736aa7121cf",
+        "derivation": "Original preserved separately. Proportional downsample only using sips -Z 2048; no painting, recolouring or generated detail."
+      }
+    },
+    {
+      "body": "Mars",
+      "file": "Mars.jpg",
+      "source_page": "https://science.nasa.gov/3d-resources/mars/",
+      "download_url": "https://assets.science.nasa.gov/content/dam/science/cds/3d/resources/image/mars/Mars.jpg",
+      "credit": "NASA/Jet Propulsion Laboratory & Caltech; Viking imagery processed at USGS",
+      "projection": "Full-world 2:1 texture for sphere models",
+      "recommended": true,
+      "notes": "Inspected: 1440x720 colour surface map with caps, Valles Marineris, volcanoes and craters. NASA 3D source.",
+      "policy_urls": [
+        "https://science.nasa.gov/3d-resources/",
+        "https://www.nasa.gov/nasa-brand-center/images-and-media/"
+      ],
+      "width": 1440,
+      "height": 720,
+      "image_format": "JPEG",
+      "bytes": 972896,
+      "sha256": "12ec6bf02ebd42a246edc778cb2ce8c595b4d9f0892badf0bfff8abb2303c780"
+    },
+    {
+      "body": "Venus",
+      "file": "Venus.jpg",
+      "source_page": "https://science.nasa.gov/3d-resources/venus/",
+      "download_url": "https://assets.science.nasa.gov/content/dam/science/cds/3d/resources/image/venus/Venus.jpg",
+      "credit": "NASA/JPL-Caltech; Magellan radar imagery, JPL/Caltech planetary map database",
+      "credit_note": "Source page states Magellan/JPL-Caltech database but no separately labelled credit line.",
+      "projection": "Full-world 2:1 surface texture for sphere models",
+      "recommended": true,
+      "notes": "Inspected: 1440x720 orange colourized RADAR terrain with filled gaps. NOT natural-colour cloud tops; opaque pale cloud cover should dominate orbital Venus if aiming for an optical view.",
+      "policy_urls": [
+        "https://science.nasa.gov/3d-resources/",
+        "https://www.nasa.gov/nasa-brand-center/images-and-media/"
+      ],
+      "width": 1440,
+      "height": 720,
+      "image_format": "JPEG",
+      "bytes": 1166974,
+      "sha256": "e395bced59e95339efbdd002d4a0bbbf81fe323a6694f3a4039120560c80e789"
+    }
+  ],
+  "inspection": "Every image was opened visually after verifying actual pixel dimensions. Mercury is explicitly conditional because none of the inspected originals are a clean seamless 2K map.",
+  "integration_decision": "Use Earth, Jupiter, Mars and Venus. Skip Mercury candidates because of visible gaps/seams/UV atlas; retain existing procedural Mercury globe."
+}

@@ -1,0 +1,29 @@
+.DS_Store
+build/
+build-device/
+*.xcuserstate
+xcuserdata/
+DerivedData/
+*.xcresult
+*.log
+
+# Generated application bundles and local build products
+build-*/
+Release/
+*.app/
+*.ipa
+*.dSYM/
+*.air
+*.metallib
+
+# Local credentials and editor/asset backups
+.env
+.env.*
+!.env.example
+*.p12
+*.p8
+*.mobileprovision
+*.blend1
+*.blend2
+__pycache__/
+*.pyc

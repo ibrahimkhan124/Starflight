@@ -1,0 +1,68 @@
+{
+  "fill": {
+    "linear-gradient": [
+      "display-p3:0.012,0.028,0.068,1.000",
+      "display-p3:0.065,0.215,0.455,1.000"
+    ]
+  },
+  "groups": [
+    {
+      "name": "Orbital accents",
+      "layers": [
+        {
+          "name": "Orbit and stars",
+          "image-name": "Orbital.svg",
+          "glass": false,
+          "opacity": 0.48,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0
+      },
+      "translucency": {
+        "enabled": false,
+        "value": 1
+      }
+    },
+    {
+      "name": "Flight emblem",
+      "layers": [
+        {
+          "name": "Silver emblem",
+          "image-name": "Image 2.png",
+          "glass": true,
+          "fill": {
+            "solid": "display-p3:0.83,0.94,1.000,1.000"
+          },
+          "opacity": 1,
+          "position": {
+            "scale": 2.9,
+            "translation-in-points": [
+              0,
+              -8
+            ]
+          }
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.45
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.9
+      }
+    }
+  ],
+  "supported-platforms": {
+    "squares": "shared"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "formatVersion": 1,
+  "name": "My winding mountain run",
+  "seed": 24680,
+  "mountainScale": 1.4,
+  "valleyWidth": 1.2,
+  "bends": 1.5,
+  "saddles": 0.8
+}

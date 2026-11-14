@@ -1,0 +1,10 @@
+{
+  "catalogue": "ESA Hipparcos (1997), CDS I/239, via NASA HEASARC",
+  "source": "https://heasarc.gsfc.nasa.gov/w3browse/all/hipparcos.html",
+  "query": "SELECT TOP 3000 hip_number,ra,dec,vmag,parallax,bv_color,parallax_error FROM hipparcos WHERE vmag < 7 AND parallax > 0 AND parallax_error < 0.5 * parallax ORDER BY vmag,hip_number",
+  "coordinateEpoch": "J1991.25 ICRS; no proper-motion extrapolation",
+  "distance": "1000 / parallax_mas in parsecs; approximate inverse-parallax distances, relative parallax error below 50%",
+  "colour": "B-V colour; missing colours use neutral 0.65",
+  "count": 3000,
+  "sha256": "2bb2c23eadba070e56f499d9b9b8c1bc7fbd48cee3e25328206d27d1741a1663"
+}
