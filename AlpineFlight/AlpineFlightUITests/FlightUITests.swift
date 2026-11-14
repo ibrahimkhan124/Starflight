@@ -72,6 +72,29 @@ final class FlightUITests: XCTestCase {
         }
     }
 
+    @MainActor
+    func testHothAetherTerrainPilotComparison() {
+        for enhanced in [false,true] {
+            let app = XCUIApplication()
+            startUniverseFlight(app,extraArguments:["-aetherHothTerrainEnabled",enhanced ? "YES":"NO"])
+            app.buttons["Flight tools"].tap()
+            let entry = app.buttons["Enter Hoth"]; revealStoryControl(entry,in:app); entry.tap()
+            XCTAssertTrue(app.buttons["Pause flight"].waitForExistence(timeout:15))
+            Thread.sleep(forTimeInterval:2)
+            capture(app,name:enhanced ? "Hoth Aether terrain enhanced":"Hoth legacy terrain baseline")
+            let throttle = app.sliders["Throttle"]
+            throttle.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).press(forDuration:0.1,
+                thenDragTo:throttle.coordinate(withNormalizedOffset:CGVector(dx:0.64,dy:0.5)))
+            Thread.sleep(forTimeInterval:8)
+            XCTAssertTrue(app.buttons["Pause flight"].exists)
+            capture(app,name:enhanced ? "Hoth Aether moving flight":"Hoth legacy moving flight")
+            app.buttons["Flight tools"].tap()
+            let orbit = app.buttons["Return to orbit"]; revealStoryControl(orbit,in:app); orbit.tap()
+            XCTAssertTrue(app.buttons["Pause flight"].waitForExistence(timeout:10))
+            app.terminate()
+        }
+    }
+
     /// Exercises normal travel and captures the nine scenery destinations accepted for this update.
     @MainActor
     func testScenicExpeditionTravelAndCaptures() { captureScenicExpeditions(includeHomePlanets: true) }

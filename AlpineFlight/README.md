@@ -704,3 +704,12 @@ Open `AlpineFlight.xcodeproj` in Xcode and allow package resolution. The tested
 Aether revision is recorded in the shared `Package.resolved`; no local checkout
 path is required. See [the integration notes](Docs/AetherIntegration.md) for the
 adapter, comparison arguments, tests, bounded resource costs and attribution.
+
+### Stage-two Hoth terrain pilot
+
+Hoth now has an optional Aether terrain path that retains its original mountains,
+flight routes and collision heights. Sixteen prepared sections share matching
+edge normals and include below-ground skirts. Choose **Settings → Sound & graphics
+→ Aether Hoth terrain pilot**, then restart Starflight to compare it with the
+original path. This is fixed prepared terrain; it does not stream or reshape
+while flying. See [stage-two implementation notes](Docs/AetherStage2.md).

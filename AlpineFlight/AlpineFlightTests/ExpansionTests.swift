@@ -2027,3 +2027,60 @@ final class AetherPlanetIntegrationTests: XCTestCase {
         }
     }
 }
+
+
+final class AetherHothPilotTests:XCTestCase {
+    func testGridMatchesOriginalHothTrianglesAcrossInteriorAndEdges() throws {
+        let asset = try AetherHothTerrain.prepared.get(), original = PlanetExploration(planet:.hoth)
+        for z in stride(from:Float(-12000),through:12000,by:173) {
+            for x in stride(from:Float(-12000),through:12000,by:197) {
+                XCTAssertEqual(try XCTUnwrap(asset.height(x:x,z:z)),original.groundHeight(x:x,z:z),accuracy:0.02)
+            }
+        }
+        for x:Float in [-12000,0,12000] { for z:Float in [-12000,0,12000] {
+            XCTAssertEqual(try XCTUnwrap(asset.height(x:x,z:z)),original.groundHeight(x:x,z:z),accuracy:0.02)
+        } }
+    }
+    func testTileEdgesHaveIdenticalHeightsAndNormalsAndBoundedSkirts() throws {
+        let asset = try AetherHothTerrain.prepared.get()
+        XCTAssertEqual(asset.tiles.count,16)
+        var seen:[SIMD2<Float>:(Float,SIMD3<Float>)] = [:], duplicates = 0, triangles = 0
+        for tile in asset.tiles {
+            XCTAssertEqual(tile.mesh.positions.count,41*41)
+            triangles += tile.mesh.indices.count/3+tile.skirt.indices.count/3
+            for (i,p) in tile.mesh.positions.enumerated() {
+                let key = SIMD2(p.x,p.z), n = tile.mesh.normals[i]
+                if let other = seen[key] {
+                    duplicates += 1; XCTAssertEqual(p.y,other.0); XCTAssertEqual(n,other.1)
+                } else { seen[key] = (p.y,n) }
+                XCTAssertEqual(simd_length(n),1,accuracy:0.001)
+            }
+            for i in stride(from:0,to:tile.mesh.indices.count,by:3) {
+                let ids = tile.mesh.indices[i..<i+3].map(Int.init)
+                let a = tile.mesh.positions[ids[0]], b = tile.mesh.positions[ids[1]], c = tile.mesh.positions[ids[2]]
+                XCTAssertGreaterThan(simd_cross(b-a,c-a).y,0)
+            }
+            for i in stride(from:0,to:tile.skirt.positions.count,by:4) {
+                XCTAssertEqual(tile.skirt.positions[i].y-tile.skirt.positions[i+3].y,140,accuracy:0.001)
+            }
+        }
+        XCTAssertGreaterThan(duplicates,900)
+        XCTAssertEqual(seen.count,161*161)
+        XCTAssertLessThan(triangles,60000)
+    }
+    @MainActor
+    func testPilotSwitchKeepsOtherSceneryAndTerrainStableDuringFlight() throws {
+        let defaults = UserDefaults.standard, old = defaults.object(forKey:"aetherHothTerrainEnabled")
+        defer { if let old { defaults.set(old,forKey:"aetherHothTerrainEnabled") } else { defaults.removeObject(forKey:"aetherHothTerrainEnabled") } }
+        for enabled in [false,true] {
+            defaults.set(enabled,forKey:"aetherHothTerrainEnabled")
+            let renderer = PlanetSurfaceRenderer(planet:.hoth,reducedDetail:true)
+            XCTAssertEqual(renderer.root.children.filter { $0.name.hasPrefix("Hoth Aether ground") }.count,enabled ? 16:0)
+            XCTAssertEqual(renderer.root.children.filter { $0.name.hasPrefix("Terrain stratum") }.isEmpty,enabled)
+            XCTAssertNotNil(renderer.root.findEntity(named:"Scout beacon 1"))
+            let ids = renderer.root.children.map(\.id)
+            for i in 0..<180 { renderer.update(camera:[Float(i)*30,800,8400-Float(i)*30],dt:1/60,passed:0) }
+            XCTAssertEqual(renderer.root.children.map(\.id),ids)
+        }
+    }
+}

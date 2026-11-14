@@ -9,15 +9,24 @@ enum AetherPlanetRenderer {
     static let status = AetherPreparationStatus()
     static var ready:Bool { get { status.ready } set { status.ready = newValue } }
     static var failure:String? { get { status.failure } set { status.failure = newValue } }
-    static func mesh(_ source:MeshData,name:String,terrainUV:Bool = false) throws -> MeshResource {
+    static func mesh(_ source:MeshData,name:String,terrainUV:Bool = false, worldUVScale:Float? = nil) throws -> MeshResource {
         var descriptor = MeshDescriptor(name:name)
         descriptor.positions = .init(source.positions)
         descriptor.normals = .init(source.normals)
         descriptor.textureCoordinates = .init(source.positions.map {
-            terrainUV ? SIMD2(($0.x+AetherPlanet.extent)/(2*AetherPlanet.extent),1-($0.z+AetherPlanet.extent)/(2*AetherPlanet.extent)) : SIMD2($0.x/80,$0.y/80)
+            if let scale = worldUVScale { return SIMD2($0.x/scale,$0.z/scale) }
+            return terrainUV ? SIMD2(($0.x+AetherPlanet.extent)/(2*AetherPlanet.extent),1-($0.z+AetherPlanet.extent)/(2*AetherPlanet.extent)) : SIMD2($0.x/80,$0.y/80)
         })
         descriptor.primitives = .triangles(source.indices)
         return try MeshResource.generate(from:[descriptor])
+    }
+    static func hothTiles(_ asset:AetherHothTerrain.Prepared,reducedDetail:Bool) throws -> [ModelEntity] {
+        let material = ScenicMaterials.terrain(color:.white,kind:"snow",planet:"Hoth",continuous:true,reducedDetail:reducedDetail)
+        return try asset.tiles.map { tile in
+            let entity = ModelEntity(mesh:try mesh(tile.renderMesh,name:"Hoth Aether tile",worldUVScale:180),materials:[material])
+            entity.name = "Hoth Aether ground \(tile.x),\(tile.z)"
+            return entity
+        }
     }
     static func make(_ asset:AetherPlanet.Prepared,enhanced:Bool = true) throws -> Entity {
         let root = Entity(); root.name = "Aether Reach prepared expedition"

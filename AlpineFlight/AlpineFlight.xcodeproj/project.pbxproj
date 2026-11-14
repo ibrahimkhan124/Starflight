@@ -116,6 +116,7 @@
 		AF1411030000000000000001 /* ProceduralSurface in Frameworks */ = {isa = PBXBuildFile; productRef = AF1411030000000000000002 /* ProceduralSurface */; };
 		AF1412000000000000000001 /* AetherPlanet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1412000000000000000002; };
 		AF1412010000000000000001 /* AetherPlanetRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1412010000000000000002; };
+		AF1413000000000000000001 = {isa = PBXBuildFile; fileRef = AF1413000000000000000002; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -267,6 +268,7 @@
 		FEA896F8D3FA8522590393E3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = AlpineFlight/UI/SettingsView.swift; sourceTree = "<group>"; };
 		AF1412000000000000000002 /* AetherPlanet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlight/Rendering/AetherPlanet.swift; sourceTree = "<group>"; };
 		AF1412010000000000000002 /* AetherPlanetRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlight/Rendering/AetherPlanetRenderer.swift; sourceTree = "<group>"; };
+		AF1413000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlight/Rendering/AetherHothTerrain.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -386,6 +388,7 @@
 				AE1311000000000000000002 /* ScenicMaterials.swift */,
 				AE1411030000000000000002 /* PlanetOrbitDetail.swift */,
 				AF1412010000000000000002,
+				AF1413000000000000000002,
 				AF1412000000000000000002,
 				AE1411020000000000000002 /* PlanetShaders.metal */,
 				AE1411010000000000000002 /* PlanetLighting.swift */,
@@ -682,6 +685,7 @@
 				AE1311000000000000000001 /* ScenicMaterials.swift in Sources */,
 				AE1411030000000000000001 /* PlanetOrbitDetail.swift in Sources */,
 				AF1412010000000000000001,
+				AF1413000000000000000001,
 				AF1412000000000000000001,
 				AE1411020000000000000001 /* PlanetShaders.metal in Sources */,
 				AE1411010000000000000001 /* PlanetLighting.swift in Sources */,

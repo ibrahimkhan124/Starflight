@@ -5,6 +5,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showAccount = false
     @State private var previewIntro = false
+    @AppStorage("aetherHothTerrainEnabled") private var aetherHothTerrainEnabled = true
     @AppStorage("aetherPlanetEnabled") private var aetherPlanetEnabled = true
     private var settingsSections: [String] {
         var sections = ["About Starflight", "Account", "App icon", "Camera hand control", "Droid copilot", "Flight controls", "Hangar preview", "Help & voice commands", "Navigation & activities", "Opening intro", "Sound & graphics", "The expedition"]
@@ -163,6 +164,8 @@ struct SettingsView: View {
                         .accessibilityIdentifier("Game sound test status")
                     Text("Sound effects use media volume and can play in Silent Mode. The in-game sound switch and volume still control them.")
                         .font(.caption).foregroundStyle(FlightPalette.secondary)
+                    FlightSwitchRow("Aether Hoth terrain pilot",isOn:$aetherHothTerrainEnabled).tint(FlightPalette.teal)
+                    Text("Builds Hoth through Aether with the same mountains and flight routes. Restart Starflight after changing this comparison switch.").font(.caption).foregroundStyle(FlightPalette.secondary)
                     FlightSwitchRow("Aether experimental planet",isOn:$aetherPlanetEnabled).tint(FlightPalette.teal)
                         .onChange(of:aetherPlanetEnabled) { _, enabled in if enabled { engine.prepareAetherPlanet() } }
                     Text("Adds Aether Reach to Galaxy map & hyperspace. The complete region prepares before entry. Disabling hides new trips; an active expedition remains safe. Existing planets keep their original terrain.").font(.caption).foregroundStyle(FlightPalette.secondary)
