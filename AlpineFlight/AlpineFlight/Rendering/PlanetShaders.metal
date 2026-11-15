@@ -200,3 +200,21 @@ float3 sfGround(int body,float3 pos,float3 n,float macro) {
     p.surface().set_roughness(half(.82+.12*grain));
     p.surface().set_metallic(0);p.surface().set_specular(.24);
 }
+
+// Portals parts/fx study: crossed sandfall veils and low drifting puffs.
+// Only twelve triangles at full detail; no particle spawning or frame-loop mesh edits.
+[[visible]] void starflight_canyon_dust(realitykit::surface_parameters p) {
+    float2 uv=p.geometry().uv0();
+    bool fall=uv.x<1.5;uv.x=fract(uv.x);
+    float time=p.uniforms().time();
+    float edge=pow(saturate(1-abs(uv.x*2-1)),1.7);
+    float ends=smoothstep(0.0,.12,uv.y)*(1-smoothstep(.8,1.0,uv.y));
+    float3 q=float3(uv.x*(fall ? 9.0 : 3.0),uv.y*(fall ? 20.0 : 2.5)+time*(fall ? 1.8 : -.18),time*.09);
+    float billow=sfFbm(q,3);
+    float opacity=edge*ends*smoothstep(.23,.72,billow)*(fall ? .32 : .17);
+    float3 tint=mix(float3(.49,.29,.12),float3(.88,.66,.39),uv.y*.4+billow*.6);
+    p.surface().set_base_color(half3(tint));
+    p.surface().set_emissive_color(half3(tint));
+    p.surface().set_roughness(.98);
+    p.surface().set_opacity(half(opacity));
+}

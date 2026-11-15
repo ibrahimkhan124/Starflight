@@ -2238,7 +2238,7 @@ final class AetherSelectiveMigrationTests:XCTestCase {
 final class CanyonStudyTests:XCTestCase {
     func testArchOpeningCollisionAndGeometryBudget() throws {
         let mesh=try TatooineCanyon.mesh.get(),origin=TatooineCanyon.origin
-        XCTAssertLessThan(mesh.indices.count/3,1000)
+        XCTAssertLessThan(mesh.indices.count/3,3200)
         XCTAssertFalse(TatooineCanyon.hits(origin+[0,170,0],radius:12))
         XCTAssertTrue(TatooineCanyon.hits(origin+[260,0,0],radius:3))
         XCTAssertTrue(TatooineCanyon.hits(origin+[0,360,0],radius:3))
@@ -2246,6 +2246,11 @@ final class CanyonStudyTests:XCTestCase {
         let ground=PlanetExploration(planet:.tatooine)
         XCTAssertGreaterThan(ground.clearance(at:TatooineCanyon.passage),80)
         for p in mesh.positions { XCTAssertTrue(TatooineCanyon.hits(origin+p,radius:8),"Rendered stone must remain collidable") }
+        for n in mesh.normals { XCTAssertEqual(simd_length(n),1,accuracy:0.001) }
+        for ring in 0...96 {
+            XCTAssertLessThan(simd_distance(mesh.positions[ring*17],mesh.positions[ring*17+16]),0.001)
+            XCTAssertLessThan(simd_distance(mesh.normals[ring*17],mesh.normals[ring*17+16]),0.001)
+        }
     }
     @MainActor func testComparisonSwitchControlsArchAndLandmark() throws {
         let d=UserDefaults.standard,key="portalsCanyonEnabled",old=d.object(forKey:key)
@@ -2254,6 +2259,9 @@ final class CanyonStudyTests:XCTestCase {
             d.set(enabled,forKey:key)
             let scene=PlanetSurfaceRenderer(planet:.tatooine,reducedDetail:true)
             XCTAssertEqual(scene.root.findEntity(named:"Canyon of Light study arch") != nil,enabled)
+            if ScenicMaterials.shadersAvailable {
+                XCTAssertEqual(scene.root.findEntity(named:"Canyon sandfall and drifting dust") != nil,enabled)
+            }
             XCTAssertEqual(PlanetExploration(planet:.tatooine).landmarks[3].name == "Sunlit stone arch",enabled)
         }
     }

@@ -47,7 +47,36 @@ enum AetherWorldDetails {
 /// Canyon of Light study: reusable arch anchors and geometric contact, independent of camera.
 enum TatooineCanyon {
     static var enabled:Bool { AetherPlanet.flag("portalsCanyonEnabled") }
-    static let mesh:Result<MeshData,Error> = Result { try RockArch.build(RockArchRequest(span:520,height:360,thickness:64,depth:110)) }
+    static let mesh:Result<MeshData,Error> = Result { try makeSculptedArch() }
+
+    /// Portals part/core study: broad swells, upright flutes and bedding ledges.
+    /// Deform once during preparation, then regenerate normals from the final mesh.
+    private static func makeSculptedArch() throws -> MeshData {
+        let base = try RockArch.build(RockArchRequest(span:520,height:360,thickness:90,depth:180,segments:96,radialSegments:16))
+        let points = base.positions.map { p -> SIMD3<Float> in
+            let a = atan2(max(0,p.y)/360,p.x/260)
+            let center = SIMD3<Float>(260*cos(a),360*sin(a),0)
+            let delta = p-center
+            let swell:Float = 1 + 0.10*sin(a*7+0.8) + 0.045*sin(a*19)
+            let flute:Float = sin(p.x*0.14+p.y*0.012)*sin(p.z*0.025)*3.2
+            let ledge:Float = sin(p.y*0.12+sin(p.x*0.015))*2.8
+            let normal = simd_length_squared(delta)>0.01 ? simd_normalize(delta) : SIMD3<Float>(0,-1,0)
+            return center + delta*swell + normal*(flute+ledge)
+        }
+        var normals = Array(repeating:SIMD3<Float>.zero,count:points.count)
+        for i in stride(from:0,to:base.indices.count,by:3) {
+            let a=Int(base.indices[i]),b=Int(base.indices[i+1]),c=Int(base.indices[i+2])
+            let n=simd_cross(points[b]-points[a],points[c]-points[a])
+            normals[a]+=n;normals[b]+=n;normals[c]+=n
+        }
+        // Weld the duplicated radial seam while retaining the separate end caps.
+        for ring in 0...96 {
+            let first=ring*17,last=first+16,n=normals[first]+normals[last]
+            normals[first]=n;normals[last]=n
+        }
+        normals = normals.enumerated().map { i,n in simd_length_squared(n)>0.000001 ? simd_normalize(n) : base.normals[i] }
+        return try MeshData(positions:points,normals:normals,indices:base.indices)
+    }
     static let origin:SIMD3<Float> = {
         let ground = PlanetExploration(planet:.tatooine)
         let x=ground.canyonCenter(z:-4500)
@@ -57,12 +86,12 @@ enum TatooineCanyon {
     static var passage:SIMD3<Float> { origin + [0,170,0] }
     static func hits(_ point:SIMD3<Float>,radius:Float) -> Bool {
         let p=point-origin
-        guard abs(p.x)<310+radius,abs(p.z)<60+radius,p.y > -60-radius,p.y<410+radius else { return false }
+        guard abs(p.x)<330+radius,abs(p.z)<110+radius,p.y > -70-radius,p.y<430+radius else { return false }
         for i in 0...96 {
             let angle=Float(i)*Float.pi/96
             let delta=p-SIMD3<Float>(260*cos(angle),360*sin(angle),0)
             // Elliptical tube follows the rendered arch, including its depth.
-            if simd_length_squared(delta/SIMD3<Float>(36+radius,36+radius,56+radius))<1 { return true }
+            if simd_length_squared(delta/SIMD3<Float>(64+radius,64+radius,104+radius))<1 { return true }
         }
         return false
     }

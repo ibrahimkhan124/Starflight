@@ -66,3 +66,10 @@ Aether's existing original RockArch approximation. This is not a translation of
 the complete self-lit shader, sculpted mesh, sandfalls or fauna. See
 `Docs/Portals/CanyonStudy.md` for the dependency map and explicit scope. Preserve
 these adaptation credits under the existing CC BY-NC-SA 4.0 terms.
+
+
+The second Tatooine study additionally references `rockDisp` in the same
+`src/parts/canyon-of-light.js` snapshot and the prepared veil/time-uniform design
+in `src/kit/fx.js`. Starflight's bounded Swift deformation, normal reconstruction
+and Metal dust composition are native adaptations, not a Three.js runtime port.
+They remain covered by the existing Portals attribution and adaptation terms.

@@ -85,6 +85,15 @@ enum ScenicMaterials {
         return try? TextureResource.generate(from: cg, options: .init(semantic: .color))
     }()
 
+    /// A small prepared veil batch; animation uses the renderer's time uniform.
+    static func canyonDust() -> (any RealityKit.Material)? {
+        guard let library,library.functionNames.contains("starflight_canyon_dust") else { return nil }
+        var paint = UnlitMaterial(color:UIColor(red:0.84,green:0.63,blue:0.38,alpha:1))
+        paint.blending = .transparent(opacity:.init(floatLiteral:1))
+        paint.faceCulling = .none
+        return try? CustomMaterial(from:paint,surfaceShader:.init(named:"starflight_canyon_dust",in:library))
+    }
+
     static func terrain(color: UIColor, kind: String, planet: String? = nil, continuous: Bool = false, reducedDetail: Bool = false) -> any RealityKit.Material {
         var paint = PhysicallyBasedMaterial()
         paint.baseColor = .init(tint: color)

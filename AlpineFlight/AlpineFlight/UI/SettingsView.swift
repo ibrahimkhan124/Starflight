@@ -169,7 +169,7 @@ struct SettingsView: View {
                     Text("Sound effects use media volume and can play in Silent Mode. The in-game sound switch and volume still control them.")
                         .font(.caption).foregroundStyle(FlightPalette.secondary)
                     FlightSwitchRow("Tatooine canyon study",isOn:$portalsCanyonEnabled).tint(FlightPalette.teal)
-                    Text("Layered sandstone and a fly-through arch. Restart after changing to compare the original scene.").font(.caption).foregroundStyle(FlightPalette.secondary)
+                    Text("Sculpted sandstone, a fly-through arch and drifting sand. Restart after changing to compare the original scene.").font(.caption).foregroundStyle(FlightPalette.secondary)
                     FlightSwitchRow("Aether Reach surface & scenery",isOn:$aetherWorldDetailEnabled).tint(FlightPalette.teal)
                     Text("Detailed surface and seeded rocks, with clear arrival and arch corridors. Restart Starflight after changing.").font(.caption).foregroundStyle(FlightPalette.secondary)
                     FlightSwitchRow("Aether Tatooine terrain",isOn:$aetherTatooineTerrainEnabled).tint(FlightPalette.teal)

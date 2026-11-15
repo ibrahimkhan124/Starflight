@@ -433,6 +433,7 @@ private struct HomeNavigationDock: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Namespace private var highlight
+    @ScaledMetric(relativeTo: .caption2) private var navigationLabelSize = 9.0
     @ScaledMetric(relativeTo: .caption) private var minimumCellWidth = 54.0
     @ScaledMetric(relativeTo: .caption) private var minimumCellHeight = 56.0
     private var launchTitle: String {
@@ -452,7 +453,7 @@ private struct HomeNavigationDock: View {
                         Image(systemName: item.symbol).font(.system(size: 20, weight: .medium))
                             .accessibilityHidden(true)
                         Text(item == .flight && !engine.ready ? "Preparing" : item.shortTitle)
-                            .font(.caption2.weight(.semibold)).lineLimit(1)
+                            .font(.system(size: navigationLabelSize, weight: .semibold)).lineLimit(1)
                     }
                     .foregroundStyle(.white)
                     .padding(.horizontal, 4).padding(.vertical, 6)

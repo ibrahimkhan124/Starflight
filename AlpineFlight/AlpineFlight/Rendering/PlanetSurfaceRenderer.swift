@@ -194,8 +194,39 @@ final class PlanetSurfaceRenderer {
            let mesh = try? AetherPlanetRenderer.mesh(data,name:"Sunlit sandstone arch",worldUVScale:180) {
             let arch = ModelEntity(mesh:mesh,materials:[ScenicMaterials.terrain(color:.white,kind:"sand",planet:"Tatooine",continuous:true,reducedDetail:reducedDetail)])
             arch.name="Canyon of Light study arch";arch.position=TatooineCanyon.origin;root.addChild(arch)
+            buildCanyonDust()
         }
         root.isEnabled = false
+    }
+
+    /// fx.js/part sandfall study: preallocated veils, no per-grain entities.
+    private func buildCanyonDust() {
+        guard let material = ScenicMaterials.canyonDust() else { return }
+        var positions:[SIMD3<Float>]=[],normals:[SIMD3<Float>]=[],uvs:[SIMD2<Float>]=[],indices:[UInt32]=[]
+        func veil(center:SIMD3<Float>,right:SIMD3<Float>,height:Float,kind:Float) {
+            let start=UInt32(positions.count),up=SIMD3<Float>(0,height*0.5,0)
+            positions += [center-right-up,center+right-up,center+right+up,center-right+up]
+            normals += Array(repeating:simd_normalize(simd_cross(right,up)),count:4)
+            // UV.x reserves separate bands for sandfalls (0..1) and ground dust (2..3).
+            uvs += [[kind,0],[kind+1,0],[kind+1,1],[kind,1]]
+            indices += [start,start+1,start+2,start,start+2,start+3]
+        }
+        // The fall is beside the right leg, leaving the central survey route visible.
+        veil(center:[150,145,88],right:[16,0,0],height:280,kind:0)
+        if !reducedDetail { veil(center:[150,145,88],right:[0,0,16],height:280,kind:0) }
+        for i in 0..<(reducedDetail ? 2 : 4) {
+            let x:Float = i.isMultiple(of:2) ? -220 : 215
+            let z=Float(i)*180-200
+            let ground=PlanetExploration(planet:.tatooine).groundHeight(x:TatooineCanyon.origin.x+x,z:TatooineCanyon.origin.z+z)
+            veil(center:[x,ground-TatooineCanyon.origin.y+18,z],right:[65,0,18],height:34,kind:2)
+        }
+        var descriptor=MeshDescriptor(name:"Prepared canyon dust veils")
+        descriptor.positions = .init(positions);descriptor.normals = .init(normals)
+        descriptor.textureCoordinates = .init(uvs);descriptor.primitives = .triangles(indices)
+        guard let mesh=try? MeshResource.generate(from:[descriptor]) else { return }
+        let dust=ModelEntity(mesh:mesh,materials:[material]);dust.name="Canyon sandfall and drifting dust"
+        dust.position=TatooineCanyon.origin;dust.components.set(DynamicLightShadowComponent(castsShadow:false))
+        root.addChild(dust)
     }
 
     private func buildAtmosphere() {

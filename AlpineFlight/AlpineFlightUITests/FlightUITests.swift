@@ -97,19 +97,25 @@ final class FlightUITests: XCTestCase {
 
     @MainActor
     func testTatooineCanyonStudyComparison() {
-        for enabled in [false,true] {
-            let app=XCUIApplication()
-            app.launchEnvironment["STARFLIGHT_CANYON_CAPTURE"]="1"
-            startUniverseFlight(app,extraArguments:["-portalsCanyonEnabled",enabled ? "YES":"NO"])
-            app.buttons["Flight tools"].tap()
-            let enter=app.buttons["Enter Tatooine"];revealStoryControl(enter,in:app);enter.tap()
-            Thread.sleep(forTimeInterval:2)
-            capture(app,name:enabled ? "Canyon study adapted approach":"Canyon study original comparison")
-            Thread.sleep(forTimeInterval:14)
-            XCTAssertTrue(app.buttons["Pause flight"].exists)
-            capture(app,name:enabled ? "Canyon study arch flight":"Canyon study original flight")
-            app.terminate()
-        }
+        for enabled in [false,true] { recordCanyonFlight(enabled:enabled) }
+    }
+
+    @MainActor
+    func testSculptedCanyonFlight() { recordCanyonFlight(enabled:true) }
+
+    @MainActor
+    private func recordCanyonFlight(enabled:Bool) {
+        let app=XCUIApplication()
+        app.launchEnvironment["STARFLIGHT_CANYON_CAPTURE"]="1"
+        startUniverseFlight(app,extraArguments:["-portalsCanyonEnabled",enabled ? "YES":"NO"])
+        app.buttons["Flight tools"].tap()
+        let enter=app.buttons["Enter Tatooine"];revealStoryControl(enter,in:app);enter.tap()
+        Thread.sleep(forTimeInterval:2)
+        capture(app,name:enabled ? "Canyon study adapted approach":"Canyon study original comparison")
+        Thread.sleep(forTimeInterval:14)
+        XCTAssertTrue(app.buttons["Pause flight"].exists)
+        capture(app,name:enabled ? "Canyon study arch flight":"Canyon study original flight")
+        app.terminate()
     }
 
     @MainActor
