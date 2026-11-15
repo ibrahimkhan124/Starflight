@@ -190,6 +190,11 @@ final class PlanetSurfaceRenderer {
         buildCloudLayer()
         buildSkyports()
         buildInhabitants()
+        if planet == .tatooine,TatooineCanyon.enabled,let data = try? TatooineCanyon.mesh.get(),
+           let mesh = try? AetherPlanetRenderer.mesh(data,name:"Sunlit sandstone arch",worldUVScale:180) {
+            let arch = ModelEntity(mesh:mesh,materials:[ScenicMaterials.terrain(color:.white,kind:"sand",planet:"Tatooine",continuous:true,reducedDetail:reducedDetail)])
+            arch.name="Canyon of Light study arch";arch.position=TatooineCanyon.origin;root.addChild(arch)
+        }
         root.isEnabled = false
     }
 

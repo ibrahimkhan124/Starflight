@@ -802,7 +802,14 @@ final class GameEngine: ObservableObject {
         guard level.isFreeRoam, hyperspace.relaxedSpace,universe.homePlanets else { return }
         clearCityJob()
         emergencyFlight = nil; emergencyDocking = false; flightReplay.reset()
-        hyperspace.enterPlanet(planet, state: &state); pilotTracker?.relocate(); world?.camera.reset(); publishHUD()
+        hyperspace.enterPlanet(planet, state: &state)
+#if DEBUG
+        if planet == .tatooine,ProcessInfo.processInfo.environment["STARFLIGHT_CANYON_CAPTURE"] == "1" {
+            state.position=TatooineCanyon.origin+[0,170,1250]
+            state.velocity=[0,0,-90];state.heading=0;state.pitch=0;state.roll=0;throttle=0.4
+        }
+#endif
+        pilotTracker?.relocate(); world?.camera.reset(); publishHUD()
     }
     func returnToPlanetOrbit() {
         clearCityJob()

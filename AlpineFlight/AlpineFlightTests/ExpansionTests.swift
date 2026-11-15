@@ -2234,3 +2234,27 @@ final class AetherSelectiveMigrationTests:XCTestCase {
         }
     }
 }
+
+final class CanyonStudyTests:XCTestCase {
+    func testArchOpeningCollisionAndGeometryBudget() throws {
+        let mesh=try TatooineCanyon.mesh.get(),origin=TatooineCanyon.origin
+        XCTAssertLessThan(mesh.indices.count/3,1000)
+        XCTAssertFalse(TatooineCanyon.hits(origin+[0,170,0],radius:12))
+        XCTAssertTrue(TatooineCanyon.hits(origin+[260,0,0],radius:3))
+        XCTAssertTrue(TatooineCanyon.hits(origin+[0,360,0],radius:3))
+        XCTAssertFalse(TatooineCanyon.hits(origin+[0,170,500],radius:12))
+        let ground=PlanetExploration(planet:.tatooine)
+        XCTAssertGreaterThan(ground.clearance(at:TatooineCanyon.passage),80)
+        for p in mesh.positions { XCTAssertTrue(TatooineCanyon.hits(origin+p,radius:8),"Rendered stone must remain collidable") }
+    }
+    @MainActor func testComparisonSwitchControlsArchAndLandmark() throws {
+        let d=UserDefaults.standard,key="portalsCanyonEnabled",old=d.object(forKey:key)
+        defer { if let old { d.set(old,forKey:key) } else { d.removeObject(forKey:key) } }
+        for enabled in [false,true] {
+            d.set(enabled,forKey:key)
+            let scene=PlanetSurfaceRenderer(planet:.tatooine,reducedDetail:true)
+            XCTAssertEqual(scene.root.findEntity(named:"Canyon of Light study arch") != nil,enabled)
+            XCTAssertEqual(PlanetExploration(planet:.tatooine).landmarks[3].name == "Sunlit stone arch",enabled)
+        }
+    }
+}

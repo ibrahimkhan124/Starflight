@@ -95,7 +95,7 @@ enum ScenicMaterials {
             paint.normal = .init(texture: .init(maps.normal))
         }
         let code: Float = kind == "snow" ? 1 : kind == "sand" ? 2 : kind == "moss" ? 3 : kind == "bark" ? 4 : kind == "cloud" ? 5 : 0
-        return shader("starflight_ground", base: paint, settings: [code, planetCode(planet), continuous ? 1 : 0, reducedDetail ? 1 : 0])
+        return shader("starflight_ground", base: paint, settings: [code, planetCode(planet), planet == "Tatooine" && TatooineCanyon.enabled ? 2 : continuous ? 1 : 0, reducedDetail ? 1 : 0])
     }
 
     static func aetherSurface(_ base:PhysicallyBasedMaterial) -> any RealityKit.Material {

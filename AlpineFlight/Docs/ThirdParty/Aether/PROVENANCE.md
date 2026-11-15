@@ -54,3 +54,15 @@ other transitively imported Portals dependencies are bundled. No new external
 runtime dependencies. Standard Schlick/filmic formulae are newly expressed here;
 no third-party implementation is copied. This does not resolve the broader
 upstream provenance questions recorded in the licensing assessment.
+
+## Starflight Canyon of Light study (2026-11-15)
+
+Starflight's optional Tatooine canyon study was informed by Portals
+`src/worlds/canyon-of-light.js`, `src/parts/canyon-of-light.js`, and the core,
+sky and effect kit contracts at the same snapshot above. Credit Ethan Mollick /
+Portals. Shared world-space sandstone bedding, derivative filtering and hero
+anchors are newly expressed in Swift/Metal for RealityKit; the arch geometry is
+Aether's existing original RockArch approximation. This is not a translation of
+the complete self-lit shader, sculpted mesh, sandfalls or fauna. See
+`Docs/Portals/CanyonStudy.md` for the dependency map and explicit scope. Preserve
+these adaptation credits under the existing CC BY-NC-SA 4.0 terms.

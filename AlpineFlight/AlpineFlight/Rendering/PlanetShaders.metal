@@ -90,6 +90,17 @@ float3 sfGround(int body,float3 pos,float3 n,float macro) {
     half4 tex=p.textures().base_color().sample(sfRepeat,p.geometry().uv0());
     float3 color=float3(p.material_constants().base_color_tint())*float3(tex.rgb);
     if(settings.z>.5) color=sfGround(body,pos,n,macro)*(.93+.13*float(tex.r));
+    if(body==1 && settings.z>1.5) {
+        // Portals Canyon of Light study: world-anchored, warped bedding at two scales.
+        // Native RealityKit lighting remains in command; no baked camera-facing bounce.
+        float bed=pos.y*.08+sin(pos.x*.003+pos.z*.002)*2.4+macro*5;
+        float aa=max(.02,fwidth(bed));
+        float layer=smoothstep(-.7-aa,.8+aa,sin(bed));
+        float fine=sin(bed*5.7)*(1-smoothstep(.15,1.0,fwidth(bed*5.7)));
+        float wall=smoothstep(.08,.55,1-n.y);
+        float3 rock=mix(float3(.54,.30,.15),float3(.65,.40,.23),layer);
+        color=mix(float3(.73,.51,.29),rock,wall)*(.96+.035*fine);
+    }
     color*=.92+.16*macro;
     float roughness=kind==1 ? .78:.94;
     if(kind==5) { // Dense cloud geometry: gentle forward-scattered fill.

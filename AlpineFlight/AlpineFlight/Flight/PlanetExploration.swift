@@ -83,7 +83,7 @@ struct PlanetExploration {
         case .endor: return "Forest scout"
         }
     }
-    var landmarks: [Landmark] {
+    private var baseLandmarks: [Landmark] {
         let names: [String]
         switch planet {
         case .coruscant: names = ["Spaceport", "Neon avenue", "Senate district", "Reactor towers", "Skyline overlook", "Market district"]
@@ -97,6 +97,13 @@ struct PlanetExploration {
         }
         if planet == .coruscant, let tunnel = tunnels.min(by:{ simd_distance($0.flightCenter,[0,110,8400]) < simd_distance($1.flightCenter,[0,110,8400]) }) {
             destinations[1] = Landmark(name:"Neon tower tunnel",position:tunnel.flightCenter)
+        }
+        return destinations
+    }
+    var landmarks: [Landmark] {
+        var destinations=baseLandmarks
+        if planet == .tatooine,TatooineCanyon.enabled {
+            destinations[3] = Landmark(name:"Sunlit stone arch",position:TatooineCanyon.passage)
         }
         return destinations
     }
@@ -213,7 +220,7 @@ struct PlanetExploration {
         })
     private func generateObstacles() -> [Obstacle] {
         var result: [Obstacle] = []
-        let clearings = landmarks.map { SIMD2<Float>($0.position.x, $0.position.z) }
+        let clearings = baseLandmarks.map { SIMD2<Float>($0.position.x, $0.position.z) }
         for i in -24..<24 {
             for j in -24..<24 {
                 // Break the forest's planting grid while keeping every tree in a
@@ -254,7 +261,7 @@ struct PlanetExploration {
             }
         }
         if planet == .coruscant { result.append(contentsOf:Self.cityTunnels.flatMap(\.solids)) }
-        for landmark in landmarks {
+        for landmark in baseLandmarks {
             let p = landmark.position
             let ground = groundHeight(x:p.x,z:p.z)
             for side: Float in [-1,1] {
@@ -265,6 +272,7 @@ struct PlanetExploration {
     }
     func clearance(at point: SIMD3<Float>) -> Float { point.y - groundHeight(x: point.x, z: point.z) }
     func hitsObstacle(at point: SIMD3<Float>, radius: Float) -> Bool {
+        if planet == .tatooine,TatooineCanyon.hits(point,radius:radius),TatooineCanyon.enabled { return true }
         let bx = Int(floor(point.x / Self.spacing)), bz = Int(floor(point.z / Self.spacing))
         let reach = max(1, Int(ceil((radius + 130) / Self.spacing)))
         for x in (bx - reach)...(bx + reach) {

@@ -3,6 +3,7 @@ import simd
 import ProceduralCore
 import ProceduralTerrain
 import ProceduralPlacement
+import ProceduralGeometry
 
 /// Host exclusion predicates wrap the actual triangle query before scattering.
 enum AetherWorldDetails {
@@ -38,6 +39,30 @@ enum AetherWorldDetails {
             let t=max(0,min(1,-simd_dot(scaledStart,scaledDelta)/max(0.000001,simd_length_squared(scaledDelta))))
             let offset=scaledStart+scaledDelta*t
             if simd_length_squared(offset)<1 { return true }
+        }
+        return false
+    }
+}
+
+/// Canyon of Light study: reusable arch anchors and geometric contact, independent of camera.
+enum TatooineCanyon {
+    static var enabled:Bool { AetherPlanet.flag("portalsCanyonEnabled") }
+    static let mesh:Result<MeshData,Error> = Result { try RockArch.build(RockArchRequest(span:520,height:360,thickness:64,depth:110)) }
+    static let origin:SIMD3<Float> = {
+        let ground = PlanetExploration(planet:.tatooine)
+        let x=ground.canyonCenter(z:-4500)
+        let left=ground.groundHeight(x:x-260,z:-4500),right=ground.groundHeight(x:x+260,z:-4500)
+        return [x,min(left,right)-18,-4500]
+    }()
+    static var passage:SIMD3<Float> { origin + [0,170,0] }
+    static func hits(_ point:SIMD3<Float>,radius:Float) -> Bool {
+        let p=point-origin
+        guard abs(p.x)<310+radius,abs(p.z)<60+radius,p.y > -60-radius,p.y<410+radius else { return false }
+        for i in 0...96 {
+            let angle=Float(i)*Float.pi/96
+            let delta=p-SIMD3<Float>(260*cos(angle),360*sin(angle),0)
+            // Elliptical tube follows the rendered arch, including its depth.
+            if simd_length_squared(delta/SIMD3<Float>(36+radius,36+radius,56+radius))<1 { return true }
         }
         return false
     }
