@@ -9,11 +9,11 @@ enum AetherPlanetRenderer {
     static let status = AetherPreparationStatus()
     static var ready:Bool { get { status.ready } set { status.ready = newValue } }
     static var failure:String? { get { status.failure } set { status.failure = newValue } }
-    static func mesh(_ source:MeshData,name:String,terrainUV:Bool = false, worldUVScale:Float? = nil) throws -> MeshResource {
+    static func mesh(_ source:MeshData,name:String,terrainUV:Bool = false, worldUVScale:Float? = nil, textureCoordinates:[SIMD2<Float>]? = nil) throws -> MeshResource {
         var descriptor = MeshDescriptor(name:name)
         descriptor.positions = .init(source.positions)
         descriptor.normals = .init(source.normals)
-        descriptor.textureCoordinates = .init(source.positions.map {
+        descriptor.textureCoordinates = .init(textureCoordinates ?? source.positions.map {
             if let scale = worldUVScale { return SIMD2($0.x/scale,$0.z/scale) }
             return terrainUV ? SIMD2(($0.x+AetherPlanet.extent)/(2*AetherPlanet.extent),1-($0.z+AetherPlanet.extent)/(2*AetherPlanet.extent)) : SIMD2($0.x/80,$0.y/80)
         })

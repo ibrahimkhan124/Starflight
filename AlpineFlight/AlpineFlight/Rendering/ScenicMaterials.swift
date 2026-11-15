@@ -93,6 +93,30 @@ enum ScenicMaterials {
         paint.faceCulling = .none
         return try? CustomMaterial(from:paint,surfaceShader:.init(named:"starflight_canyon_dust",in:library))
     }
+    /// Native transparent fallback for wind: one shared 128 KiB RGBA noise map.
+    /// Rotation animates the prepared funnel without a custom transparency pipeline.
+    static func canyonWind() -> UnlitMaterial? {
+        guard let texture=canyonWindTexture else { return nil }
+        var material=UnlitMaterial(color:.white)
+        material.color = .init(tint:.white,texture:.init(texture))
+        material.blending = .transparent(opacity:.init(floatLiteral:1))
+        material.faceCulling = .none
+        return material
+    }
+    private static let canyonWindTexture:TextureResource? = {
+        let width=128,height=256
+        var bytes=[UInt8](repeating:0,count:width*height*4)
+        for y in 0..<height { for x in 0..<width {
+            let u=Float(x)/Float(width-1),v=Float(y)/Float(height-1)
+            let noise=0.5+0.24*sin(u*Float.pi*6+v*17)+0.16*sin(u*Float.pi*14-v*31)
+            let edge=pow(max(0,sin(v*Float.pi)),0.7)
+            let alpha=edge*max(0,noise-0.18)*0.65
+            let i=(y*width+x)*4
+            bytes[i]=213;bytes[i+1]=162;bytes[i+2]=103;bytes[i+3]=UInt8(min(255,max(0,alpha*255)))
+        } }
+        guard let image=image(bytes:bytes,size:CGSize(width:width,height:height)) else { return nil }
+        return try? TextureResource.generate(from:image,options:.init(semantic:.color))
+    }()
 
     static func terrain(color: UIColor, kind: String, planet: String? = nil, continuous: Bool = false, reducedDetail: Bool = false) -> any RealityKit.Material {
         var paint = PhysicallyBasedMaterial()

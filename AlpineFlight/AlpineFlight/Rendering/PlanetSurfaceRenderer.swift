@@ -20,6 +20,13 @@ final class PlanetSurfaceRenderer {
     private var cloudLayer: Entity?
     private var time: Float = 0
     private var weatherParticles: ModelEntity?
+    private var canyonFunnels:[Entity] = []
+    private struct CanyonBird {
+        let root:Entity
+        let left:Entity
+        let right:Entity
+    }
+    private var canyonBirds:[CanyonBird] = []
     private var lastPassed = -1
     private let activeLight = UnlitMaterial(color: .cyan)
     private let visitedLight = UnlitMaterial(color: .systemGreen)
@@ -195,6 +202,7 @@ final class PlanetSurfaceRenderer {
             let arch = ModelEntity(mesh:mesh,materials:[ScenicMaterials.terrain(color:.white,kind:"sand",planet:"Tatooine",continuous:true,reducedDetail:reducedDetail)])
             arch.name="Canyon of Light study arch";arch.position=TatooineCanyon.origin;root.addChild(arch)
             buildCanyonDust()
+            buildCanyonLife()
         }
         root.isEnabled = false
     }
@@ -227,6 +235,51 @@ final class PlanetSurfaceRenderer {
         let dust=ModelEntity(mesh:mesh,materials:[material]);dust.name="Canyon sandfall and drifting dust"
         dust.position=TatooineCanyon.origin;dust.components.set(DynamicLightShadowComponent(castsShadow:false))
         root.addChild(dust)
+    }
+
+    /// World/parts/kit composition prepared before the region becomes visible.
+    private func buildCanyonLife() {
+        if let data=try? CanyonLife.funnel.get(),
+           let mesh=try? AetherPlanetRenderer.mesh(data,name:"Prepared wind funnel",textureCoordinates:CanyonLife.funnelUVs(data)),
+           let material=ScenicMaterials.canyonWind() {
+            let ground=PlanetExploration(planet:.tatooine)
+            for offset in CanyonLife.funnelOffsets.prefix(reducedDetail ? 1:2) {
+                let funnel=ModelEntity(mesh:mesh,materials:[material])
+                funnel.name="Canyon wind funnel"
+                let x=TatooineCanyon.origin.x+offset.x,z=TatooineCanyon.origin.z+offset.z
+                funnel.position=[x,ground.groundHeight(x:x,z:z),z]
+                funnel.components.set(DynamicLightShadowComponent(castsShadow:false))
+                root.addChild(funnel);canyonFunnels.append(funnel)
+            }
+        }
+        var descriptor=MeshDescriptor(name:"Shared canyon glider wing")
+        descriptor.positions = .init([[0,0,0],[3,0,-2],[7,0,2],[3.5,0,1]])
+        descriptor.normals = .init(Array(repeating:[0,1,0],count:4))
+        descriptor.primitives = .triangles([0,1,3,1,2,3])
+        guard let wingMesh=try? MeshResource.generate(from:[descriptor]) else { return }
+        var paint=UnlitMaterial(color:UIColor(red:0.14,green:0.10,blue:0.07,alpha:1));paint.faceCulling = .none
+        let bodyMesh=MeshResource.generateBox(size:[1.3,0.8,3.4])
+        for i in 0..<(reducedDetail ? 2:5) {
+            let bird=Entity();bird.name="Soaring canyon glider \(i+1)"
+            let body=ModelEntity(mesh:bodyMesh,materials:[paint])
+            let left=ModelEntity(mesh:wingMesh,materials:[paint]),right=ModelEntity(mesh:wingMesh,materials:[paint])
+            right.scale.x = -1
+            bird.addChild(body);bird.addChild(left);bird.addChild(right)
+            root.addChild(bird);canyonBirds.append(CanyonBird(root:bird,left:left,right:right))
+        }
+        updateCanyonLife()
+    }
+    private func updateCanyonLife() {
+        for (i,funnel) in canyonFunnels.enumerated() {
+            funnel.orientation=simd_quatf(angle:time*0.32+Float(i)*2,axis:[0,1,0])
+        }
+        for (i,bird) in canyonBirds.enumerated() {
+            let pose=CanyonLife.bird(i,time:time)
+            bird.root.position=TatooineCanyon.origin+pose.position
+            bird.root.orientation=simd_quatf(angle:pose.heading,axis:[0,1,0])*simd_quatf(angle:pose.bank,axis:[0,0,1])
+            bird.left.orientation=simd_quatf(angle:pose.wing,axis:[0,0,1])
+            bird.right.orientation=simd_quatf(angle:-pose.wing,axis:[0,0,1])
+        }
     }
 
     private func buildAtmosphere() {
@@ -783,6 +836,7 @@ final class PlanetSurfaceRenderer {
     func update(camera:SIMD3<Float>,dt:Float,passed:Int) {
         sky.position = camera
         time += min(dt,0.1)
+        updateCanyonLife()
         cloudLayer?.position = [sin(time*0.013)*180,0,cos(time*0.009)*120]
         // Move one prepared batch; individual drops/flakes never create entities.
         if let weatherParticles {

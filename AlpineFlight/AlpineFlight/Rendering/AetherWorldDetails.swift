@@ -96,3 +96,45 @@ enum TatooineCanyon {
         return false
     }
 }
+
+
+/// Native world composition: Canyon of Light + The Desert Opens / fauna kit.
+/// Positions are local to the arch; all animation is bounded and camera-independent.
+enum CanyonLife {
+    struct BirdPose {
+        let position:SIMD3<Float>
+        let heading:Float
+        let bank:Float
+        let wing:Float
+    }
+    static let funnelOffsets:[SIMD3<Float>] = [[-360,0,230],[430,0,-350]]
+    static let funnelSegments=20
+    static let funnel:Result<MeshData,Error> = Result {
+        try ArchitecturalGeometry.lathe(LatheRequest(profile:[[8,0],[12,15],[18,40],[25,75],[36,110]],segments:funnelSegments))
+    }
+    static func funnelUVs(_ data:MeshData) -> [SIMD2<Float>] {
+        data.positions.enumerated().map { i,p in
+            // Distinct U=0/U=1 at the duplicate seam prevents a smeared strip.
+            [Float(i % (funnelSegments+1))/Float(funnelSegments),p.y/110]
+        }
+    }
+    static let birdFloor:Float = {
+        let ground=PlanetExploration(planet:.tatooine),origin=TatooineCanyon.origin
+        var top:Float = 0
+        for i in 0..<64 {
+            let a=Float(i)*Float.pi*2/64
+            let x=origin.x-410+cos(a)*95,z=origin.z-100+sin(a)*150
+            top=max(top,ground.groundHeight(x:x,z:z)-origin.y)
+        }
+        return top+150
+    }()
+    static func bird(_ index:Int,time:Float) -> BirdPose {
+        let phase=Float(index)*1.31,a=time*0.13+phase
+        let position=SIMD3<Float>(-410+cos(a)*95,birdFloor+sin(time*0.21+phase)*14,-100+sin(a)*150)
+        let heading=atan2(-sin(a)*95,cos(a)*150)
+        // Long glides interrupted by short wingbeats, rather than constant flutter.
+        let beat=max(0,sin(time*0.38+phase))
+        let wing:Float = 0.12+sin(time*5.5+phase)*0.52*beat*beat
+        return BirdPose(position:position,heading:heading,bank:-0.14+sin(a)*0.05,wing:wing)
+    }
+}

@@ -73,3 +73,12 @@ The second Tatooine study additionally references `rockDisp` in the same
 in `src/kit/fx.js`. Starflight's bounded Swift deformation, normal reconstruction
 and Metal dust composition are native adaptations, not a Three.js runtime port.
 They remain covered by the existing Portals attribution and adaptation terms.
+
+
+Native canyon blend: references `src/worlds/the-desert-opens.js`, its soaring
+fauna composition and `src/kit/fauna/birds.js` (phase-offset travel, gliding and
+wingbeats), plus the existing `src/kit/fx.js` dust-funnel study at Portals snapshot
+210133f4e718acb7b461f2a40c90661a40a2397f. New Swift bounded paths, entity animation
+and Aether lathe composition retain the same adaptation attribution/terms.
+`walking-dune.js` and `canyon-of-three-airs.js` were assessed and rejected for
+this region; no claim is made that those worlds have been implemented.

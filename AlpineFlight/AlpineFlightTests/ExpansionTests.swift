@@ -2266,3 +2266,47 @@ final class CanyonStudyTests:XCTestCase {
         }
     }
 }
+
+
+final class CanyonLifeTests:XCTestCase {
+    func testBoundedLifeAndClearPassage() throws {
+        let funnel=try CanyonLife.funnel.get()
+        XCTAssertLessThanOrEqual(funnel.indices.count/3,160)
+        let uv=CanyonLife.funnelUVs(funnel)
+        for row in 0..<5 {
+            let start=row*(CanyonLife.funnelSegments+1),end=start+CanyonLife.funnelSegments
+            XCTAssertEqual(uv[start].x,0);XCTAssertEqual(uv[end].x,1)
+            XCTAssertLessThan(simd_distance(funnel.positions[start],funnel.positions[end]),0.001)
+        }
+        let ground=PlanetExploration(planet:.tatooine),origin=TatooineCanyon.origin
+        for i in 0..<5 {
+            for step in 0...600 {
+                let t=Float(step)*0.5,p=CanyonLife.bird(i,time:t)
+                XCTAssertTrue(p.heading.isFinite && p.bank.isFinite && p.wing.isFinite)
+                XCTAssertLessThan(p.position.x,-300,"Wildlife stays outside the central flight passage")
+                XCTAssertGreaterThan(ground.clearance(at:origin+p.position),110)
+                XCTAssertLessThan(abs(p.wing),0.7)
+                let again=CanyonLife.bird(i,time:t)
+                XCTAssertEqual(again.position,p.position)
+            }
+        }
+        for p in CanyonLife.funnelOffsets { XCTAssertGreaterThan(abs(p.x),300) }
+    }
+    @MainActor func testPreparedCountsAndAnimation() {
+        let d=UserDefaults.standard,key="portalsCanyonEnabled",old=d.object(forKey:key)
+        defer { if let old { d.set(old,forKey:key) } else { d.removeObject(forKey:key) } }
+        d.set(true,forKey:key)
+        for reduced in [false,true] {
+            let scene=PlanetSurfaceRenderer(planet:.tatooine,reducedDetail:reduced)
+            let count=reduced ? 2:5
+            XCTAssertNotNil(scene.root.findEntity(named:"Soaring canyon glider \(count)"))
+            XCTAssertNil(scene.root.findEntity(named:"Soaring canyon glider \(count+1)"))
+            let bird=scene.root.findEntity(named:"Soaring canyon glider 1")!
+            let start=bird.position
+            for _ in 0..<30 { scene.update(camera:[0,500,0],dt:1/30,passed:0) }
+            XCTAssertGreaterThan(simd_distance(start,bird.position),8)
+        }
+        d.set(false,forKey:key)
+        XCTAssertNil(PlanetSurfaceRenderer(planet:.tatooine).root.findEntity(named:"Soaring canyon glider 1"))
+    }
+}

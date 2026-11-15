@@ -15,7 +15,7 @@ Aether/Portals notices. No Three.js runtime or external artwork is bundled.
 | `src/kit/core.js` | Seeded noise, domain warp, bounded interpolation and route sampling | Existing seeded PlanetExploration terrain and Aether geometry; no duplicate JavaScript RNG implementation |
 | `src/kit/sky.js` (`makeSky`, `makeLightRig`) | Match sky, sun and ground-bounce palette; normalize lighting direction | Existing ScenicMaterials / PlanetLighting remain the native shared sky/light system; no camera-follow light rig copied |
 | `src/kit/fx.js` (`makeDustDevil`) | Prepared particles and funnel shells, animation by time uniforms | Prepared shader-animated sandfall/ground-dust veils; full funnels/debris deferred pending device overdraw budgets |
-| `src/kit/fauna.js`, `flora.js`, `water.js` | World imports for birds, vegetation and waterfall/sand effects | Dependency identified; not imported wholesale and not implemented in this first study |
+| `src/kit/fauna.js`, `flora.js`, `water.js` | World imports for birds, vegetation and waterfall/sand effects | Native gliders added in the later canyon blend; flora/water remain deferred |
 
 ## Current implementation
 
@@ -98,3 +98,6 @@ verify the stone geometry, but do not establish physical-device dust quality.
 
 Final captures: [sculpted arch approach](../../Screenshots/CanyonSculpted-20261115/arch-approach.png)
 and [continuing flight](../../Screenshots/CanyonSculpted-20261115/canyon-flight.png).
+
+The later animated world blend and its good/bad design assessment are documented
+in [CanyonBlend.md](CanyonBlend.md).
