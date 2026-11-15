@@ -655,6 +655,11 @@ struct FlightToolsView: View {
                                     .accessibilityLabel("Navigate to " + planet.name)
                                     .accessibilityValue((selected ? "Selected · " : "") + distance)
                             }
+                            if MirageBasin.enabled {
+                                Button("Visit Mirage Basin") { engine.visitMirageBasin();dismiss() }
+                                    .padding(10).flightButtonGlass()
+                                    .accessibilityHint("Explore the living voxel dunes and three coloured atmosphere layers on Tatooine")
+                            }
                             ForEach(SpacePlanet.allCases) { planet in
                                 Button("Enter " + planet.name) { engine.enterPlanetSurface(planet); dismiss() }
                                     .padding(10)

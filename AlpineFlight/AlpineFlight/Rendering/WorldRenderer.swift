@@ -340,7 +340,7 @@ final class WorldRenderer {
         explosion = nil
     }
 
-    func update(state: FlightState, throttle: Float, dt: Float, nextCheckpoint: Int, crashTime: Float?, bolts: [TurretBolt], pursuers: [Pursuer], playerBolts: [PlayerBolt], racers: [RaceOpponent], collectedBoostPads: Set<Int>, boosting: Bool = false, skidding: Bool = false, impactEnergy: Float = 0, freeRoamZone: FreeRoamZone = .atmosphere, portals: [FreeRoamPortal] = [], returnPortalPosition: SIMD3<Float> = .zero, asteroids: [SpaceAsteroid] = [], surfacePlanet: SpacePlanet? = nil, surfaceBeacons: Int = 0, comets:[PlanetComet] = [], arenaMode: Bool = false, relaxedSpace: Bool = false, solarSurface: SolarBody? = nil) {
+    func update(state: FlightState, throttle: Float, dt: Float, nextCheckpoint: Int, crashTime: Float?, bolts: [TurretBolt], pursuers: [Pursuer], playerBolts: [PlayerBolt], racers: [RaceOpponent], collectedBoostPads: Set<Int>, boosting: Bool = false, skidding: Bool = false, impactEnergy: Float = 0, freeRoamZone: FreeRoamZone = .atmosphere, portals: [FreeRoamPortal] = [], returnPortalPosition: SIMD3<Float> = .zero, asteroids: [SpaceAsteroid] = [], surfacePlanet: SpacePlanet? = nil, surfaceBeacons: Int = 0, comets:[PlanetComet] = [], arenaMode: Bool = false, relaxedSpace: Bool = false, solarSurface: SolarBody? = nil, surfaceTime:Float=0) {
         arenaBoundary.isEnabled = arenaMode
         let awayFromAtmosphere = freeRoamZone != .atmosphere
         let inSpace = freeRoamZone == .asteroidField
@@ -350,10 +350,14 @@ final class WorldRenderer {
             let surface = surfacePlanet.map { PlanetExploration(planet: $0) }
             camera.updateCrash(state: state, elapsed: elapsed, groundHeight: { x, z in
                 if let body = solarSurface { return max(body.name == "Earth" ? 0 : -10000,SolarLandscape(body:body).height(x:x,z:z)) }
-                if let surface { return surface.groundHeight(x: x, z: z) }
+                if let surface {
+                    let ground=surface.groundHeight(x:x,z:z)
+                    if surfacePlanet == .tatooine,MirageBasin.enabled,let top=MirageBasin.height(x:x,z:z,time:surfaceTime) { return max(ground,top) }
+                    return ground
+                }
                 return awayFromAtmosphere ? -100000 : self.terrain.generator.surfaceHeight(x: x, z: z)
             }, isObstructed: { point in
-                if let surface { return surface.hitsObstacle(at: point, radius: 8) }
+                if let surface { return surface.hitsObstacle(at: point, radius: 8,time:surfaceTime) }
                 if inSpace && !arenaMode {
                     if SpacePlanet.allCases.contains(where: { simd_distance(point, $0.position) < $0.radius + 60 }) { return true }
                     if asteroids.contains(where: { simd_distance(point, $0.position) < $0.radius + 8 }) { return true }
@@ -374,7 +378,7 @@ final class WorldRenderer {
         for planet in planetEntities { planet.isEnabled = !arenaMode && inSpace && (relaxedSpace || asteroids.isEmpty) && surfacePlanet == nil }
         for (planet, scene) in surfaceScenes {
             scene.root.isEnabled = planet == surfacePlanet
-            if planet == surfacePlanet { scene.update(camera:camera.entity.position,dt:dt,passed:surfaceBeacons) }
+            if planet == surfacePlanet { scene.update(camera:camera.entity.position,dt:dt,passed:surfaceBeacons,surfaceTime:surfaceTime) }
         }
         let cloudLimit = performanceMode ? (terrain.generator.level == .storm ? 16 : 12) : clouds.count
         for (index, cloud) in clouds.enumerated() {

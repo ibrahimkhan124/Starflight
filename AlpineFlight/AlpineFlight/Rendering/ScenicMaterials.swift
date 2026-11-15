@@ -118,6 +118,26 @@ enum ScenicMaterials {
         return try? TextureResource.generate(from:image,options:.init(semantic:.color))
     }()
 
+    static func mirageAir(color:UIColor) -> UnlitMaterial? {
+        guard let texture=mirageAirTexture else { return nil }
+        var paint=UnlitMaterial(color:color)
+        paint.color = .init(tint:color,texture:.init(texture))
+        paint.blending = .transparent(opacity:.init(floatLiteral:1));paint.faceCulling = .none
+        return paint
+    }
+    private static let mirageAirTexture:TextureResource? = {
+        let size=128
+        var bytes=[UInt8](repeating:255,count:size*size*4)
+        for y in 0..<size { for x in 0..<size {
+            let u=Float(x)/Float(size-1)*2-1,v=Float(y)/Float(size-1)*2-1
+            let rim=max(0,1-u*u-v*v)
+            let noise=0.78+0.22*sin(u*13+sin(v*11))
+            bytes[(y*size+x)*4+3]=UInt8(max(0,min(255,pow(rim,0.8)*noise*88)))
+        } }
+        guard let image=image(bytes:bytes,size:CGSize(width:size,height:size)) else { return nil }
+        return try? TextureResource.generate(from:image,options:.init(semantic:.color))
+    }()
+
     static func terrain(color: UIColor, kind: String, planet: String? = nil, continuous: Bool = false, reducedDetail: Bool = false) -> any RealityKit.Material {
         var paint = PhysicallyBasedMaterial()
         paint.baseColor = .init(tint: color)

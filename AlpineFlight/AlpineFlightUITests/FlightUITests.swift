@@ -101,6 +101,19 @@ final class FlightUITests: XCTestCase {
     }
 
     @MainActor
+    func testMirageBasinVisitAndFlight() {
+        let app=XCUIApplication();startUniverseFlight(app)
+        app.buttons["Flight tools"].tap()
+        let visit=app.buttons["Visit Mirage Basin"];revealStoryControl(visit,in:app)
+        XCTAssertTrue(visit.isHittable);visit.tap()
+        Thread.sleep(forTimeInterval:2);capture(app,name:"Mirage Basin living dunes and three airs approach")
+        Thread.sleep(forTimeInterval:12)
+        XCTAssertTrue(app.buttons["Pause flight"].exists)
+        capture(app,name:"Mirage Basin crossing above the hopping dune")
+        app.terminate()
+    }
+
+    @MainActor
     func testSculptedCanyonFlight() { recordCanyonFlight(enabled:true) }
 
     @MainActor

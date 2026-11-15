@@ -20,6 +20,7 @@ final class PlanetSurfaceRenderer {
     private var cloudLayer: Entity?
     private var time: Float = 0
     private var weatherParticles: ModelEntity?
+    private var mirage:MirageBasinRenderer?
     private var canyonFunnels:[Entity] = []
     private struct CanyonBird {
         let root:Entity
@@ -203,6 +204,7 @@ final class PlanetSurfaceRenderer {
             arch.name="Canyon of Light study arch";arch.position=TatooineCanyon.origin;root.addChild(arch)
             buildCanyonDust()
             buildCanyonLife()
+            if MirageBasin.enabled,let basin=try? MirageBasinRenderer() { mirage=basin;root.addChild(basin.root) }
         }
         root.isEnabled = false
     }
@@ -833,10 +835,11 @@ final class PlanetSurfaceRenderer {
         material.faceCulling = .none
         return material
     }
-    func update(camera:SIMD3<Float>,dt:Float,passed:Int) {
+    func update(camera:SIMD3<Float>,dt:Float,passed:Int,surfaceTime:Float?=nil) {
         sky.position = camera
         time += min(dt,0.1)
         updateCanyonLife()
+        mirage?.update(time:surfaceTime ?? time)
         cloudLayer?.position = [sin(time*0.013)*180,0,cos(time*0.009)*120]
         // Move one prepared batch; individual drops/flakes never create entities.
         if let weatherParticles {

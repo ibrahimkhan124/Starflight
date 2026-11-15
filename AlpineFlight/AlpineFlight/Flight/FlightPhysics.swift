@@ -147,6 +147,7 @@ struct HyperspaceManager {
     private(set) var surfaceBeacons = 0
     private(set) var surfacePoints = 0
     private(set) var surfacePlanet: SpacePlanet?
+    private(set) var surfaceTime:Float = 0
     private(set) var relaxedSpace = false
     private(set) var zone: FreeRoamZone = .atmosphere
     private(set) var challenge: SpaceChallenge = .asteroidBelt
@@ -176,7 +177,7 @@ struct HyperspaceManager {
     }
 
     mutating func reset() {
-        surfaceBeacons = 0; surfacePoints = 0
+        surfaceBeacons = 0; surfacePoints = 0; surfaceTime = 0
         surfacePlanet = nil
         relaxedSpace = false
         zone = .atmosphere
@@ -199,7 +200,7 @@ struct HyperspaceManager {
     mutating func enterPlanet(_ planet: SpacePlanet, state: inout FlightState) {
         guard relaxedSpace else { return }
         surfacePlanet = planet; selectedPlanet = planet
-        surfaceBeacons = 0; surfacePoints = 0
+        surfaceBeacons = 0; surfacePoints = 0; surfaceTime = 0
         state.position = PlanetExploration(planet: planet).arrival; state.pitch = 0; state.roll = 0; state.heading = 0
         state.airspeed = 100; state.velocity = [0, 0, -100]
     }
@@ -227,9 +228,10 @@ struct HyperspaceManager {
     func targetName(to position: SIMD3<Float>) -> String {
         if let surfacePlanet {
             let surface = PlanetExploration(planet: surfacePlanet)
+            let area = surfacePlanet == .tatooine && MirageBasin.enabled && MirageBasin.contains(x:position.x,z:position.z,margin:800) ? "Mirage Basin" : surfacePlanet.name
             return surfaceBeacons < surface.landmarks.count
-                ? "\(surfacePlanet.name) · \(surface.landmarks[surfaceBeacons].name) · \(surfaceBeacons)/6 · \(surfacePoints) pts"
-                : "\(surfacePlanet.name) · scout run complete · \(surfacePoints) pts · explore freely"
+                ? "\(area) · \(surface.landmarks[surfaceBeacons].name) · \(surfaceBeacons)/6 · \(surfacePoints) pts"
+                : "\(area) · scout run complete · \(surfacePoints) pts · explore freely"
         }
         switch zone {
         case .atmosphere: return nearestPortal(to: position).destination.name
@@ -283,9 +285,11 @@ struct HyperspaceManager {
         if relaxedSpace {
             if let planet = surfacePlanet {
                 asteroids.removeAll(keepingCapacity:true)
+                surfaceTime += dt
                 let surface = PlanetExploration(planet: planet)
                 let obstacleRadius = planet == .coruscant ? (cityCollisionRadius ?? collisionRadius) : collisionRadius
-                if surface.clearance(at: state.position) <= collisionRadius || surface.hitsObstacle(at: state.position, radius: obstacleRadius) {
+                if surface.clearance(at: state.position,time:surfaceTime) <= collisionRadius || surface.hitsObstacle(at: state.position, radius: obstacleRadius,time:surfaceTime)
+                    || (planet == .tatooine && MirageBasin.enabled && MirageBasin.impact(from:state.position-state.velocity*dt,to:state.position,radius:obstacleRadius,start:surfaceTime-dt,end:surfaceTime)) {
                     return .planetImpact(planet)
                 }
                 if state.position.y > surface.orbitAltitude || abs(state.position.x) > PlanetExploration.extent - 200 || abs(state.position.z) > PlanetExploration.extent - 200 {

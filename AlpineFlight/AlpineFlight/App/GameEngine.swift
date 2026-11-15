@@ -811,6 +811,13 @@ final class GameEngine: ObservableObject {
 #endif
         pilotTracker?.relocate(); world?.camera.reset(); publishHUD()
     }
+    func visitMirageBasin() {
+        guard MirageBasin.enabled,level.isFreeRoam,hyperspace.relaxedSpace,universe.homePlanets else { return }
+        enterPlanetSurface(.tatooine)
+        state.position=MirageBasin.arrival;state.velocity=[0,0,-70];state.airspeed=70
+        state.heading=0;state.pitch=0;state.roll=0;throttle=0.25
+        pilotTracker?.relocate();world?.camera.reset();publishHUD()
+    }
     func returnToPlanetOrbit() {
         clearCityJob()
         emergencyFlight = nil; emergencyDocking = false; flightReplay.reset()
@@ -1320,7 +1327,7 @@ final class GameEngine: ObservableObject {
         if replayActive {
             replayFraction = min(1,replayFraction + dt/max(0.1,flightReplay.duration))
             if let sample = flightReplay.state(at:replayFraction) {
-                world.update(state:sample,throttle:0,dt:dt,nextCheckpoint:-1,crashTime:nil,bolts:[],pursuers:[],playerBolts:[],racers:[],collectedBoostPads:[],freeRoamZone:hyperspace.zone,asteroids:hyperspace.asteroids,surfacePlanet:hyperspace.surfacePlanet,arenaMode:arenaSelected,relaxedSpace:hyperspace.relaxedSpace,solarSurface:universe.surfaceBody)
+                world.update(state:sample,throttle:0,dt:dt,nextCheckpoint:-1,crashTime:nil,bolts:[],pursuers:[],playerBolts:[],racers:[],collectedBoostPads:[],freeRoamZone:hyperspace.zone,asteroids:hyperspace.asteroids,surfacePlanet:hyperspace.surfacePlanet,arenaMode:arenaSelected,relaxedSpace:hyperspace.relaxedSpace,solarSurface:universe.surfaceBody,surfaceTime:hyperspace.surfaceTime)
                 world.setReplayVisible(true)
             }
             if replayFraction >= 1 { stopReplay() }
@@ -1476,7 +1483,7 @@ final class GameEngine: ObservableObject {
                     audio.checkpoint(enabled: settings.soundEnabled)
                 case .planetImpact(let planet):
                     let surface = PlanetExploration(planet:planet)
-                    let groundHit = hyperspace.surfacePlanet != nil && surface.clearance(at:state.position) <= aircraft.bodyRadius
+                    let groundHit = hyperspace.surfacePlanet != nil && surface.clearance(at:state.position,time:hyperspace.surfaceTime) <= aircraft.bodyRadius
                     let cause = hyperspace.surfacePlanet == nil ? "Impact with \(planet.name)" : groundHit ? "\(planet.name) ground impact" : planet == .coruscant ? "Coruscant building collision" : "\(planet.name) obstacle collision"
                     crash(cause:cause,world:world)
                 case .none: break
@@ -1514,7 +1521,7 @@ final class GameEngine: ObservableObject {
                     advanceAdventures(dt:FlightPhysics.step)
                 }
                 let terrainImpact = hyperspace.zone == .atmosphere ? collision.impact(from: previous, to: state) : nil
-                let scoringClearance = universe.surfaceBody.map { state.position.y-max($0.name == "Earth" ? 0 : -10000,SolarLandscape(body:$0).height(x:state.position.x,z:state.position.z)) } ?? hyperspace.surfacePlanet.map { PlanetExploration(planet:$0).clearance(at:state.position) }
+                let scoringClearance = universe.surfaceBody.map { state.position.y-max($0.name == "Earth" ? 0 : -10000,SolarLandscape(body:$0).height(x:state.position.x,z:state.position.z)) } ?? hyperspace.surfacePlanet.map { PlanetExploration(planet:$0).clearance(at:state.position,time:hyperspace.surfaceTime) }
                     ?? collision.clearance(at:state.position)
                 lowFlightScore.advance(clearance: scoringClearance, speed: state.airspeed,
                     eligible: phase == .flying && (hyperspace.zone == .atmosphere || hyperspace.surfacePlanet != nil || universe.surfaceBody.map { !$0.isCloudWorld } == true) && !aircraft.isPodracer && terrainImpact == nil,
@@ -1562,7 +1569,7 @@ final class GameEngine: ObservableObject {
                     }
                     if phase == .flying { advanceBounty(dt:FlightPhysics.step,world:world) }
                     if let planet = hyperspace.surfacePlanet {
-                        let surfaceHits = weapons.surfaceHits(on:PlanetExploration(planet:planet),dt:FlightPhysics.step)
+                        let surfaceHits = weapons.surfaceHits(on:PlanetExploration(planet:planet),dt:FlightPhysics.step,time:hyperspace.surfaceTime)
                         if !surfaceHits.isEmpty {
                             weapons.consumeBolts(at:surfaceHits)
                             hitUntil = elapsed+0.6; hitDescription = planet == .coruscant ? "STRUCTURE HIT" : "SURFACE HIT"
@@ -1639,7 +1646,7 @@ final class GameEngine: ObservableObject {
                      skidding: skidding || keyboard.skidding, impactEnergy: race.collisionShake,
                      freeRoamZone: universe.jumping ? .hyperspace:hyperspace.zone, portals: level.isFreeRoam ? hyperspace.portals : [],
                      returnPortalPosition: hyperspace.returnPortal,
-                     asteroids: universe.jumping ? []:hyperspace.asteroids, surfacePlanet: hyperspace.surfacePlanet, surfaceBeacons: hyperspace.surfaceBeacons,comets:planetComets.comets,arenaMode:arenaSelected,relaxedSpace:hyperspace.relaxedSpace,solarSurface:universe.surfaceBody)
+                     asteroids: universe.jumping ? []:hyperspace.asteroids, surfacePlanet: hyperspace.surfacePlanet, surfaceBeacons: hyperspace.surfaceBeacons,comets:planetComets.comets,arenaMode:arenaSelected,relaxedSpace:hyperspace.relaxedSpace,solarSurface:universe.surfaceBody,surfaceTime:hyperspace.surfaceTime)
         world.updateUniverse(universe,active:universeActive,state:displayState,dt:phase == .flying ? dt:0,target:universeWaypoint)
         world.updateAdventures(ghost:ghostState,platform:emergencyFlight?.target,weather:effectiveWeather,
                                weatherActive:weatherActive,state:displayState,dt:phase == .flying ? dt:0)
@@ -1647,7 +1654,7 @@ final class GameEngine: ObservableObject {
         world.updateBountyTarget(bountyState.target)
         world.updateCityJobs(target:hyperspace.surfacePlanet == .coruscant ? cityJobState.target : nil,servicing:cityJobState.docking)
         world.updateFreeRoamActivities(activities, inAtmosphere: hyperspace.zone == .atmosphere)
-        let soundClearance = hyperspace.surfacePlanet.map { PlanetExploration(planet:$0).clearance(at:state.position) }
+        let soundClearance = hyperspace.surfacePlanet.map { PlanetExploration(planet:$0).clearance(at:state.position,time:hyperspace.surfaceTime) }
             ?? collision.clearance(at:state.position)
         audio.update(throttle:homeDock.plot == nil ? throttle:0,enabled:settings.soundEnabled,flying:phase == .flying,aircraft:aircraft,
                      speed:state.airspeed,clearance:soundClearance,dt:dt,
@@ -1692,7 +1699,7 @@ final class GameEngine: ObservableObject {
         let delta = target - state.position
         let bearing = atan2(delta.x, -delta.z) - state.heading
         let heading = Int(state.heading * 180 / .pi + 360) % 360
-        let surfaceClearance: Float? = universe.surfaceBody.map { state.position.y-max($0.name == "Earth" ? 0 : -10000,SolarLandscape(body:$0).height(x:state.position.x,z:state.position.z)) } ?? hyperspace.surfacePlanet.map { PlanetExploration(planet: $0).clearance(at: state.position) }
+        let surfaceClearance: Float? = universe.surfaceBody.map { state.position.y-max($0.name == "Earth" ? 0 : -10000,SolarLandscape(body:$0).height(x:state.position.x,z:state.position.z)) } ?? hyperspace.surfacePlanet.map { PlanetExploration(planet: $0).clearance(at: state.position,time:hyperspace.surfaceTime) }
             ?? (hyperspace.relaxedSpace && universe.homePlanets && hyperspace.zone == .asteroidField
             ? SpacePlanet.allCases.map { $0.clearance(at: state.position) }.min() : nil)
         let surfaceWarning: String? = {
@@ -1705,7 +1712,7 @@ final class GameEngine: ObservableObject {
                 if (surfaceClearance ?? 9999) < 80 { return "GROUND · PULL UP" }
                 if [Float(0.5),1,1.5].contains(where:{
                     let point = state.position+state.velocity*$0
-                    return surface.hitsObstacle(at:point,radius:aircraft.bodyRadius+8) || (planet == .coruscant && economy.housing?.hits(point,radius:aircraft.bodyRadius+8) == true)
+                    return surface.hitsObstacle(at:point,radius:aircraft.bodyRadius+8,time:hyperspace.surfaceTime) || (planet == .coruscant && economy.housing?.hits(point,radius:aircraft.bodyRadius+8) == true)
                 }) {
                     return planet == .coruscant ? "BUILDING AHEAD · BANK TO CLEAR" : "OBSTACLE AHEAD · STEER CLEAR"
                 }
@@ -1952,7 +1959,7 @@ extension GameEngine {
         if let planet = currentSurfacePlanet {
             let surface = PlanetExploration(planet:planet)
             target.y = max(target.y,surface.groundHeight(x:target.x,z:target.z)+300)
-            while surface.hitsObstacle(at:target,radius:160) && target.y < 1700 { target.y += 120 }
+            while surface.hitsObstacle(at:target,radius:160,time:hyperspace.surfaceTime) && target.y < 1700 { target.y += 120 }
         } else if !hud.inSpace { target.y = max(target.y,terrain.surfaceHeight(x:target.x,z:target.z)+350) }
         emergencyFlight = EmergencyFlightContract(kind:kind,target:target); emergencyDocking = false; emergencyContext = flightContext
         distressAvailable = false; adventureMessage = kind.briefing
@@ -1973,7 +1980,7 @@ extension GameEngine {
             let point = simd_mix(state.position,target,SIMD3<Float>(repeating:t))
             if let planet = currentSurfacePlanet {
                 let surface = PlanetExploration(planet:planet)
-                if surface.clearance(at:point) < aircraft.bodyRadius+8 || surface.hitsObstacle(at:point,radius:aircraft.cityCollisionRadius+5) { return false }
+                if surface.clearance(at:point,time:hyperspace.surfaceTime) < aircraft.bodyRadius+8 || surface.hitsObstacle(at:point,radius:aircraft.cityCollisionRadius+5,time:hyperspace.surfaceTime) { return false }
             } else if !hud.inSpace && collision.clearance(at:point) < aircraft.bodyRadius+8 { return false }
         }
         return true
@@ -2022,7 +2029,7 @@ extension GameEngine {
             acknowledge("DISTRESS SIGNAL · OPTIONAL RESCUE DIVERSION")
         }
         if elapsed >= droidAdvisoryAt && state.airspeed > 70 {
-            let clearance = currentSurfacePlanet.map { PlanetExploration(planet:$0).clearance(at:state.position) } ?? (hud.inSpace ? 10000:collision.clearance(at:state.position))
+            let clearance = currentSurfacePlanet.map { PlanetExploration(planet:$0).clearance(at:state.position,time:hyperspace.surfaceTime) } ?? (hud.inSpace ? 10000:collision.clearance(at:state.position))
             if clearance < 90 && !aircraft.isPodracer {
                 acknowledge("LOW CLEARANCE · CLIMB GENTLY"); droidAdvisoryAt = elapsed+18
             } else if let mission = emergencyFlight,simd_distance(state.position,mission.target) < 700,state.airspeed > 45 {

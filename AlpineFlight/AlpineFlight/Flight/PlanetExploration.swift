@@ -104,6 +104,7 @@ struct PlanetExploration {
         var destinations=baseLandmarks
         if planet == .tatooine,TatooineCanyon.enabled {
             destinations[3] = Landmark(name:"Sunlit stone arch",position:TatooineCanyon.passage)
+            if MirageBasin.enabled { destinations[5]=Landmark(name:"Mirage Basin · Three Airs",position:MirageBasin.arrival) }
         }
         return destinations
     }
@@ -257,6 +258,7 @@ struct PlanetExploration {
                 let half = width / 2
                 let ground = max(groundHeight(x: x - half, z: z - half), groundHeight(x: x + half, z: z + half),
                                  groundHeight(x: x - half, z: z + half), groundHeight(x: x + half, z: z - half))
+                if planet == .tatooine,MirageBasin.clearsObstacle(x:x,z:z) { continue }
                 result.append(Obstacle(center: [x, ground + height / 2 - 6, z], size: [width, height, width], style: abs(i + j) % 3))
             }
         }
@@ -270,8 +272,15 @@ struct PlanetExploration {
         }
         return result
     }
-    func clearance(at point: SIMD3<Float>) -> Float { point.y - groundHeight(x: point.x, z: point.z) }
-    func hitsObstacle(at point: SIMD3<Float>, radius: Float) -> Bool {
+    func clearance(at point: SIMD3<Float>,time:Float=0) -> Float {
+        var ground=groundHeight(x:point.x,z:point.z)
+        if planet == .tatooine,MirageBasin.contains(x:point.x,z:point.z),MirageBasin.enabled,
+           let top=MirageBasin.height(x:point.x,z:point.z,time:time) { ground=max(ground,top) }
+        return point.y-ground
+    }
+    func hitsObstacle(at point: SIMD3<Float>, radius: Float,time:Float=0) -> Bool {
+        if planet == .tatooine,MirageBasin.contains(x:point.x,z:point.z,margin:radius),MirageBasin.enabled,
+           MirageBasin.hits(point,radius:radius,time:time) { return true }
         if planet == .tatooine,TatooineCanyon.hits(point,radius:radius),TatooineCanyon.enabled { return true }
         let bx = Int(floor(point.x / Self.spacing)), bz = Int(floor(point.z / Self.spacing))
         let reach = max(1, Int(ceil((radius + 130) / Self.spacing)))

@@ -120,6 +120,8 @@
 		AF1414000000000000000001 = {isa = PBXBuildFile; fileRef = AF1414000000000000000002; };
 		AF1414000000000000000003 = {isa = PBXBuildFile; productRef = AF1414000000000000000004; };
 		AF1415000000000000000001 = {isa = PBXBuildFile; fileRef = AF1415000000000000000002; };
+		9E36983F22D9ACFD64D43D70 = {isa = PBXBuildFile; fileRef = C871CDE670CC024EBF375AAC; };
+		C1FBE770501D41DB1D5D3DFF = {isa = PBXBuildFile; fileRef = B894A8CC649B117408EEFC5B; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -274,6 +276,8 @@
 		AF1413000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlight/Rendering/AetherHothTerrain.swift; sourceTree = "<group>"; };
 		AF1414000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlight/Rendering/AetherWorldDetails.swift; sourceTree = "<group>"; };
 		AF1415000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlight/App/AetherReleaseValidation.swift; sourceTree = "<group>"; };
+		C871CDE670CC024EBF375AAC = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlight/Flight/MirageBasin.swift; sourceTree = "<group>"; };
+		B894A8CC649B117408EEFC5B = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlpineFlight/Rendering/MirageBasinRenderer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -395,7 +399,7 @@
 				AE1411030000000000000002 /* PlanetOrbitDetail.swift */,
 				AF1412010000000000000002,
 				AF1413000000000000000002,
-				AF1414000000000000000002,
+				AF1414000000000000000002, B894A8CC649B117408EEFC5B, C871CDE670CC024EBF375AAC,
 				AF1415000000000000000002,
 				AF1412000000000000000002,
 				AE1411020000000000000002 /* PlanetShaders.metal */,
@@ -694,7 +698,7 @@
 				AE1411030000000000000001 /* PlanetOrbitDetail.swift in Sources */,
 				AF1412010000000000000001,
 				AF1413000000000000000001,
-				AF1414000000000000000001,
+				AF1414000000000000000001, C1FBE770501D41DB1D5D3DFF, 9E36983F22D9ACFD64D43D70,
 				AF1415000000000000000001,
 				AF1412000000000000000001,
 				AE1411020000000000000001 /* PlanetShaders.metal in Sources */,

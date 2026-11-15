@@ -82,3 +82,11 @@ appearance/thermal/frame-time validation remains a separate gate.
 The preceding stone-only capture at
 [the same scripted approach](../../Screenshots/CanyonSculpted-20261115/arch-approach.png)
 provides the before view: the stone, flight fixture and lighting are unchanged.
+
+## Follow-up: previously excluded features
+
+At the user's request, the voxel dune and coloured atmosphere ideas are now
+implemented in an isolated area, not discarded. See [MirageBasin.md](MirageBasin.md)
+for the prepared snapshot/collision design, direct visit control, limitations
+and verification. The earlier rejection section records the original design
+tradeoff; it no longer describes the full implemented feature set.

@@ -2310,3 +2310,69 @@ final class CanyonLifeTests:XCTestCase {
         XCTAssertNil(PlanetSurfaceRenderer(planet:.tatooine).root.findEntity(named:"Soaring canyon glider 1"))
     }
 }
+
+
+final class MirageBasinTests:XCTestCase {
+    func testPreparedFramesMatchContactsAndBudget() throws {
+        let origin=SIMD3<Float>(MirageBasin.center.x,MirageBasin.foundation,MirageBasin.center.y)
+        var changed=false
+        for phase in 0..<MirageBasin.phases {
+            let time=(Float(phase)+0.1)/MirageBasin.tickRate
+            XCTAssertEqual(MirageBasin.phase(at:time),phase)
+            let meshes=try MirageBasin.meshes(phase:phase)
+            XCTAssertEqual(meshes.reduce(0) { $0+$1.indices.count/3 },3072)
+            for mesh in meshes {
+                for p in mesh.positions { XCTAssertTrue(MirageBasin.hits(origin+p,radius:0.5,time:time),"Visible voxel must be solid in this exact phase") }
+                for n in mesh.normals { XCTAssertEqual(simd_length(n),1,accuracy:0.001) }
+            }
+            if MirageBasin.top(i:8,j:8,phase:phase) != MirageBasin.top(i:8,j:8,phase:0) { changed=true }
+        }
+        XCTAssertTrue(changed)
+        XCTAssertNil(MirageBasin.height(x:TatooineCanyon.origin.x,z:TatooineCanyon.origin.z,time:1))
+        XCTAssertEqual(MirageBasin.phase(at:8/6),0)
+    }
+    func testSweptFlightAndClearance() {
+        let d=UserDefaults.standard,key="portalsMirageEnabled",old=d.object(forKey:key)
+        let canyon=d.object(forKey:"portalsCanyonEnabled")
+        defer { if let old { d.set(old,forKey:key) } else { d.removeObject(forKey:key) }; if let canyon { d.set(canyon,forKey:"portalsCanyonEnabled") } else { d.removeObject(forKey:"portalsCanyonEnabled") } }
+        d.set(true,forKey:key);d.set(true,forKey:"portalsCanyonEnabled")
+        let x=MirageBasin.center.x,z=MirageBasin.center.y,t:Float=0.4
+        let top=MirageBasin.height(x:x,z:z,time:t)!
+        let surface=PlanetExploration(planet:.tatooine)
+        XCTAssertEqual(surface.clearance(at:[x,top+25,z],time:t),25,accuracy:0.01)
+        XCTAssertTrue(MirageBasin.impact(from:[x,top+150,z],to:[x,top-20,z],radius:8,start:t,end:t+0.01))
+        XCTAssertFalse(MirageBasin.impact(from:MirageBasin.arrival,to:MirageBasin.arrival+[0,0,-1200],radius:8,start:0,end:14))
+        for step in 0...120 {
+            let position=MirageBasin.arrival+SIMD3<Float>(0,0,-Float(step)*10)
+            let time=Float(step)/10
+            XCTAssertGreaterThan(surface.clearance(at:position,time:time),12)
+            XCTAssertFalse(surface.hitsObstacle(at:position,radius:8,time:time))
+        }
+        d.set(false,forKey:key)
+        XCTAssertGreaterThan(surface.clearance(at:[x,top+25,z],time:t),25)
+    }
+    func testSurfaceFlightClockAndActualImpact() {
+        var space=HyperspaceManager(terrain:TerrainGenerator(level:.freeRoam)),ship=FlightState()
+        space.beginRelaxedSpace(state:&ship,speed:70);space.enterPlanet(.tatooine,state:&ship)
+        ship.position=MirageBasin.arrival;ship.velocity = .zero
+        _=space.advance(state:&ship,collisionRadius:8,dt:0.1)
+        XCTAssertEqual(space.surfaceTime,0.1,accuracy:0.001)
+        let top=MirageBasin.height(x:MirageBasin.center.x,z:MirageBasin.center.y,time:0.2)!
+        ship.position=[MirageBasin.center.x,top-2,MirageBasin.center.y]
+        let event=space.advance(state:&ship,collisionRadius:8,dt:0.1)
+        if case .planetImpact(.tatooine)=event {} else { XCTFail("Surface flight must collide with the displayed dune") }
+        space.enterPlanet(.tatooine,state:&ship)
+        XCTAssertEqual(space.surfaceTime,0)
+    }
+    @MainActor func testPreparedSceneClockAndLayers() throws {
+        let scene=try MirageBasinRenderer()
+        for i in 0..<3 { XCTAssertNotNil(scene.root.findEntity(named:"Three Airs layer \(i)")) }
+        let layer=scene.root.findEntity(named:"Three Airs layer 0")!
+        let original=layer.position
+        scene.update(time:3)
+        XCTAssertNotEqual(layer.position,original)
+        let stopped=layer.position
+        scene.update(time:3)
+        XCTAssertEqual(layer.position,stopped,"Same simulation time must freeze the animated basin")
+    }
+}

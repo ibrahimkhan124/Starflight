@@ -53,7 +53,7 @@ struct WeaponSystem {
     }
 
     /// Swept shots cannot skip a thin wall between physics steps.
-    func surfaceHits(on surface: PlanetExploration, dt: Float) -> Set<Int> {
+    func surfaceHits(on surface: PlanetExploration, dt: Float,time:Float=0) -> Set<Int> {
         guard dt.isFinite, dt > 0 else { return [] }
         var hits:Set<Int> = []
         for (index,bolt) in bolts.enumerated() {
@@ -61,7 +61,7 @@ struct WeaponSystem {
             let steps = max(1,Int(ceil(simd_length(segment)/8)))
             for step in 0...steps {
                 let point = bolt.position-segment*(1-Float(step)/Float(steps))
-                if surface.clearance(at:point) <= 2 || surface.hitsObstacle(at:point,radius:2) {
+                if surface.clearance(at:point,time:time) <= 2 || surface.hitsObstacle(at:point,radius:2,time:time) {
                     hits.insert(index); break
                 }
             }

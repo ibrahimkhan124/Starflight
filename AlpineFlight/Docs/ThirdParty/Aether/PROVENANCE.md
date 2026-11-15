@@ -82,3 +82,10 @@ wingbeats), plus the existing `src/kit/fx.js` dust-funnel study at Portals snaps
 and Aether lathe composition retain the same adaptation attribution/terms.
 `walking-dune.js` and `canyon-of-three-airs.js` were assessed and rejected for
 this region; no claim is made that those worlds have been implemented.
+
+Mirage Basin adapts the six-Hz quantised voxel-motion design from
+`src/parts/walking-dune.js` / its world and the three moving coloured interfaces
+from `src/worlds/canyon-of-three-airs.js` / its part, at the same Portals snapshot.
+Native prepared mesh snapshots, sphere/column collision, clock integration and
+soft alpha materials are newly authored host implementations under the existing
+adaptation terms. These are bounded feature interpretations, not full world ports.
