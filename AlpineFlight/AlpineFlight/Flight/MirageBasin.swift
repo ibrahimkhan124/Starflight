@@ -5,7 +5,7 @@ import ProceduralCore
 /// An isolated native adaptation of Walking Dune + Canyon of Three Airs.
 /// The same quantised snapshot drives prepared meshes, clearance and contact.
 enum MirageBasin {
-    static var enabled:Bool { TatooineCanyon.enabled && AetherPlanet.flag("portalsMirageEnabled") }
+    static let enabled=false // Retired from gameplay at the player's request.
     static let center=SIMD2<Float>(4800,-5200)
     static let cells=16
     static let cell:Float=24

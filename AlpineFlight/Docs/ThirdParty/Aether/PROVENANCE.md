@@ -89,3 +89,10 @@ from `src/worlds/canyon-of-three-airs.js` / its part, at the same Portals snapsh
 Native prepared mesh snapshots, sphere/column collision, clock integration and
 soft alpha materials are newly authored host implementations under the existing
 adaptation terms. These are bounded feature interpretations, not full world ports.
+
+Natural wildlife/canyon follow-up: land-fauna terrain-following, staggered gait
+and grazing concepts studied in `src/kit/fauna/land.js` at the same Portals
+snapshot. New native bantha/deer/tauntaun approximations share host-generated
+round meshes and Aether curved mouldings; the tree-shaped canyon mask and
+clearance-driven rising sand batches are app-owned implementations. Mirage
+Basin is no longer active in normal gameplay at the player's request.

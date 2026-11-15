@@ -811,12 +811,29 @@ final class GameEngine: ObservableObject {
 #endif
         pilotTracker?.relocate(); world?.camera.reset(); publishHUD()
     }
-    func visitMirageBasin() {
-        guard MirageBasin.enabled,level.isFreeRoam,hyperspace.relaxedSpace,universe.homePlanets else { return }
+    func visitCanyonForks() {
+        guard level.isFreeRoam,hyperspace.relaxedSpace,universe.homePlanets else { return }
         enterPlanetSurface(.tatooine)
-        state.position=MirageBasin.arrival;state.velocity=[0,0,-70];state.airspeed=70
-        state.heading=0;state.pitch=0;state.roll=0;throttle=0.25
-        pilotTracker?.relocate();world?.camera.reset();publishHUD()
+        let z:Float=5300,x=PlanetExploration(planet:.tatooine).canyonCenter(z:z)
+        state.position=[x,PlanetExploration(planet:.tatooine).groundHeight(x:x,z:z)+650,z]
+        state.heading=0;state.pitch=0;state.roll=0;state.velocity = .zero;state.airspeed=0;throttle=0
+        cameraMode = .chase;world?.camera.mode = .chase
+        pilotTracker?.relocate();world?.camera.reset()
+        publishHUD()
+    }
+    func visitWildlifeLookout() {
+        let planet:SpacePlanet = currentSurfacePlanet == .endor ? .endor : currentSurfacePlanet == .hoth ? .hoth : .tatooine
+        guard level.isFreeRoam,hyperspace.relaxedSpace,universe.homePlanets,
+              let site=PlanetWildlife.sites(on:planet,reduced:false).first else { return }
+        enterPlanetSurface(planet)
+        let standOff=max(65,aircraft.length*0.75)
+        let x=site.x,z=site.z+standOff
+        let ground=PlanetExploration(planet:planet).groundHeight(x:x,z:z)
+        state.position=[x,max(site.y,ground)+max(22,aircraft.bodyRadius+12),z];state.velocity = .zero;state.airspeed=0
+        state.heading=0;state.roll=0;throttle=0
+        state.pitch=0
+        cameraMode = .cockpit;world?.camera.mode = .cockpit
+        pilotTracker?.relocate();world?.camera.reset();world?.camera.inspectionTarget=site+[0,3,0];publishHUD()
     }
     func returnToPlanetOrbit() {
         clearCityJob()

@@ -171,7 +171,7 @@ struct PlanetExploration {
         case .tatooine:
             let across = abs(x - canyonCenter(z: z))
             let width = 580 + 110 * landNoise(z / 2000, 1, seed: 5)
-            let wall = smoothEdge(width, width + 640, across)
+            let wall = min(smoothEdge(width, width + 640, across),CanyonRoutes.wall(x:x,z:z))
             // Rounded erosion terraces rather than square steps on the canyon walls.
             let terrace = 0.055 * sin(wall * .pi * 8) * sin(wall * .pi)
             let mesa = 820 + 390 * (broad + 1) * 0.5 + 190 * ridgedRelief(x: x, z: z, scale: 2800) + folds * 65
@@ -239,7 +239,7 @@ struct PlanetExploration {
                     // pads and markers remain useful places to turn or descend.
                     if abs(x) < 700 && abs(z - 8400) < 1350 { continue }
                     if clearings.contains(where: { simd_distance(SIMD2<Float>(x, z), $0) < 300 }) { continue }
-                    if planet == .tatooine && abs(x - canyonCenter(z: z)) < 1050 { continue }
+                    if planet == .tatooine && (abs(x - canyonCenter(z:z)) < 1050 || CanyonRoutes.wall(x:x,z:z)<0.12) { continue }
                 }
                 let height: Float, width: Float
                 switch planet {
@@ -258,7 +258,6 @@ struct PlanetExploration {
                 let half = width / 2
                 let ground = max(groundHeight(x: x - half, z: z - half), groundHeight(x: x + half, z: z + half),
                                  groundHeight(x: x - half, z: z + half), groundHeight(x: x + half, z: z - half))
-                if planet == .tatooine,MirageBasin.clearsObstacle(x:x,z:z) { continue }
                 result.append(Obstacle(center: [x, ground + height / 2 - 6, z], size: [width, height, width], style: abs(i + j) % 3))
             }
         }

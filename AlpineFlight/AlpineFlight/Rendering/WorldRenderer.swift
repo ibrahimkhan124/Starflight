@@ -378,7 +378,7 @@ final class WorldRenderer {
         for planet in planetEntities { planet.isEnabled = !arenaMode && inSpace && (relaxedSpace || asteroids.isEmpty) && surfacePlanet == nil }
         for (planet, scene) in surfaceScenes {
             scene.root.isEnabled = planet == surfacePlanet
-            if planet == surfacePlanet { scene.update(camera:camera.entity.position,dt:dt,passed:surfaceBeacons,surfaceTime:surfaceTime) }
+            if planet == surfacePlanet { scene.update(camera:camera.entity.position,dt:dt,passed:surfaceBeacons,surfaceTime:surfaceTime,aircraftPosition:crashTime == nil ? state.position:nil) }
         }
         let cloudLimit = performanceMode ? (terrain.generator.level == .storm ? 16 : 12) : clouds.count
         for (index, cloud) in clouds.enumerated() {

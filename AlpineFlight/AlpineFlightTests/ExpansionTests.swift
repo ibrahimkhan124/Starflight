@@ -2298,7 +2298,7 @@ final class CanyonLifeTests:XCTestCase {
         d.set(true,forKey:key)
         for reduced in [false,true] {
             let scene=PlanetSurfaceRenderer(planet:.tatooine,reducedDetail:reduced)
-            let count=reduced ? 2:5
+            let count=reduced ? 4:10
             XCTAssertNotNil(scene.root.findEntity(named:"Soaring canyon glider \(count)"))
             XCTAssertNil(scene.root.findEntity(named:"Soaring canyon glider \(count+1)"))
             let bird=scene.root.findEntity(named:"Soaring canyon glider 1")!
@@ -2331,38 +2331,11 @@ final class MirageBasinTests:XCTestCase {
         XCTAssertNil(MirageBasin.height(x:TatooineCanyon.origin.x,z:TatooineCanyon.origin.z,time:1))
         XCTAssertEqual(MirageBasin.phase(at:8/6),0)
     }
-    func testSweptFlightAndClearance() {
-        let d=UserDefaults.standard,key="portalsMirageEnabled",old=d.object(forKey:key)
-        let canyon=d.object(forKey:"portalsCanyonEnabled")
-        defer { if let old { d.set(old,forKey:key) } else { d.removeObject(forKey:key) }; if let canyon { d.set(canyon,forKey:"portalsCanyonEnabled") } else { d.removeObject(forKey:"portalsCanyonEnabled") } }
-        d.set(true,forKey:key);d.set(true,forKey:"portalsCanyonEnabled")
-        let x=MirageBasin.center.x,z=MirageBasin.center.y,t:Float=0.4
-        let top=MirageBasin.height(x:x,z:z,time:t)!
-        let surface=PlanetExploration(planet:.tatooine)
-        XCTAssertEqual(surface.clearance(at:[x,top+25,z],time:t),25,accuracy:0.01)
-        XCTAssertTrue(MirageBasin.impact(from:[x,top+150,z],to:[x,top-20,z],radius:8,start:t,end:t+0.01))
-        XCTAssertFalse(MirageBasin.impact(from:MirageBasin.arrival,to:MirageBasin.arrival+[0,0,-1200],radius:8,start:0,end:14))
-        for step in 0...120 {
-            let position=MirageBasin.arrival+SIMD3<Float>(0,0,-Float(step)*10)
-            let time=Float(step)/10
-            XCTAssertGreaterThan(surface.clearance(at:position,time:time),12)
-            XCTAssertFalse(surface.hitsObstacle(at:position,radius:8,time:time))
-        }
-        d.set(false,forKey:key)
-        XCTAssertGreaterThan(surface.clearance(at:[x,top+25,z],time:t),25)
-    }
-    func testSurfaceFlightClockAndActualImpact() {
-        var space=HyperspaceManager(terrain:TerrainGenerator(level:.freeRoam)),ship=FlightState()
-        space.beginRelaxedSpace(state:&ship,speed:70);space.enterPlanet(.tatooine,state:&ship)
-        ship.position=MirageBasin.arrival;ship.velocity = .zero
-        _=space.advance(state:&ship,collisionRadius:8,dt:0.1)
-        XCTAssertEqual(space.surfaceTime,0.1,accuracy:0.001)
-        let top=MirageBasin.height(x:MirageBasin.center.x,z:MirageBasin.center.y,time:0.2)!
-        ship.position=[MirageBasin.center.x,top-2,MirageBasin.center.y]
-        let event=space.advance(state:&ship,collisionRadius:8,dt:0.1)
-        if case .planetImpact(.tatooine)=event {} else { XCTFail("Surface flight must collide with the displayed dune") }
-        space.enterPlanet(.tatooine,state:&ship)
-        XCTAssertEqual(space.surfaceTime,0)
+    func testRetiredBasinDoesNotModifyGameplay() {
+        XCTAssertFalse(MirageBasin.enabled)
+        let surface=PlanetExploration(planet:.tatooine),p=SIMD3<Float>(MirageBasin.center.x,MirageBasin.foundation+25,MirageBasin.center.y)
+        XCTAssertEqual(surface.clearance(at:p,time:0.4),p.y-surface.groundHeight(x:p.x,z:p.z),accuracy:0.001)
+        XCTAssertEqual(surface.landmarks[5].name,"Sunset basin")
     }
     @MainActor func testPreparedSceneClockAndLayers() throws {
         let scene=try MirageBasinRenderer()
@@ -2374,5 +2347,77 @@ final class MirageBasinTests:XCTestCase {
         let stopped=layer.position
         scene.update(time:3)
         XCTAssertEqual(layer.position,stopped,"Same simulation time must freeze the animated basin")
+    }
+}
+
+
+final class WildlifeAndCanyonRoutesTests:XCTestCase {
+    func testBranchConnectionsAndFlyableFloors() {
+        let surface=PlanetExploration(planet:.tatooine)
+        XCTAssertEqual(CanyonRoutes.routes.count,9)
+        for route in CanyonRoutes.routes {
+            if let parent=route.parent {
+                XCTAssertLessThan(simd_distance(route.point(0),CanyonRoutes.routes[parent].point(0.62)),0.01)
+            } else {
+                let p=route.point(0)
+                XCTAssertEqual(p.x,surface.canyonCenter(z:p.y),accuracy:0.01)
+            }
+            for i in 0...32 {
+                let p=route.point(Float(i)/32)
+                XCTAssertLessThan(CanyonRoutes.wall(x:p.x,z:p.y),0.001)
+                let height=surface.groundHeight(x:p.x,z:p.y)
+                XCTAssertLessThan(height,220,"Branch centre must remain a valley, not a hidden mountain")
+                XCTAssertFalse(surface.hitsObstacle(at:[p.x,height+80,p.y],radius:15))
+            }
+        }
+    }
+    func testAnimalSitesAndTerrainFollowing() {
+        for planet in [SpacePlanet.tatooine,.endor,.hoth] {
+            let surface=PlanetExploration(planet:planet),sites=PlanetWildlife.sites(on:planet,reduced:false)
+            XCTAssertEqual(sites.count,4)
+            XCTAssertEqual(PlanetWildlife.sites(on:planet,reduced:true).count,2)
+            for (i,site) in sites.enumerated() {
+                for step in 0..<120 {
+                    let p=PlanetWildlife.position(site:site,index:i,time:Float(step),planet:planet)
+                    XCTAssertEqual(p.y,surface.groundHeight(x:p.x,z:p.z),accuracy:0.001)
+                    XCTAssertFalse(surface.hitsObstacle(at:p+[0,4,0],radius:8))
+                }
+            }
+        }
+    }
+    @MainActor func testSandThresholdAndPreparedAnimalAnimation() {
+        XCTAssertEqual(PlanetWildlife.dustStrength(clearance:70),0)
+        XCTAssertEqual(PlanetWildlife.dustStrength(clearance:80),0)
+        XCTAssertGreaterThan(PlanetWildlife.dustStrength(clearance:69),0)
+        XCTAssertGreaterThan(PlanetWildlife.dustStrength(clearance:15),PlanetWildlife.dustStrength(clearance:50))
+        XCTAssertEqual(PlanetWildlife.dustStrength(clearance:.nan),0)
+        let animals=PlanetWildlifeRenderer(planet:.tatooine,reduced:false)
+        let bantha=animals.root.findEntity(named:"Bantha 1")!
+        let first=bantha.position;animals.update(time:5)
+        XCTAssertGreaterThan(simd_distance(first,bantha.position),1)
+        let scene=PlanetSurfaceRenderer(planet:.tatooine,reducedDetail:true)
+        XCTAssertNil(scene.root.findEntity(named:"Mirage Basin · Walking Dune and Three Airs"))
+        let wash=scene.root.findEntity(named:"Aircraft low-ground sand wash")!
+        let ground=PlanetExploration(planet:.tatooine).groundHeight(x:0,z:8400)
+        scene.update(camera:[0,ground+100,8400],dt:0.02,passed:0,aircraftPosition:[0,ground+30,8400])
+        XCTAssertTrue(wash.isEnabled)
+        scene.update(camera:[0,ground+100,8400],dt:0.02,passed:0,aircraftPosition:[0,ground+71,8400])
+        XCTAssertFalse(wash.isEnabled)
+    }
+}
+
+
+final class WildlifeInspectionCameraTests:XCTestCase {
+    @MainActor func testInspectionAimsWithoutPitchingAircraftAndReleasesOnFlight() {
+        let camera=CameraController();camera.mode = .cockpit
+        var state=FlightState();state.position=[0,130,100];state.airspeed=0;state.velocity = .zero
+        let target=SIMD3<Float>(0,103,0);camera.inspectionTarget=target
+        camera.update(state:state,terrain:TerrainGenerator(level:.freeRoam),dt:1/60,inSpace:true)
+        XCTAssertEqual(state.pitch,0)
+        XCTAssertGreaterThan(simd_dot(camera.entity.orientation.act([0,0,-1]),simd_normalize(target-camera.entity.position)),0.999)
+        state.airspeed=20;state.velocity=[0,0,-20]
+        camera.update(state:state,terrain:TerrainGenerator(level:.freeRoam),dt:1/60,inSpace:true)
+        XCTAssertNil(camera.inspectionTarget)
+        camera.inspectionTarget=target;camera.reset();XCTAssertNil(camera.inspectionTarget)
     }
 }

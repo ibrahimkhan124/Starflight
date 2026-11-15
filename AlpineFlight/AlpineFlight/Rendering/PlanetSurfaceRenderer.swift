@@ -20,6 +20,9 @@ final class PlanetSurfaceRenderer {
     private var cloudLayer: Entity?
     private var time: Float = 0
     private var weatherParticles: ModelEntity?
+    private var wildlife:PlanetWildlifeRenderer?
+    private var sandWash:Entity?
+    private var sandPuffs:[ModelEntity]=[]
     private var mirage:MirageBasinRenderer?
     private var canyonFunnels:[Entity] = []
     private struct CanyonBird {
@@ -198,6 +201,9 @@ final class PlanetSurfaceRenderer {
         buildCloudLayer()
         buildSkyports()
         buildInhabitants()
+        let animals=PlanetWildlifeRenderer(planet:planet,reduced:reducedDetail)
+        wildlife=animals;root.addChild(animals.root)
+        if planet == .tatooine { buildSandWash() }
         if planet == .tatooine,TatooineCanyon.enabled,let data = try? TatooineCanyon.mesh.get(),
            let mesh = try? AetherPlanetRenderer.mesh(data,name:"Sunlit sandstone arch",worldUVScale:180) {
             let arch = ModelEntity(mesh:mesh,materials:[ScenicMaterials.terrain(color:.white,kind:"sand",planet:"Tatooine",continuous:true,reducedDetail:reducedDetail)])
@@ -261,8 +267,8 @@ final class PlanetSurfaceRenderer {
         guard let wingMesh=try? MeshResource.generate(from:[descriptor]) else { return }
         var paint=UnlitMaterial(color:UIColor(red:0.14,green:0.10,blue:0.07,alpha:1));paint.faceCulling = .none
         let bodyMesh=MeshResource.generateBox(size:[1.3,0.8,3.4])
-        for i in 0..<(reducedDetail ? 2:5) {
-            let bird=Entity();bird.name="Soaring canyon glider \(i+1)"
+        for i in 0..<(reducedDetail ? 4:10) {
+            let bird=Entity();bird.name="Soaring canyon glider \(i+1)";bird.scale=SIMD3(repeating:2+Float(i%3)*0.12)
             let body=ModelEntity(mesh:bodyMesh,materials:[paint])
             let left=ModelEntity(mesh:wingMesh,materials:[paint]),right=ModelEntity(mesh:wingMesh,materials:[paint])
             right.scale.x = -1
@@ -281,6 +287,44 @@ final class PlanetSurfaceRenderer {
             bird.root.orientation=simd_quatf(angle:pose.heading,axis:[0,1,0])*simd_quatf(angle:pose.bank,axis:[0,0,1])
             bird.left.orientation=simd_quatf(angle:pose.wing,axis:[0,0,1])
             bird.right.orientation=simd_quatf(angle:-pose.wing,axis:[0,0,1])
+        }
+    }
+
+    private func buildSandWash() {
+        var dust=Batch()
+        let count=reducedDetail ? 4:8
+        for i in 0..<count {
+            let a=Float(i)*2 * .pi/Float(count)
+            let center=SIMD3<Float>(cos(a)*8,3+Float(i%3)*2,sin(a)*8)
+            dust.softSprite(center:center,right:[cos(a)*12,0,sin(a)*12],up:[0,5,0])
+        }
+        var material=Self.neon(Self.color(0.85,0.63,0.37))
+        if let texture=Self.softMistTexture { material.color = .init(tint:Self.color(0.85,0.63,0.37),texture:.init(texture)) }
+        material.blending = .transparent(opacity:.init(floatLiteral:0.28))
+        guard let template=dust.entity(name:"Prepared sand puff",material:material),let model=template.model else { return }
+        let emitter=Entity();emitter.name="Aircraft low-ground sand wash";emitter.isEnabled=false
+        for i in 0..<(reducedDetail ? 2:3) {
+            let puff=ModelEntity(mesh:model.mesh,materials:model.materials);puff.name="Rising sand puff \(i)"
+            puff.components.set(DynamicLightShadowComponent(castsShadow:false));emitter.addChild(puff);sandPuffs.append(puff)
+        }
+        root.addChild(emitter);sandWash=emitter
+    }
+    private func updateSandWash(position:SIMD3<Float>?) {
+        guard let sandWash else { return }
+        guard let position else { sandWash.isEnabled=false;return }
+        let ground=PlanetExploration(planet:.tatooine).groundHeight(x:position.x,z:position.z)
+        let strength=PlanetWildlife.dustStrength(clearance:position.y-ground)
+        sandWash.isEnabled=strength>0
+        guard sandWash.isEnabled else { return }
+        sandWash.position=[position.x,ground+0.5,position.z]
+        sandWash.scale=SIMD3(repeating:0.6+strength*1.6)
+        sandWash.components.set(OpacityComponent(opacity:strength))
+        for (i,puff) in sandPuffs.enumerated() {
+            let age=(time*0.65+Float(i)/Float(sandPuffs.count)).truncatingRemainder(dividingBy:1)
+            puff.position=[sin(age*5+Float(i))*age*3,age*8,cos(age*5+Float(i))*age*3]
+            puff.scale=SIMD3(repeating:0.5+age*0.8)
+            puff.orientation=simd_quatf(angle:time*0.65+Float(i)*2,axis:[0,1,0])
+            puff.components.set(OpacityComponent(opacity:(1-age)*(1-age)*0.8))
         }
     }
 
@@ -835,10 +879,12 @@ final class PlanetSurfaceRenderer {
         material.faceCulling = .none
         return material
     }
-    func update(camera:SIMD3<Float>,dt:Float,passed:Int,surfaceTime:Float?=nil) {
+    func update(camera:SIMD3<Float>,dt:Float,passed:Int,surfaceTime:Float?=nil,aircraftPosition:SIMD3<Float>?=nil) {
         sky.position = camera
         time += min(dt,0.1)
         updateCanyonLife()
+        wildlife?.update(time:surfaceTime ?? time)
+        updateSandWash(position:aircraftPosition)
         mirage?.update(time:surfaceTime ?? time)
         cloudLayer?.position = [sin(time*0.013)*180,0,cos(time*0.009)*120]
         // Move one prepared batch; individual drops/flakes never create entities.

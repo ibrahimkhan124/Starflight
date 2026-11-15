@@ -101,15 +101,40 @@ final class FlightUITests: XCTestCase {
     }
 
     @MainActor
-    func testMirageBasinVisitAndFlight() {
+    func testWildlifeQuickActionsAndInspection() {
         let app=XCUIApplication();startUniverseFlight(app)
         app.buttons["Flight tools"].tap()
-        let visit=app.buttons["Visit Mirage Basin"];revealStoryControl(visit,in:app)
-        XCTAssertTrue(visit.isHittable);visit.tap()
-        Thread.sleep(forTimeInterval:2);capture(app,name:"Mirage Basin living dunes and three airs approach")
-        Thread.sleep(forTimeInterval:12)
+        let wildlife=app.buttons["Visit wildlife lookout"]
+        XCTAssertTrue(wildlife.isHittable,"New wildlife action must be visible without searching")
+        XCTAssertFalse(app.buttons["Visit Mirage Basin"].exists);wildlife.tap()
+        Thread.sleep(forTimeInterval:2);capture(app,name:"Bantha herd inspection with level aircraft")
         XCTAssertTrue(app.buttons["Pause flight"].exists)
-        capture(app,name:"Mirage Basin crossing above the hopping dune")
+        app.buttons["Flight tools"].tap()
+        let forks=app.buttons["Explore canyon forks"];XCTAssertTrue(forks.isHittable);forks.tap()
+        Thread.sleep(forTimeInterval:2);capture(app,name:"Tree branching canyon inspection")
+        XCTAssertTrue(app.buttons["Pause flight"].exists);app.terminate()
+    }
+
+    @MainActor
+    func testWildlifeLookoutsAndRetiredBasin() {
+        let app=XCUIApplication();startUniverseFlight(app)
+        app.buttons["Flight tools"].tap()
+        XCTAssertFalse(app.buttons["Visit Mirage Basin"].exists)
+        let lookout=app.buttons["Visit wildlife lookout"];revealStoryControl(lookout,in:app);lookout.tap()
+        Thread.sleep(forTimeInterval:2);capture(app,name:"Tatooine bantha herd and low flight sand wash")
+        Thread.sleep(forTimeInterval:4)
+        XCTAssertTrue(app.buttons["Pause flight"].exists)
+        for planet in ["Endor","Hoth"] {
+            app.buttons["Flight tools"].tap()
+            let enter=app.buttons["Enter "+planet];revealStoryControl(enter,in:app);enter.tap()
+            app.buttons["Flight tools"].tap();let watch=app.buttons["Visit wildlife lookout"];revealStoryControl(watch,in:app);watch.tap()
+            Thread.sleep(forTimeInterval:2);capture(app,name:planet+" ground wildlife lookout")
+            XCTAssertTrue(app.buttons["Pause flight"].exists)
+        }
+        app.buttons["Flight tools"].tap()
+        let forks=app.buttons["Explore canyon forks"];revealStoryControl(forks,in:app);forks.tap()
+        Thread.sleep(forTimeInterval:2);capture(app,name:"Tatooine branching canyon forks")
+        XCTAssertTrue(app.buttons["Pause flight"].exists)
         app.terminate()
     }
 

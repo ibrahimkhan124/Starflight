@@ -10,6 +10,7 @@ enum FlightCamera: String { case chase, cockpit }
 final class CameraController {
     let entity = PerspectiveCamera()
     var mode: FlightCamera = .chase
+    var inspectionTarget:SIMD3<Float>?
     var aircraft: AircraftType = .kestrel
     private var initialized = false
     private var crashVantage: SIMD3<Float>?
@@ -20,10 +21,11 @@ final class CameraController {
         entity.camera.near = 0.1
         entity.camera.far = 12000
     }
-    func reset() { initialized = false; crashVantage = nil }
+    func reset() { initialized = false; crashVantage = nil;inspectionTarget=nil }
 
     func update(state: FlightState, terrain: TerrainGenerator, dt: Float, inSpace: Bool = false) {
         entity.camera.far = inSpace ? 100000:12000
+        if state.airspeed>3 || abs(state.pitch)>0.05 || abs(state.roll)>0.05 || abs(state.heading)>0.05 { inspectionTarget=nil }
         #if canImport(UIKit)
         let speedLens = !UIAccessibility.isReduceMotionEnabled
         #else
@@ -39,7 +41,7 @@ final class CameraController {
         let up: SIMD3<Float>
         if mode == .cockpit {
             desired = state.position + state.orientation.act(aircraft.cockpitOffset)
-            target = desired + state.forward * 100
+            target = inspectionTarget ?? (desired + state.forward * 100)
             up = state.orientation.act([0, 1, 0])
         } else {
             let heading = simd_quatf(angle: -state.heading, axis: [0, 1, 0])
@@ -49,7 +51,7 @@ final class CameraController {
             var chase = state.position + orbit.act(offset)
             if !inSpace { chase.y = max(chase.y, terrain.surfaceHeight(x: chase.x, z: chase.z) + 7) }
             desired = chase
-            target = state.position + state.forward * max(36, aircraft.length * 2) + SIMD3<Float>(0, 2, 0)
+            target = inspectionTarget ?? (state.position + state.forward * max(36, aircraft.length * 2) + SIMD3<Float>(0, 2, 0))
             up = orbit.act([0,1,0])
         }
         // A tighter race follow keeps the pod and the next bend visible at extreme speed.

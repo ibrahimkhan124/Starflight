@@ -1,5 +1,9 @@
 # Mirage Basin — the previously excluded world features
 
+**Retired from gameplay at the player's request.** The button, scene, survey
+destination and collisions are disabled. See [WildlifeAndCanyon.md](WildlifeAndCanyon.md)
+for the replacement work. The text below documents the earlier prototype.
+
 Sources studied: emollick/ai-portals snapshot
 210133f4e718acb7b461f2a40c90661a40a2397f, `src/worlds/walking-dune.js`,
 `src/parts/walking-dune.js`, `src/worlds/canyon-of-three-airs.js` and its part.

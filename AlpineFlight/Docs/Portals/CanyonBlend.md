@@ -90,3 +90,8 @@ implemented in an isolated area, not discarded. See [MirageBasin.md](MirageBasin
 for the prepared snapshot/collision design, direct visit control, limitations
 and verification. The earlier rejection section records the original design
 tradeoff; it no longer describes the full implemented feature set.
+
+Mirage Basin has since been retired at the player's request. Current additions are
+[natural branching canyons, ground animals and low-flight sand](WildlifeAndCanyon.md).
+The glider flock is now ten at full detail or four at reduced detail, around twice
+its original scale; previous budgets above describe the earlier implementation.

@@ -601,6 +601,16 @@ struct FlightToolsView: View {
                         NavigationLink("Galaxy map & hyperspace") { UniverseNavigationView(engine:engine) }
                             .buttonStyle(MenuActionButtonStyle(accent:FlightPalette.gold)).accessibilityIdentifier("Universe navigation")
                     }
+                    if engine.level.isFreeRoam && engine.isRelaxedSpace && engine.homePlanetsAvailable {
+                        HStack(spacing:12) {
+                            Button { engine.visitWildlifeLookout();dismiss() } label: {
+                                Label("Wildlife lookout",systemImage:"pawprint.fill").frame(maxWidth:.infinity).padding(10)
+                            }.flightButtonGlass().accessibilityIdentifier("Visit wildlife lookout")
+                            Button { engine.visitCanyonForks();dismiss() } label: {
+                                Label("Canyon forks",systemImage:"arrow.triangle.branch").frame(maxWidth:.infinity).padding(10)
+                            }.flightButtonGlass().accessibilityLabel("Explore canyon forks")
+                        }
+                    }
                     NavigationLink("Story campaign") { StoryCampaignView(engine:engine) }
                         .buttonStyle(MenuActionButtonStyle()).accessibilityIdentifier("Flight story campaign")
                     NavigationLink("Navigation & missions") { FlightAdventuresView(engine:engine) }
@@ -654,11 +664,6 @@ struct FlightToolsView: View {
                                 }.flightButtonGlass().buttonStyle(GlowingFlightButton())
                                     .accessibilityLabel("Navigate to " + planet.name)
                                     .accessibilityValue((selected ? "Selected · " : "") + distance)
-                            }
-                            if MirageBasin.enabled {
-                                Button("Visit Mirage Basin") { engine.visitMirageBasin();dismiss() }
-                                    .padding(10).flightButtonGlass()
-                                    .accessibilityHint("Explore the living voxel dunes and three coloured atmosphere layers on Tatooine")
                             }
                             ForEach(SpacePlanet.allCases) { planet in
                                 Button("Enter " + planet.name) { engine.enterPlanetSurface(planet); dismiss() }
