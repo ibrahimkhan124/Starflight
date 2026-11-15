@@ -36,12 +36,14 @@ struct CollisionSystem {
     }
     private var probes: [SIMD3<Float>]
     private let scenery: ScenicRegion
+    private let raceCircuit: RaceCircuit?
 
     init(terrain: TerrainGenerator, aircraft: AircraftType = .kestrel) {
         self.terrain = terrain
         self.aircraft = aircraft
         probes = aircraft.collisionProbes
         scenery = ScenicRegion(terrain: terrain)
+        raceCircuit = terrain.level.isPodRaceTrack ? RaceCircuit(level:terrain.level) : nil
     }
 
     func clearance(at position: SIMD3<Float>) -> Float {
@@ -55,9 +57,10 @@ struct CollisionSystem {
             let t = Float(sample) / Float(samples)
             let position = old.position + (new.position - old.position) * t
             let orientation = simd_slerp(old.orientation, new.orientation, t)
+            let overTrack = aircraft.isPodracer && (raceCircuit.map { $0.roadOffset(position) < terrain.level.valleyWidth * 0.4 } ?? false)
             for probe in probes {
                 let world = position + orientation.act(probe)
-                if clearance(at: world) <= 1 || scenery.hits(world) { return position }
+                if (clearance(at: world) <= 1 && !overTrack) || scenery.hits(world) { return position }
             }
         }
         return nil

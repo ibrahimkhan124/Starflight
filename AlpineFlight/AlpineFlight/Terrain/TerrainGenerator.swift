@@ -43,8 +43,9 @@ struct TerrainGenerator: Sendable {
         return 290 * sin(-z * frequency) + 115 * sin(-z * frequency * 2.2353)
     }
 
+    static let podGroundClearance: Float = 10
     func hoverHeight(at z: Float) -> Float {
-        204
+        92 + Self.podGroundClearance
     }
 
     func height(x: Float, z: Float) -> Float {

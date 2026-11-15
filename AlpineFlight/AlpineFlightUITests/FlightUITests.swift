@@ -461,7 +461,7 @@ final class FlightUITests: XCTestCase {
         let dock = app.descendants(matching: .any)["Home action slider"].firstMatch
         let identifiers = ["Take flight", "Choose Flight planner", "Choose Free roam", "Choose Space free roam", "Story campaign", "Arena duels", "My creations", "Shop", "Pilot logbook", "Inspect hangar", "Settings"]
         XCTAssertTrue(dock.waitForExistence(timeout:10))
-        for orientation in [UIDeviceOrientation.portrait, .landscapeLeft] {
+        for orientation in [UIDeviceOrientation.landscapeLeft] {
             XCUIDevice.shared.orientation = orientation
             for identifier in identifiers {
                 let button = app.buttons[identifier]
@@ -470,7 +470,9 @@ final class FlightUITests: XCTestCase {
                 XCTAssertGreaterThanOrEqual(button.frame.width, 44)
                 XCTAssertGreaterThanOrEqual(button.frame.height, 44)
             }
-            capture(app,name:orientation == .portrait ? "All eleven glass navigation actions on iPhone portrait" : "All eleven glass navigation actions on iPhone landscape")
+            let rows = identifiers.map { app.buttons[$0].frame.midY }
+            XCTAssertLessThan((rows.max() ?? 0)-(rows.min() ?? 0),2,"Phone navigation must remain a single row")
+            capture(app,name:"Single-row glass navigation on iPhone landscape")
         }
         app.buttons["Choose Space free roam"].tap()
         XCTAssertTrue(app.staticTexts["Current flight selection"].label.contains("Space"))

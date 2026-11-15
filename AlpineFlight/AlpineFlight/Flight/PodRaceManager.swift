@@ -76,8 +76,10 @@ struct PodRaceManager {
             let racePace: Float = aircraft.isPodracer ? 1.34 * terrain.level.podRaceSpeedMultiplier : 1
             let speed = aircraft.cruiseSpeed * racePace
                 * (0.96 + Float(index) * 0.018 + terrain.level.podRaceDifficulty * 0.025)
+            var position = circuit.point(at: progress) + SIMD3<Float>(-t.z, 0, t.x) * offset
+            position.y = terrain.surfaceHeight(x:position.x,z:position.z) + TerrainGenerator.podGroundClearance
             return RaceOpponent(id: index,
-                position: circuit.point(at: progress) + SIMD3<Float>(-t.z, 0, t.x) * offset,
+                position: position,
                 cruiseSpeed: speed, finishDistance: circuit.length * 3, lane: lane, speed: speed, desiredSpeed: speed, desiredOffset: offset,
                 progress: progress, lateralOffset: offset, heading: atan2(t.x, -t.z),
                 boostCooldown: 0.45 + Float(index) * 0.32, attackCooldown: Float(index) * 0.15)
@@ -215,6 +217,7 @@ struct PodRaceManager {
             let t = circuit.tangent(at: opponents[index].progress)
             opponents[index].heading = atan2(t.x, -t.z) + atan2(opponents[index].lateralVelocity, max(1, opponents[index].speed))
             opponents[index].position = circuit.point(at: opponents[index].progress) + SIMD3<Float>(-t.z, 0, t.x) * opponents[index].lateralOffset
+            opponents[index].position.y = terrain.surfaceHeight(x:opponents[index].position.x,z:opponents[index].position.z) + TerrainGenerator.podGroundClearance
             if abs(opponents[index].lateralOffset) > edge { opponents[index].active = false }
         }
         if packRecovery <= 0 {

@@ -658,6 +658,32 @@ final class ExpansionTests: XCTestCase {
         XCTAssertEqual(FlightLevel.alpine.next, .canyon)
     }
 
+    func testLowPodClearsTrackButStillCollidesOutsideIt() {
+        for level in FlightLevel.allCases where level.isPodRaceTrack {
+            let terrain = TerrainGenerator(seed:level.seed,level:level), circuit = RaceCircuit(level:level)
+            let collision = CollisionSystem(terrain:terrain,aircraft:.anakinPodracer)
+            var state = FlightState()
+            state.position = circuit.point(at:circuit.length*0.2)
+            state.position.y = terrain.surfaceHeight(x:state.position.x,z:state.position.z)+10
+            XCTAssertNil(collision.impact(from:state,to:state),level.name)
+            state.position = [100000,-1000,100000]
+            XCTAssertNotNil(collision.impact(from:state,to:state),level.name)
+        }
+    }
+
+    func testRivalsStartAndRemainTenMetresAboveTrack() {
+        for level in FlightLevel.allCases where level.isPodRaceTrack {
+            let terrain = TerrainGenerator(seed:level.seed,level:level)
+            var race = PodRaceManager(terrain:terrain,aircraft:.anakinPodracer)
+            for frame in 0..<2 {
+                for rival in race.opponents where rival.active {
+                    XCTAssertEqual(rival.position.y-terrain.surfaceHeight(x:rival.position.x,z:rival.position.z),10,accuracy:0.01)
+                }
+                if frame == 0 { _ = race.advance(position:[0,102,0],requestedBoost:false,dt:0.1) }
+            }
+        }
+    }
+
     func testPodRaceRoutesAreFlatterAndUseHighClearanceArchGates() {
         for level in FlightLevel.allCases where level.isPodRaceTrack {
             let terrain = TerrainGenerator(seed: level.seed, level: level)

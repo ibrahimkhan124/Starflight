@@ -1158,11 +1158,13 @@ final class PodRaceIntensityTests: XCTestCase {
 
     func testRivalMovesInToBumpAndContactHasRecoveryAcrossPhysicsRates() {
         for dt: Float in [1/30,1/60,1/120] {
-            var race = PodRaceManager(terrain:TerrainGenerator(level:.narShaddaa),aircraft:.anakinPodracer)
+            let terrain = TerrainGenerator(level:.narShaddaa)
+            var race = PodRaceManager(terrain:terrain,aircraft:.anakinPodracer)
             var player = FlightState()
             for _ in 0..<Int(8/dt) {
                 let rival = race.opponents[0], t = race.circuit.tangent(at:rival.progress)
                 player.position = race.circuit.point(at:rival.progress)
+                player.position.y = terrain.surfaceHeight(x:player.position.x,z:player.position.z)+TerrainGenerator.podGroundClearance
                 player.heading = atan2(t.x,-t.z)
                 player.velocity = t*320
                 player.airspeed = 320

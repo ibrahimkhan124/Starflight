@@ -425,7 +425,7 @@ private struct HomeWorkspaceView: View {
     }
 }
 
-/// One pinned, native Liquid Glass surface. No horizontal scrolling or overflow menu.
+/// One pinned glass navigation row; narrow screens can scroll without wrapping.
 private struct HomeNavigationDock: View {
     @ObservedObject var engine: GameEngine
     let selection: HomeMenuAction
@@ -441,7 +441,9 @@ private struct HomeNavigationDock: View {
         return engine.level.isPodRace ? "Race now" : "Take flight"
     }
     var body: some View {
-        HomeDockLayout(minimumCellWidth: minimumCellWidth) {
+        GeometryReader { geometry in
+        ScrollView(.horizontal, showsIndicators: true) {
+        HStack(spacing: 4) {
             ForEach(HomeMenuAction.allCases) { item in
                 Button {
                     withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.22)) { onSelect(item) }
@@ -449,14 +451,12 @@ private struct HomeNavigationDock: View {
                     VStack(spacing: 4) {
                         Image(systemName: item.symbol).font(.system(size: 20, weight: .medium))
                             .accessibilityHidden(true)
-                        ViewThatFits(in: .horizontal) {
-                            Text(item == .flight ? launchTitle : item.title).fixedSize()
-                            Text(item == .flight && !engine.ready ? "Preparing" : item.shortTitle).fixedSize()
-                        }.font(.caption2.weight(.semibold)).lineLimit(1)
+                        Text(item == .flight && !engine.ready ? "Preparing" : item.shortTitle)
+                            .font(.caption2.weight(.semibold)).lineLimit(1)
                     }
                     .foregroundStyle(.white)
                     .padding(.horizontal, 4).padding(.vertical, 6)
-                    .frame(maxWidth: .infinity, minHeight: minimumCellHeight)
+                    .frame(minWidth: max(54, minimumCellWidth), maxWidth: .infinity, minHeight: minimumCellHeight)
                     .background {
                         if selection == item {
                             Capsule().fill(.white.opacity(0.18))
@@ -476,6 +476,10 @@ private struct HomeNavigationDock: View {
                 .help(item.detail)
             }
         }
+        .frame(minWidth: geometry.size.width)
+        }
+        }
+        .frame(height: minimumCellHeight + 12)
         .padding(6).frame(maxWidth: 1280)
         .modifier(HomeDockGlass(solid: reduceTransparency))
         .accessibilityElement(children: .contain)
@@ -496,42 +500,6 @@ private struct HomeDockGlass: ViewModifier {
             content.glassEffect(.regular, in: shape)
         } else {
             content.background(.ultraThinMaterial, in: shape)
-        }
-    }
-}
-
-/// Balances complete rows, including a centred last row, without shrinking tap targets.
-private struct HomeDockLayout: Layout {
-    let minimumCellWidth: CGFloat
-    private let spacing: CGFloat = 3
-    private func metrics(width: CGFloat, subviews: Subviews) -> (columns: Int, cellWidth: CGFloat, heights: [CGFloat]) {
-        guard !subviews.isEmpty else { return (1, width, []) }
-        let maximumColumns = min(subviews.count, max(1, Int((width+spacing)/(minimumCellWidth+spacing))))
-        let rows = (subviews.count+maximumColumns-1)/maximumColumns
-        let columns = (subviews.count+rows-1)/rows
-        let cellWidth = max(1, (width-CGFloat(columns-1)*spacing)/CGFloat(columns))
-        var heights = Array(repeating: CGFloat.zero, count: rows)
-        for index in subviews.indices {
-            heights[index/columns] = max(heights[index/columns], subviews[index].sizeThatFits(.init(width:cellWidth,height:nil)).height)
-        }
-        return (columns, cellWidth, heights)
-    }
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let width = max(44, min(proposal.width ?? 800, 1268))
-        let grid = metrics(width:width,subviews:subviews)
-        return CGSize(width:width,height:grid.heights.reduce(0,+)+CGFloat(max(0,grid.heights.count-1))*spacing)
-    }
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let grid = metrics(width:bounds.width,subviews:subviews)
-        var y = bounds.minY
-        for row in grid.heights.indices {
-            let start = row*grid.columns, count = min(grid.columns,subviews.count-start)
-            let rowWidth = CGFloat(count)*grid.cellWidth+CGFloat(max(0,count-1))*spacing
-            let x = bounds.midX-rowWidth/2
-            for column in 0..<count {
-                subviews[start+column].place(at:CGPoint(x:x+CGFloat(column)*(grid.cellWidth+spacing),y:y),anchor:.topLeading,proposal:.init(width:grid.cellWidth,height:grid.heights[row]))
-            }
-            y += grid.heights[row]+spacing
         }
     }
 }

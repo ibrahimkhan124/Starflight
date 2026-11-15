@@ -1431,6 +1431,10 @@ final class GameEngine: ObservableObject {
                 } else {
                     physics.advance(&state, input: input, wind: wind, dt: FlightPhysics.step, raceSpeedMultiplier: level.podRaceSpeedMultiplier, draftStrength: race.draftStrength)
                 }
+                if level.isPodRaceTrack && aircraft.isPodracer {
+                    state.position.y = terrain.surfaceHeight(x:state.position.x,z:state.position.z) + TerrainGenerator.podGroundClearance
+                    state.velocity.y = 0
+                }
                 if oreScanRequested && miningAvailable && !hyperspace.asteroids.isEmpty {
                     oreSurvey = hyperspace.oreSurvey(from: state); oreScanRequested = false
                     if let survey = oreSurvey {
