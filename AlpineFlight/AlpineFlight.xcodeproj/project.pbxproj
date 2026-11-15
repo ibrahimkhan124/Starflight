@@ -77,7 +77,7 @@
 		AD0077000000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AD0077000000000000000002 /* Assets.xcassets */; };
 		AD0078000000000000000001 /* StarflightIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = AD0078000000000000000002 /* StarflightIcon.icon */; };
 		AD0080000000000000000001 /* StarflightWidgets/StarflightWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0080000000000000000002 /* StarflightWidgets/StarflightWidget.swift */; };
-		AD0080000000000000000003 /* StarflightWidgets.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = AD0080000000000000000004 /* StarflightWidgets.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AD0080000000000000000003 /* StarflightWidgets.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = AD0080000000000000000004 /* StarflightWidgets.appex */; platformFilter = ios; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		AD0081000000000000000001 /* VideoLaunchIntro.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0081000000000000000002 /* VideoLaunchIntro.swift */; };
 		AD0081000000000000000003 /* StarflightIntro.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = AD0081000000000000000004 /* StarflightIntro.mp4 */; };
 		AD8B55980E463B2D634D38C4 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA896F8D3FA8522590393E3 /* SettingsView.swift */; };
@@ -887,7 +887,9 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 3C594V2263;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -955,7 +957,9 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 3C594V2263;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
