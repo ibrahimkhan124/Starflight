@@ -113,3 +113,48 @@ Physical-device frame time, memory, touch handling and appearance are unmeasured
 Pictures: [larger bantha](../../Screenshots/WildlifeSpread-20261116/larger-bantha.png),
 [wildlife along a normal flight](../../Screenshots/WildlifeSpread-20261116/wildlife-along-flight-route.png),
 [canyon branches](../../Screenshots/WildlifeSpread-20261116/canyon-branches.png).
+
+
+## Other planet skies — 2026-11-16
+
+The shared prepared bird renderer now covers Endor, Hoth and Coruscant as well as
+Tatooine. Endor has rust-coloured forest gliders, Hoth pale blue ice gliders, and
+Coruscant muted violet rooftop gliders. Each uses eight distributed flock homes,
+24 birds at full detail or eight at reduced detail. Existing large deer/tauntaun
+herds stay in place; Coruscant receives airborne wildlife rather than ground
+herds in the traffic lanes.
+
+Non-desert flock homes are prepared from terrain triangle heights plus nearby
+scenery tops, leaving 110 m above the highest sampled canopy or rooftop. Bounded
+orbits, staggered wingbeats and the existing 2.2–3 km visibility fade are shared
+across planets. No new meshes or terrain searches are created during animation.
+Coruscant's Wildlife Lookout now stays on Coruscant and frames a rooftop flock.
+These are original stylised gliders, not claims about canon animal species.
+
+
+### Lookout corrections and validation
+
+The visual pass exposed a reduced-detail mismatch on Endor. Lookout placement now
+selects the herd from the active detail mode, and a 32-sample terrain sightline
+keeps intervening hills below the inspection gaze. The corrected reduced-detail
+Endor capture visibly includes its deer; Hoth's tauntaun inspection was also
+checked. Coruscant uses the current rendered bird position and follows that bird
+while the existing inspection camera is active. Moving off or switching cameras
+still releases inspection normally.
+
+Eight focused checks passed, including all three added planet flock routes,
+canopy/building collision margins, full/reduced scene counts, animation, distance
+culling, and lookout sightlines on the three ground-wildlife planets. The
+three-planet lookout flow and the dedicated Endor reduced-detail flow passed.
+Mac Catalyst and signed generic iOS Debug builds passed. Physical-device frame
+time, memory and appearance remain unmeasured; simulator captures are visual
+checks, not device-performance evidence.
+
+
+The final Coruscant follow-camera UI check passed and its screenshot visibly
+shows the glider above the skyline after the achievement message has cleared.
+The updated Mac app is installed; no physical iPhone/iPad installation is claimed.
+
+Pictures: [Endor deer](../../Screenshots/OtherPlanetWildlife-20261116/endor-deer-lookout.png),
+[Hoth tauntaun](../../Screenshots/OtherPlanetWildlife-20261116/hoth-tauntaun-lookout.png),
+[Coruscant glider](../../Screenshots/OtherPlanetWildlife-20261116/coruscant-rooftop-glider.png).

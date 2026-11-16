@@ -116,6 +116,32 @@ final class FlightUITests: XCTestCase {
     }
 
     @MainActor
+    func testEndorReducedDetailWildlifeLookout() {
+        let app=XCUIApplication();startUniverseFlight(app,extraArguments:["-reducedDetail","YES"])
+        app.buttons["Flight tools"].tap()
+        let enter=app.buttons["Enter Endor"];revealStoryControl(enter,in:app);enter.tap()
+        app.buttons["Flight tools"].tap();app.buttons["Visit wildlife lookout"].tap()
+        Thread.sleep(forTimeInterval:2)
+        XCTAssertTrue(app.buttons["Pause flight"].exists)
+        capture(app,name:"Endor reduced detail corrected herd lookout")
+        app.terminate()
+    }
+
+    @MainActor
+    func testCoruscantRooftopWildlifeLookout() {
+        let app=XCUIApplication();startUniverseFlight(app)
+        app.buttons["Flight tools"].tap()
+        let enter=app.buttons["Enter Coruscant"];revealStoryControl(enter,in:app);enter.tap()
+        app.buttons["Flight tools"].tap()
+        let lookout=app.buttons["Visit wildlife lookout"];XCTAssertTrue(lookout.isHittable);lookout.tap()
+        Thread.sleep(forTimeInterval:6)
+        XCTAssertTrue(app.buttons["Pause flight"].exists)
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format:"label CONTAINS %@","Coruscant")).firstMatch.exists)
+        capture(app,name:"Coruscant rooftop birds lookout")
+        app.terminate()
+    }
+
+    @MainActor
     func testWildlifeLookoutsAndRetiredBasin() {
         let app=XCUIApplication();startUniverseFlight(app)
         app.buttons["Flight tools"].tap()

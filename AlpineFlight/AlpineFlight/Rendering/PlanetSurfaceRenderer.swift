@@ -212,6 +212,7 @@ final class PlanetSurfaceRenderer {
             buildCanyonLife()
             if MirageBasin.enabled,let basin=try? MirageBasinRenderer() { mirage=basin;root.addChild(basin.root) }
         }
+        if planet != .tatooine { buildBirdFlocks() }
         root.isEnabled = false
     }
 
@@ -260,15 +261,26 @@ final class PlanetSurfaceRenderer {
                 root.addChild(funnel);canyonFunnels.append(funnel)
             }
         }
-        var descriptor=MeshDescriptor(name:"Shared canyon glider wing")
+        buildBirdFlocks()
+    }
+    var wildlifeLookoutPoint:SIMD3<Float> { PlanetWildlife.bird(0,time:time,planet:planet).position }
+    private func buildBirdFlocks() {
+        var descriptor=MeshDescriptor(name:"Shared planet glider wing")
         descriptor.positions = .init([[0,0,0],[3,0,-2],[7,0,2],[3.5,0,1]])
         descriptor.normals = .init(Array(repeating:[0,1,0],count:4))
         descriptor.primitives = .triangles([0,1,3,1,2,3])
         guard let wingMesh=try? MeshResource.generate(from:[descriptor]) else { return }
-        var paint=UnlitMaterial(color:UIColor(red:0.14,green:0.10,blue:0.07,alpha:1));paint.faceCulling = .none
+        let birdColor:UIColor
+        switch planet {
+        case .tatooine:birdColor=Self.color(0.14,0.10,0.07)
+        case .endor:birdColor=Self.color(0.65,0.35,0.15)
+        case .hoth:birdColor=Self.color(0.70,0.82,0.90)
+        case .coruscant:birdColor=Self.color(0.38,0.29,0.46)
+        }
+        var paint=UnlitMaterial(color:birdColor);paint.faceCulling = .none
         let bodyMesh=MeshResource.generateBox(size:[1.3,0.8,3.4])
         for i in 0..<CanyonLife.birdCount(reduced:reducedDetail) {
-            let bird=Entity();bird.name="Soaring canyon glider \(i+1)";bird.scale=SIMD3(repeating:CanyonLife.birdScale(i))
+            let bird=Entity();bird.name=PlanetWildlife.birdName(on:planet)+" \(i+1)";bird.scale=SIMD3(repeating:CanyonLife.birdScale(i))
             let body=ModelEntity(mesh:bodyMesh,materials:[paint])
             let left=ModelEntity(mesh:wingMesh,materials:[paint]),right=ModelEntity(mesh:wingMesh,materials:[paint])
             right.scale.x = -1
@@ -282,8 +294,8 @@ final class PlanetSurfaceRenderer {
             funnel.orientation=simd_quatf(angle:time*0.32+Float(i)*2,axis:[0,1,0])
         }
         for (i,bird) in canyonBirds.enumerated() {
-            let pose=CanyonLife.bird(i,time:time)
-            let world=TatooineCanyon.origin+pose.position
+            let pose=PlanetWildlife.bird(i,time:time,planet:planet)
+            let world=pose.position
             if let viewer {
                 let distance=simd_distance(world,viewer),visible=distance<3000
                 if bird.root.isEnabled != visible { bird.root.isEnabled=visible }

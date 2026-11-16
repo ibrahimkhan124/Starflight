@@ -31,6 +31,7 @@ final class WorldRenderer {
     private var bountyMarker:ModelEntity?
     private let residences = CityResidenceRenderer()
     private var surfaceScenes: [SpacePlanet: PlanetSurfaceRenderer] = [:]
+    func wildlifeLookoutPoint(on planet:SpacePlanet) -> SIMD3<Float>? { surfaceScenes[planet]?.wildlifeLookoutPoint }
     private var asteroidEntities: [ModelEntity] = []
     private var boostPadEntities: [Entity] = []
     private var raceSparks: [ModelEntity] = []
@@ -365,6 +366,9 @@ final class WorldRenderer {
                 return !awayFromAtmosphere && (self.crashScenery?.hits(point) ?? false)
             })
         } else {
+            if surfacePlanet == .coruscant,camera.inspectionTarget != nil,let point=wildlifeLookoutPoint(on:.coruscant) {
+                camera.inspectionTarget=point
+            }
             camera.update(state: state, terrain: terrain.generator, dt: dt, inSpace: awayFromAtmosphere)
         }
         sky.position = camera.entity.position

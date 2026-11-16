@@ -2354,6 +2354,44 @@ final class MirageBasinTests:XCTestCase {
 
 
 final class WildlifeAndCanyonRoutesTests:XCTestCase {
+    func testHerdLookoutSightlinesClearInterveningTerrain() {
+        for planet in [SpacePlanet.endor,.hoth,.tatooine] { for reduced in [false,true] {
+            let site=PlanetWildlife.sites(on:planet,reduced:reduced).first!
+            let view=PlanetWildlife.lookoutPosition(site:site,planet:planet,standOff:65,clearance:22)
+            let target=site+SIMD3<Float>(0,7,0),surface=PlanetExploration(planet:planet)
+            for step in 1...32 {
+                let p=target+(view-target)*(Float(step)/32)
+                XCTAssertGreaterThanOrEqual(surface.clearance(at:p),3.99,planet.name)
+            }
+        } }
+    }
+    func testOtherPlanetFlocksClearCanopiesAndRoofs() {
+        for planet in [SpacePlanet.endor,.hoth,.coruscant] {
+            let surface=PlanetExploration(planet:planet)
+            let homes=(0..<8).map { PlanetWildlife.bird($0,time:0,planet:planet).position.z }
+            XCTAssertGreaterThan(homes.max()!-homes.min()!,14000)
+            for i in 0..<24 { for step in 0..<64 {
+                let pose=PlanetWildlife.bird(i,time:Float(step),planet:planet)
+                XCTAssertGreaterThan(surface.clearance(at:pose.position),70,planet.name)
+                XCTAssertFalse(surface.hitsObstacle(at:pose.position,radius:35),planet.name)
+                XCTAssertTrue(pose.heading.isFinite && pose.wing.isFinite)
+            } }
+        }
+    }
+    @MainActor func testOtherPlanetPreparedBirdsAnimateAndCull() {
+        for planet in [SpacePlanet.endor,.hoth,.coruscant] { for reduced in [false,true] {
+            let scene=PlanetSurfaceRenderer(planet:planet,reducedDetail:reduced)
+            let name=PlanetWildlife.birdName(on:planet)
+            let bird=scene.root.findEntity(named:name+" 1")!
+            XCTAssertNotNil(scene.root.findEntity(named:name+" \(CanyonLife.birdCount(reduced:reduced))"))
+            let start=bird.position
+            for _ in 0..<30 { scene.update(camera:start,dt:1/30,passed:0) }
+            XCTAssertGreaterThan(simd_distance(start,bird.position),8)
+            scene.update(camera:start+[10000,0,10000],dt:0.1,passed:0);XCTAssertFalse(bird.isEnabled)
+            scene.update(camera:start,dt:0.1,passed:0);XCTAssertTrue(bird.isEnabled)
+        } }
+    }
+
     func testBranchConnectionsAndFlyableFloors() {
         let surface=PlanetExploration(planet:.tatooine)
         XCTAssertEqual(CanyonRoutes.routes.count,9)

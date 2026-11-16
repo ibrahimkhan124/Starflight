@@ -6,6 +6,50 @@ enum PlanetWildlife {
     static func kind(on planet:SpacePlanet) -> Kind? {
         switch planet { case .tatooine:return .bantha;case .endor:return .forestDeer;case .hoth:return .tauntaun;case .coruscant:return nil }
     }
+    static func birdName(on planet:SpacePlanet) -> String {
+        switch planet { case .tatooine:return "Soaring canyon glider";case .endor:return "Forest glider";case .hoth:return "Ice glider";case .coruscant:return "Rooftop glider" }
+    }
+    private static let birdHomes:[SpacePlanet:[SIMD3<Float>]] = Dictionary(uniqueKeysWithValues:SpacePlanet.allCases.filter { $0 != .tatooine }.map { planet in
+        let surface=PlanetExploration(planet:planet)
+        let routeZ:[Float]=[7800,5600,3400,1200,-1000,-3200,-5400,-7600]
+        let homes=routeZ.enumerated().map { i,z -> SIMD3<Float> in
+            let side:Float=i.isMultiple(of:2) ? -1:1
+            let x:Float=planet == .hoth ? surface.glacierCenter(z:z)+side*240 : planet == .endor ? 1000*sin(z*0.00025)+side*260 : side*900
+            var ceiling:Float=0
+            for step in 0..<64 {
+                let a=Float(step)*2 * .pi/64
+                ceiling=max(ceiling,surface.groundHeight(x:x+cos(a)*160,z:z+sin(a)*240))
+            }
+            // Prepared canopy/roof clearance covers the entire orbit and wingspan.
+            for obstacle in surface.obstacles where abs(obstacle.center.x-x)<obstacle.size.x/2+230 && abs(obstacle.center.z-z)<obstacle.size.z/2+310 {
+                ceiling=max(ceiling,obstacle.center.y+obstacle.size.y/2)
+            }
+            return [x,ceiling+110,z]
+        }
+        return (planet,homes)
+    })
+    static func bird(_ index:Int,time:Float,planet:SpacePlanet) -> CanyonLife.BirdPose {
+        if planet == .tatooine {
+            let pose=CanyonLife.bird(index,time:time)
+            return .init(position:TatooineCanyon.origin+pose.position,heading:pose.heading,bank:pose.bank,wing:pose.wing)
+        }
+        let home=birdHomes[planet]![index%CanyonLife.flockCount]
+        let phase=Float(index)*1.31,a=time*0.1+phase
+        let beat=max(0,sin(time*0.38+phase))
+        return .init(position:home+[cos(a)*160,sin(time*0.21+phase)*14,sin(a)*240],heading:atan2(-sin(a)*160,cos(a)*240),bank:-0.14+sin(a)*0.05,wing:0.12+sin(time*5.5+phase)*0.52*beat*beat)
+    }
+    static func lookoutPosition(site:SIMD3<Float>,planet:SpacePlanet,standOff:Float,clearance:Float) -> SIMD3<Float> {
+        let surface=PlanetExploration(planet:planet),targetY=site.y+7
+        let z=site.z+standOff
+        var height=max(site.y,surface.groundHeight(x:site.x,z:z))+clearance
+        // Keep the inspection sightline above intervening hills, not just its endpoints.
+        for step in 1...32 {
+            let fraction=Float(step)/32
+            let ground=surface.groundHeight(x:site.x,z:site.z+standOff*fraction)
+            height=max(height,targetY+(ground+4-targetY)/fraction)
+        }
+        return [site.x,height,z]
+    }
     static func scale(index:Int) -> Float { index.isMultiple(of:2) ? 2.4:1.9 }
     private static let full:[SpacePlanet:[SIMD3<Float>]] = Dictionary(uniqueKeysWithValues:SpacePlanet.allCases.map { ($0,makeSites(on:$0,reduced:false)) })
     private static let reduced:[SpacePlanet:[SIMD3<Float>]] = Dictionary(uniqueKeysWithValues:SpacePlanet.allCases.map { ($0,makeSites(on:$0,reduced:true)) })

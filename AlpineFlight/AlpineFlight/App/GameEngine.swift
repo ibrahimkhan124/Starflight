@@ -822,18 +822,20 @@ final class GameEngine: ObservableObject {
         publishHUD()
     }
     func visitWildlifeLookout() {
-        let planet:SpacePlanet = currentSurfacePlanet == .endor ? .endor : currentSurfacePlanet == .hoth ? .hoth : .tatooine
-        guard level.isFreeRoam,hyperspace.relaxedSpace,universe.homePlanets,
-              let site=PlanetWildlife.sites(on:planet,reduced:false).first else { return }
+        let planet=currentSurfacePlanet ?? .tatooine
+        guard level.isFreeRoam,hyperspace.relaxedSpace,universe.homePlanets else { return }
+        let site:SIMD3<Float>
+        if planet == .coruscant { site=world?.wildlifeLookoutPoint(on:planet) ?? PlanetWildlife.bird(0,time:0,planet:planet).position }
+        else if let groundSite=PlanetWildlife.sites(on:planet,reduced:settings.terrainReducedDetail).first { site=groundSite }
+        else { return }
         enterPlanetSurface(planet)
         let standOff=max(65,aircraft.length*0.75)
-        let x=site.x,z=site.z+standOff
-        let ground=PlanetExploration(planet:planet).groundHeight(x:x,z:z)
-        state.position=[x,max(site.y,ground)+max(22,aircraft.bodyRadius+12),z];state.velocity = .zero;state.airspeed=0
+        state.position=PlanetWildlife.lookoutPosition(site:site,planet:planet,standOff:standOff,clearance:max(22,aircraft.bodyRadius+12))
+        state.velocity = .zero;state.airspeed=0
         state.heading=0;state.roll=0;throttle=0
         state.pitch=0
         cameraMode = .cockpit;world?.camera.mode = .cockpit
-        pilotTracker?.relocate();world?.camera.reset();world?.camera.inspectionTarget=site+[0,7,0];publishHUD()
+        pilotTracker?.relocate();world?.camera.reset();world?.camera.inspectionTarget=site+[0,planet == .coruscant ? 0:7,0];publishHUD()
     }
     func returnToPlanetOrbit() {
         clearCityJob()
