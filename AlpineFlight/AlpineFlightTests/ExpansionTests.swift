@@ -2470,3 +2470,41 @@ final class WildlifeInspectionCameraTests:XCTestCase {
         camera.inspectionTarget=target;camera.reset();XCTAssertNil(camera.inspectionTarget)
     }
 }
+
+
+final class EarthWildlifeTests:XCTestCase {
+    func testHerdsStayOnDryGroundAndAvoidTrees() {
+        let sites=EarthWildlife.sites(reduced:false),field=EarthWildlife.field
+        print("Earth deer population",sites.count)
+        XCTAssertGreaterThanOrEqual(sites.count,12);XCTAssertLessThanOrEqual(sites.count,18)
+        XCTAssertEqual(EarthWildlife.sites(reduced:true).count,sites.count/2)
+        XCTAssertGreaterThan(sites.map(\.z).max()!-sites.map(\.z).min()!,17000)
+        for (i,site) in sites.enumerated() { for step in 0..<64 {
+            let p=EarthWildlife.position(site:site,index:i,time:Float(step))
+            XCTAssertEqual(p.y,field.height(x:p.x,z:p.z),accuracy:0.001)
+            XCTAssertGreaterThan(p.y,max(4,field.riverLevel(z:p.z)+2))
+            XCTAssertFalse(field.scenerySolids.contains { $0.hits(from:p+[0,5,0],to:p+[0,5,0],radius:12) })
+        } }
+    }
+    func testFlocksClearTerrainAndTrees() {
+        let field=EarthWildlife.field
+        for i in 0..<EarthWildlife.birdCount(reduced:false) { for step in 0..<64 {
+            let p=EarthWildlife.bird(i,time:Float(step)).position
+            XCTAssertGreaterThan(p.y-max(0,field.height(x:p.x,z:p.z)),70)
+            XCTAssertFalse(field.scenerySolids.contains { $0.hits(from:p,to:p,radius:35) })
+        } }
+    }
+    @MainActor func testPreparedWildlifeAnimatesCullsAndReturns() {
+        for reduced in [false,true] {
+            let renderer=EarthWildlifeRenderer(reduced:reduced)
+            let deer=renderer.root.findEntity(named:"Earth deer 1")!,bird=renderer.root.findEntity(named:"Earth river gull 1")!
+            XCTAssertEqual(deer.scale.x,2.4,accuracy:0.001)
+            XCTAssertNotNil(renderer.root.findEntity(named:"Earth river gull \(EarthWildlife.birdCount(reduced:reduced))"))
+            let start=bird.position;renderer.update(time:2,viewer:start)
+            XCTAssertGreaterThan(simd_distance(start,bird.position),8)
+            renderer.update(time:3,viewer:start+[10000,0,10000]);XCTAssertFalse(bird.isEnabled)
+            renderer.update(time:4,viewer:start);XCTAssertTrue(bird.isEnabled)
+            renderer.update(time:5,viewer:deer.position);XCTAssertTrue(deer.isEnabled)
+        }
+    }
+}

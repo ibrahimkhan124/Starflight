@@ -97,3 +97,51 @@ enum PlanetWildlife {
         return t*t*(3-2*t)
     }
 }
+
+
+/// Earth uses the SolarLandscape triangle mesh rather than the home-sector terrain.
+enum EarthWildlife {
+    static let field=SolarLandscape(body:SolarBody.all.first { $0.name == "Earth" }!)
+    static let routeZ:[Float]=[10800,8200,5600,3000,400,-2200,-4800,-7400,-10000]
+    static let sites:[SIMD3<Float>]=routeZ.flatMap { z -> [SIMD3<Float>] in
+        for side:Float in [1,-1] { for offset:Float in [210,340,470,600] {
+            let x=field.riverCenter(z:z)+side*offset
+            let herd:[SIMD3<Float>]=[-24,24].map { dx in [x+dx,field.height(x:x+dx,z:z),z] }
+            if herd.allSatisfy({ site in
+                (0..<24).allSatisfy { step in
+                    let p=position(site:site,index:0,time:Float(step)*2.7)
+                    return abs(p.y-site.y)<2.5 && p.y>max(4,field.riverLevel(z:p.z)+2) &&
+                        !field.scenerySolids.contains { tree in
+                            simd_distance(SIMD2(p.x,p.z),SIMD2(tree.base.x,tree.base.z))<tree.height*0.4+18
+                        }
+                }
+            }) { return herd }
+        } }
+        return []
+    }
+    static func sites(reduced:Bool) -> [SIMD3<Float>] {
+        reduced ? sites.enumerated().filter { $0.offset.isMultiple(of:2) }.map(\.element):sites
+    }
+    static func position(site:SIMD3<Float>,index:Int,time:Float) -> SIMD3<Float> {
+        let a=time*0.1+Float(index)*1.7,x=site.x+cos(a)*3,z=site.z+sin(a)*3
+        return [x,field.height(x:x,z:z),z]
+    }
+    private static let birdHomes:[SIMD3<Float>]=routeZ.map { z in
+        let x=field.riverCenter(z:z)
+        var ceiling:Float=0
+        for step in 0..<64 {
+            let a=Float(step)*2 * .pi/64
+            ceiling=max(ceiling,field.height(x:x+cos(a)*180,z:z+sin(a)*280))
+        }
+        for tree in field.scenerySolids where abs(tree.base.x-x)<tree.height*0.4+210 && abs(tree.base.z-z)<tree.height*0.4+310 {
+            ceiling=max(ceiling,tree.base.y+tree.height*1.25)
+        }
+        return [x,ceiling+110,z]
+    }
+    static func birdCount(reduced:Bool) -> Int { routeZ.count*(reduced ? 1:3) }
+    static func bird(_ index:Int,time:Float) -> CanyonLife.BirdPose {
+        let home=birdHomes[index%birdHomes.count],phase=Float(index)*1.31,a=time*0.10+phase
+        let beat=max(0,sin(time*0.38+phase))
+        return .init(position:home+[cos(a)*180,sin(time*0.21+phase)*14,sin(a)*280],heading:atan2(-sin(a)*180,cos(a)*280),bank:-0.12+sin(a)*0.05,wing:0.12+sin(time*5.5+phase)*0.52*beat*beat)
+    }
+}

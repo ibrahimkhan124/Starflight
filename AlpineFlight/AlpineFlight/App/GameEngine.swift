@@ -822,6 +822,18 @@ final class GameEngine: ObservableObject {
         publishHUD()
     }
     func visitWildlifeLookout() {
+        if universe.surfaceBody?.name == "Earth",!universe.jumping,let site=EarthWildlife.sites(reduced:settings.terrainReducedDetail).first {
+            let standOff=max(65,aircraft.length*0.75),target=site+SIMD3<Float>(0,7,0)
+            var height=max(site.y,EarthWildlife.field.height(x:site.x,z:site.z+standOff))+max(22,aircraft.bodyRadius+12)
+            for step in 1...32 {
+                let t=Float(step)/32,ground=EarthWildlife.field.height(x:site.x,z:site.z+standOff*t)
+                height=max(height,target.y+(ground+4-target.y)/t)
+            }
+            state.position=[site.x,height,site.z+standOff];state.velocity = .zero;state.airspeed=0
+            state.pitch=0;state.heading=0;state.roll=0;throttle=0
+            cameraMode = .cockpit;world?.camera.mode = .cockpit;pilotTracker?.relocate()
+            world?.camera.reset();world?.camera.inspectionTarget=target;publishHUD();return
+        }
         let planet=currentSurfacePlanet ?? .tatooine
         guard level.isFreeRoam,hyperspace.relaxedSpace,universe.homePlanets else { return }
         let site:SIMD3<Float>

@@ -271,6 +271,23 @@ final class FlightUITests: XCTestCase {
     }
 
     @MainActor
+    func testEarthWildlifeLookout() {
+        let app=XCUIApplication();startUniverseFlight(app,extraArguments:["-reducedDetail","YES"])
+        app.buttons["Hyperspace"].tap();app.segmentedControls["Universe sections"].buttons["Solar System"].tap()
+        let jump=app.buttons["Engage Solar System jump"];revealStoryControl(jump,in:app);jump.tap();waitForUniverseArrival(app)
+        app.buttons["Enter selected solar planet"].tap();waitForUniverseArrival(app)
+        app.buttons["Flight tools"].tap()
+        let lookout=app.buttons["Visit Earth wildlife lookout"];XCTAssertTrue(lookout.isHittable);lookout.tap()
+        Thread.sleep(forTimeInterval:3)
+        XCTAssertTrue(app.buttons["Return solar orbit"].exists)
+        capture(app,name:"Earth deer valley wildlife lookout")
+        app.buttons["Return solar orbit"].tap();waitForUniverseArrival(app)
+        XCTAssertTrue(app.buttons["Enter selected solar planet"].exists)
+        capture(app,name:"Returned to Solar System orbit after Earth wildlife")
+        app.terminate()
+    }
+
+    @MainActor
     func testSolarSurfaceEntryAndOrbitReturn() {
         let app = XCUIApplication(); startUniverseFlight(app)
         app.buttons["Hyperspace"].tap(); app.segmentedControls["Universe sections"].buttons["Solar System"].tap()

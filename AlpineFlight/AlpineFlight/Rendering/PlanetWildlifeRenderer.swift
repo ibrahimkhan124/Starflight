@@ -13,11 +13,17 @@ final class PlanetWildlifeRenderer {
         let site:SIMD3<Float>
     }
     private var animals:[Animal]=[]
-    private let planet:SpacePlanet
+    private let planet:SpacePlanet?
     private var lastTime:Float = -1
-    init(planet:SpacePlanet,reduced:Bool) {
+    convenience init(planet:SpacePlanet,reduced:Bool) {
+        self.init(planet:planet,kind:PlanetWildlife.kind(on:planet),sites:PlanetWildlife.sites(on:planet,reduced:reduced),label:nil)
+    }
+    convenience init(earthReduced:Bool) {
+        self.init(planet:nil,kind:.forestDeer,sites:EarthWildlife.sites(reduced:earthReduced),label:"Earth deer")
+    }
+    private init(planet:SpacePlanet?,kind:PlanetWildlife.Kind?,sites:[SIMD3<Float>],label:String?) {
         self.planet=planet;root.name="Prepared ground wildlife"
-        guard let kind=PlanetWildlife.kind(on:planet) else { return }
+        guard let kind else { return }
         guard let sphere=try? Self.roundedMesh() else { return }
         let legMesh=sphere
         let box=MeshResource.generateBox(size:1)
@@ -30,9 +36,9 @@ final class PlanetWildlifeRenderer {
         func part(_ parent:Entity,_ mesh:MeshResource,_ position:SIMD3<Float>,_ scale:SIMD3<Float>,_ material:SimpleMaterial) -> ModelEntity {
             let entity=ModelEntity(mesh:mesh,materials:[material]);entity.position=position;entity.scale=scale;parent.addChild(entity);return entity
         }
-        for (index,site) in PlanetWildlife.sites(on:planet,reduced:reduced).enumerated() {
+        for (index,site) in sites.enumerated() {
             let animal=Entity(),head=Entity(),tail=Entity()
-            animal.name=(large ? "Bantha":kind == .forestDeer ? "Forest deer":"Tauntaun")+" \(index+1)"
+            animal.name=(label ?? (large ? "Bantha":kind == .forestDeer ? "Forest deer":"Tauntaun"))+" \(index+1)"
             animal.scale=SIMD3(repeating:PlanetWildlife.scale(index:index))
             let hip:Float = large ? 2.2:kind == .forestDeer ? 1.6:2.2
             part(animal,sphere,[0,hip+0.8,0],large ? [1.7,1.5,2.7]:kind == .forestDeer ? [0.7,0.8,1.7]:[1.0,1.4,1.4],fur)
@@ -105,7 +111,7 @@ final class PlanetWildlifeRenderer {
                 animal.root.components.set(OpacityComponent(opacity:max(0,min(1,(1500-distance)/500))))
             }
             let angle=time*0.1+Float(i)*1.7
-            animal.root.position=PlanetWildlife.position(site:animal.site,index:i,time:time,planet:planet)
+            animal.root.position=planet.map { PlanetWildlife.position(site:animal.site,index:i,time:time,planet:$0) } ?? EarthWildlife.position(site:animal.site,index:i,time:time)
             animal.root.orientation=simd_quatf(angle:atan2(-sin(angle),cos(angle)),axis:[0,1,0])
             let graze=max(0,sin(time*0.28+Float(i)))
             animal.head.orientation=simd_quatf(angle:graze*0.3,axis:[1,0,0])*simd_quatf(angle:sin(time*0.6+Float(i))*0.15,axis:[0,1,0])
@@ -114,6 +120,54 @@ final class PlanetWildlifeRenderer {
                 let sign:Float = legIndex == 0 || legIndex == 3 ? 1:-1
                 leg.orientation=simd_quatf(angle:PlanetWildlife.stride(index:i,time:time)*sign,axis:[1,0,0])
             }
+        }
+    }
+}
+
+
+@MainActor
+final class EarthWildlifeRenderer {
+    let root=Entity()
+    private let deer:PlanetWildlifeRenderer
+    private struct Bird { let root:Entity,left:Entity,right:Entity }
+    private var birds:[Bird]=[]
+    private var lastTime:Float = -1
+    init(reduced:Bool) {
+        root.name="Earth valley wildlife"
+        deer=PlanetWildlifeRenderer(earthReduced:reduced);root.addChild(deer.root)
+        var descriptor=MeshDescriptor(name:"Shared Earth gull wing")
+        descriptor.positions = .init([[0,0,0],[3,0,-2],[7,0,2],[3.5,0,1]])
+        descriptor.normals = .init(Array(repeating:[0,1,0],count:4))
+        descriptor.primitives = .triangles([0,1,3,1,2,3])
+        guard let wing=try? MeshResource.generate(from:[descriptor]) else { return }
+        let round=MeshResource.generateSphere(radius:1)
+        var white=UnlitMaterial(color:UIColor(white:0.88,alpha:1));white.faceCulling = .none
+        let amber=UnlitMaterial(color:.init(red:0.88,green:0.57,blue:0.12,alpha:1))
+        for i in 0..<EarthWildlife.birdCount(reduced:reduced) {
+            let bird=Entity();bird.name="Earth river gull \(i+1)";bird.scale=SIMD3(repeating:3.5)
+            let body=ModelEntity(mesh:round,materials:[white]);body.scale=[1.0,0.7,2.4];bird.addChild(body)
+            let head=ModelEntity(mesh:round,materials:[white]);head.position=[0,0.4,2];head.scale=[0.65,0.65,0.8];bird.addChild(head)
+            let beak=ModelEntity(mesh:round,materials:[amber]);beak.position=[0,0.2,2.9];beak.scale=[0.27,0.20,0.65];bird.addChild(beak)
+            let left=ModelEntity(mesh:wing,materials:[white]),right=ModelEntity(mesh:wing,materials:[white]);right.scale.x = -1
+            bird.addChild(left);bird.addChild(right);root.addChild(bird)
+            birds.append(.init(root:bird,left:left,right:right))
+        }
+        update(time:0,viewer:nil)
+    }
+    func update(time:Float,viewer:SIMD3<Float>?) {
+        guard lastTime<0 || abs(time-lastTime)>=1/30 else { return };lastTime=time
+        deer.update(time:time,viewer:viewer)
+        for (i,bird) in birds.enumerated() {
+            let pose=EarthWildlife.bird(i,time:time)
+            if let viewer {
+                let distance=simd_distance(viewer,pose.position)
+                bird.root.isEnabled=distance<3000
+                guard bird.root.isEnabled else { continue }
+                bird.root.components.set(OpacityComponent(opacity:max(0,min(1,(3000-distance)/800))))
+            }
+            bird.root.position=pose.position
+            bird.root.orientation=simd_quatf(angle:pose.heading,axis:[0,1,0])*simd_quatf(angle:pose.bank,axis:[0,0,1])
+            bird.left.orientation=simd_quatf(angle:pose.wing,axis:[0,0,1]);bird.right.orientation=simd_quatf(angle:-pose.wing,axis:[0,0,1])
         }
     }
 }

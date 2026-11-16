@@ -201,7 +201,7 @@ final class WorldRenderer {
     func prepareAetherPlanet() { universeScenery.prepareAetherPlanet() }
 
     func updateUniverse(_ flight:UniverseFlight,active:Bool,state:FlightState,dt:Float,target:SIMD3<Float>?) {
-        universeScenery.update(flight:flight,active:active,camera:camera.entity,state:state,dt:dt,reduced:performanceMode,target:target)
+        universeScenery.update(flight:flight,active:active,camera:camera.entity,state:state,dt:dt,reduced:performanceMode || surfaceReducedDetail,target:target)
         for group in spaceBackdrop.children { for child in group.children where child.name.hasPrefix("Batched stars") { child.isEnabled = !active } }
         guard active else { return }
         if flight.surfaceBody != nil {

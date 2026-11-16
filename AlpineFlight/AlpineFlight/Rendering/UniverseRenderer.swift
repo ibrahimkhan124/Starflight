@@ -102,6 +102,8 @@ final class UniverseRenderer {
     private let solar = Entity()
     private let landscape = Entity()
     private var landscapeName: String?
+    private var earthWildlife:EarthWildlifeRenderer?
+    private var wildlifeReduced:Bool?
     private var aetherWorld: Entity?
     private var aetherPreparation: Task<Void,Never>?
     private var cloudCyclone: Entity?
@@ -203,6 +205,7 @@ final class UniverseRenderer {
             skyClock = 0
         }
         if landscapeName != flight.surfaceBody?.name {
+            earthWildlife=nil;wildlifeReduced=nil
             landscape.children.removeAll()
             if let body = flight.surfaceBody {
                 if body.name == AetherPlanet.name {
@@ -211,6 +214,14 @@ final class UniverseRenderer {
             }
             cloudCyclone = landscape.findEntity(named: "Jupiter rotating cyclone")
             landscapeName = flight.surfaceBody?.name
+        }
+        if flight.surfaceBody?.name == "Earth" {
+            if earthWildlife == nil || wildlifeReduced != reduced {
+                earthWildlife?.root.removeFromParent()
+                let wildlife=EarthWildlifeRenderer(reduced:reduced)
+                landscape.addChild(wildlife.root);earthWildlife=wildlife;wildlifeReduced=reduced
+            }
+            earthWildlife?.update(time:clock,viewer:state.position)
         }
         cloudCyclone?.orientation = simd_quatf(angle: clock * 0.018, axis: [0,1,0])
         landscape.isEnabled = flight.surfaceBody != nil && !flight.jumping

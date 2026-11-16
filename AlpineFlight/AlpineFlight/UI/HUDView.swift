@@ -352,6 +352,7 @@ private struct MobileFlightHUD: View {
     var body: some View {
         GeometryReader { geometry in
             let compact = geometry.size.height < 500
+            let primaryUniverse=engine.galaxyJumpActive || engine.solarSystemActive || engine.currentSolarSurface != nil
             VStack(spacing: 6) {
                     HStack(spacing: 8) {
                         FlightInstruments(engine: engine).frame(maxWidth: .infinity)
@@ -364,7 +365,10 @@ private struct MobileFlightHUD: View {
                         .flightSurfaceBackground(FlightStyle.ink.opacity(0.55), in: RoundedRectangle(cornerRadius: 12))
                         .flightGlass(in: RoundedRectangle(cornerRadius: 12))
                     HStack(spacing: 8) {
-                        if engine.cityJobs.active == nil && engine.bounty.contract == nil && engine.nearbyResidence == nil {
+                        if primaryUniverse {
+                            UniverseFlightStrip(engine:engine).font(.caption).fixedSize(horizontal:false,vertical:true).layoutPriority(1)
+                            Spacer(minLength:0)
+                        } else if engine.cityJobs.active == nil && engine.bounty.contract == nil && engine.nearbyResidence == nil {
                             objective.frame(maxWidth: .infinity)
                         } else { Spacer(minLength: 0) }
                         if engine.isRelaxedSpace && engine.hud.inSpace {
@@ -373,7 +377,7 @@ private struct MobileFlightHUD: View {
                     }
                     ScrollView(.vertical) {
                         VStack(spacing: 6) {
-                            UniverseFlightStrip(engine:engine)
+                            if !primaryUniverse { UniverseFlightStrip(engine:engine) }
                             EmergencyFlightHUD(engine:engine).allowsHitTesting(engine.activeEmergency != nil)
                             StoryFlightBadge(engine:engine)
                             if let warning = engine.hud.warning {
@@ -600,6 +604,11 @@ struct FlightToolsView: View {
                     if engine.universeAvailable {
                         NavigationLink("Galaxy map & hyperspace") { UniverseNavigationView(engine:engine) }
                             .buttonStyle(MenuActionButtonStyle(accent:FlightPalette.gold)).accessibilityIdentifier("Universe navigation")
+                    }
+                    if engine.currentSolarSurface?.name == "Earth" {
+                        Button { engine.visitWildlifeLookout();dismiss() } label: {
+                            Label("Earth wildlife lookout",systemImage:"pawprint.fill").frame(maxWidth:.infinity).padding(10)
+                        }.flightButtonGlass().accessibilityIdentifier("Visit Earth wildlife lookout")
                     }
                     if engine.level.isFreeRoam && engine.isRelaxedSpace && engine.homePlanetsAvailable {
                         HStack(spacing:12) {
