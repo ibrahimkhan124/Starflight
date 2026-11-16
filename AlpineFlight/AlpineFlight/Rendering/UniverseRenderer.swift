@@ -106,6 +106,7 @@ final class UniverseRenderer {
     private var wildlifeReduced:Bool?
     private var aetherWorld: Entity?
     private var aetherPreparation: Task<Void,Never>?
+    private var earthMist:Entity?
     private var cloudCyclone: Entity?
     private var planetDetails: [PlanetOrbitDetail] = []
     private let courseMarker:ModelEntity
@@ -212,6 +213,7 @@ final class UniverseRenderer {
                     if let aetherWorld { landscape.addChild(aetherWorld) }
                 } else { SolarArtwork.populate(landscape,body:body) }
             }
+            earthMist=landscape.findEntity(named:"Waterfall plume mist")
             cloudCyclone = landscape.findEntity(named: "Jupiter rotating cyclone")
             landscapeName = flight.surfaceBody?.name
         }
@@ -222,6 +224,11 @@ final class UniverseRenderer {
                 landscape.addChild(wildlife.root);earthWildlife=wildlife;wildlifeReduced=reduced
             }
             earthWildlife?.update(time:clock,viewer:state.position)
+        }
+        if let earthMist {
+            earthMist.position.y=sin(clock*0.45)*2
+            earthMist.position.x=sin(clock*0.28)*1.5
+            earthMist.components.set(OpacityComponent(opacity:0.9+sin(clock*0.3)*0.1))
         }
         cloudCyclone?.orientation = simd_quatf(angle: clock * 0.018, axis: [0,1,0])
         landscape.isEnabled = flight.surfaceBody != nil && !flight.jumping
@@ -526,6 +533,16 @@ private enum SolarArtwork {
                 }
             }
         }
+        var meadow=ExpeditionBatch(),flowers=ExpeditionBatch()
+        for site in EarthWildlife.sites(reduced:true) { for i in 0..<16 {
+            let a=Float(i)*2.39996,r=Float(8+i%5*4),x=site.x+cos(a)*r,z=site.z+sin(a)*r
+            let y=field.height(x:x,z:z)
+            guard y>field.riverLevel(z:z)+2 else { continue }
+            meadow.quad([x-0.4,y,z],[x+0.4,y,z],[x+0.2,y+1.5,z],[x-0.2,y+1.5,z])
+            flowers.frustum([x,y+1.6,z],radius:0.65,height:0.22,top:0.2,sides:5)
+        } }
+        meadow.append(to:root,name:"Earth riverside meadow stems",color:color(0.29,0.40,0.15),kind:"moss")
+        flowers.append(to:root,name:"Earth riverside wildflowers",color:color(0.88,0.65,0.22),unlit:true)
         var sea = ExpeditionBatch()
         sea.quad([-14000,0,-14000],[-14000,0,14000],[14000,0,14000],[14000,0,-14000])
         sea.append(to:root,name:"Earth coastal sea",color:color(0.025,0.14,0.23),kind:"water")

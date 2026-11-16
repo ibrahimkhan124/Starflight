@@ -109,7 +109,8 @@ enum EarthWildlife {
             let herd:[SIMD3<Float>]=[-24,24].map { dx in [x+dx,field.height(x:x+dx,z:z),z] }
             if herd.allSatisfy({ site in
                 (0..<24).allSatisfy { step in
-                    let p=position(site:site,index:0,time:Float(step)*2.7)
+                    let a=Float(step)*2 * .pi/24,x=site.x+cos(a)*3,z=site.z+sin(a)*3
+                    let p=SIMD3<Float>(x,field.height(x:x,z:z),z)
                     return abs(p.y-site.y)<2.5 && p.y>max(4,field.riverLevel(z:p.z)+2) &&
                         !field.scenerySolids.contains { tree in
                             simd_distance(SIMD2(p.x,p.z),SIMD2(tree.base.x,tree.base.z))<tree.height*0.4+18
@@ -123,8 +124,23 @@ enum EarthWildlife {
         reduced ? sites.enumerated().filter { $0.offset.isMultiple(of:2) }.map(\.element):sites
     }
     static func position(site:SIMD3<Float>,index:Int,time:Float) -> SIMD3<Float> {
-        let a=time*0.1+Float(index)*1.7,x=site.x+cos(a)*3,z=site.z+sin(a)*3
+        let a=walkingAngle(index:index,time:time),x=site.x+cos(a)*3,z=site.z+sin(a)*3
         return [x,field.height(x:x,z:z),z]
+    }
+    static func walkingAngle(index:Int,time:Float) -> Float {
+        time*0.07+sin(time*0.3)*(0.07/0.3)+Float(index)*1.7
+    }
+    static func walkingEnergy(time:Float) -> Float { (1+cos(time*0.3))*0.5 }
+    enum ScenicStop:String,CaseIterable { case waterfalls,coast
+        var title:String { self == .waterfalls ? "Waterfall approach":"Coastal overlook" }
+        var target:SIMD3<Float> {
+            self == .waterfalls ? [field.riverCenter(z:0),field.riverLevel(z:-160)+60,0]:[10500,0,1800]
+        }
+        func arrival(clearance:Float) -> SIMD3<Float> {
+            let x:Float=self == .waterfalls ? field.riverCenter(z:650):6500
+            let z:Float=self == .waterfalls ? 650:1800
+            return [x,max(0,field.height(x:x,z:z))+max(220,clearance),z]
+        }
     }
     private static let birdHomes:[SIMD3<Float>]=routeZ.map { z in
         let x=field.riverCenter(z:z)

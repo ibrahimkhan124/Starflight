@@ -281,6 +281,13 @@ final class FlightUITests: XCTestCase {
         Thread.sleep(forTimeInterval:3)
         XCTAssertTrue(app.buttons["Return solar orbit"].exists)
         capture(app,name:"Earth deer valley wildlife lookout")
+        for stop in ["waterfalls","coast"] {
+            app.buttons["Flight tools"].tap()
+            let visit=app.buttons["Visit Earth "+stop];XCTAssertTrue(visit.isHittable);visit.tap()
+            Thread.sleep(forTimeInterval:4)
+            XCTAssertTrue(app.buttons["Return solar orbit"].exists)
+            capture(app,name:"Earth scenic "+stop)
+        }
         app.buttons["Return solar orbit"].tap();waitForUniverseArrival(app)
         XCTAssertTrue(app.buttons["Enter selected solar planet"].exists)
         capture(app,name:"Returned to Solar System orbit after Earth wildlife")

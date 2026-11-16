@@ -609,6 +609,14 @@ struct FlightToolsView: View {
                         Button { engine.visitWildlifeLookout();dismiss() } label: {
                             Label("Earth wildlife lookout",systemImage:"pawprint.fill").frame(maxWidth:.infinity).padding(10)
                         }.flightButtonGlass().accessibilityIdentifier("Visit Earth wildlife lookout")
+                        HStack(spacing:12) {
+                            ForEach(EarthWildlife.ScenicStop.allCases,id:\.self) { stop in
+                                Button { engine.visitEarthScenicStop(stop);dismiss() } label: {
+                                    Label(stop.title,systemImage:stop == .waterfalls ? "water.waves":"sun.horizon")
+                                        .frame(maxWidth:.infinity).padding(10)
+                                }.flightButtonGlass().accessibilityIdentifier("Visit Earth "+stop.rawValue)
+                            }
+                        }
                     }
                     if engine.level.isFreeRoam && engine.isRelaxedSpace && engine.homePlanetsAvailable {
                         HStack(spacing:12) {

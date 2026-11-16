@@ -10,7 +10,10 @@ enum FlightCamera: String { case chase, cockpit }
 final class CameraController {
     let entity = PerspectiveCamera()
     var mode: FlightCamera = .chase
-    var inspectionTarget:SIMD3<Float>?
+    private var inspectionHeading:Float?
+    var inspectionTarget:SIMD3<Float>? {
+        didSet { if oldValue == nil || inspectionTarget == nil { inspectionHeading=nil } }
+    }
     var aircraft: AircraftType = .kestrel
     private var initialized = false
     private var crashVantage: SIMD3<Float>?
@@ -25,7 +28,11 @@ final class CameraController {
 
     func update(state: FlightState, terrain: TerrainGenerator, dt: Float, inSpace: Bool = false) {
         entity.camera.far = inSpace ? 100000:12000
-        if state.airspeed>3 || abs(state.pitch)>0.05 || abs(state.roll)>0.05 || abs(state.heading)>0.05 { inspectionTarget=nil }
+        if inspectionTarget != nil {
+            let reference=inspectionHeading ?? state.heading;inspectionHeading=reference
+            let turn=atan2(sin(state.heading-reference),cos(state.heading-reference))
+            if state.airspeed>3 || abs(state.pitch)>0.05 || abs(state.roll)>0.05 || abs(turn)>0.05 { inspectionTarget=nil }
+        }
         #if canImport(UIKit)
         let speedLens = !UIAccessibility.isReduceMotionEnabled
         #else

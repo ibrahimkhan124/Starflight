@@ -821,6 +821,16 @@ final class GameEngine: ObservableObject {
         pilotTracker?.relocate();world?.camera.reset()
         publishHUD()
     }
+    func visitEarthScenicStop(_ stop:EarthWildlife.ScenicStop) {
+        guard universe.surfaceBody?.name == "Earth",!universe.jumping else { return }
+        state.position=stop.arrival(clearance:aircraft.bodyRadius+80)
+        let direction=stop.target-state.position
+        state.heading=atan2(direction.x,-direction.z);state.pitch=0;state.roll=0
+        state.velocity = .zero;state.airspeed=0;throttle=0
+        cameraMode = .cockpit;world?.camera.mode = .cockpit;pilotTracker?.relocate()
+        world?.camera.reset();world?.camera.inspectionTarget=stop.target
+        acknowledge("EARTH · "+stop.title.uppercased());publishHUD()
+    }
     func visitWildlifeLookout() {
         if universe.surfaceBody?.name == "Earth",!universe.jumping,let site=EarthWildlife.sites(reduced:settings.terrainReducedDetail).first {
             let standOff=max(65,aircraft.length*0.75),target=site+SIMD3<Float>(0,7,0)

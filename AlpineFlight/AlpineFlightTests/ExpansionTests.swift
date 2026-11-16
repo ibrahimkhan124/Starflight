@@ -2457,6 +2457,23 @@ final class WildlifeAndCanyonRoutesTests:XCTestCase {
 
 
 final class WildlifeInspectionCameraTests:XCTestCase {
+    @MainActor func testInspectionKeepsNonNorthHeadingAndReleasesOnTurning() {
+        let camera=CameraController();camera.mode = .cockpit
+        var state=FlightState();state.position=[6500,800,1800];state.heading=Float.pi/2;state.airspeed=0;state.velocity = .zero
+        let target=SIMD3<Float>(10500,0,1800);camera.inspectionTarget=target
+        camera.update(state:state,terrain:TerrainGenerator(level:.freeRoam),dt:1/60,inSpace:true)
+        XCTAssertEqual(camera.inspectionTarget,target)
+        XCTAssertGreaterThan(simd_dot(camera.entity.orientation.act([0,0,-1]),simd_normalize(target-camera.entity.position)),0.999)
+        state.heading += 0.1
+        camera.update(state:state,terrain:TerrainGenerator(level:.freeRoam),dt:1/60,inSpace:true)
+        XCTAssertNil(camera.inspectionTarget)
+        camera.reset();state.heading=3.13;camera.inspectionTarget=target
+        camera.update(state:state,terrain:TerrainGenerator(level:.freeRoam),dt:1/60,inSpace:true)
+        state.heading = -3.13
+        camera.update(state:state,terrain:TerrainGenerator(level:.freeRoam),dt:1/60,inSpace:true)
+        XCTAssertEqual(camera.inspectionTarget,target,"Crossing north/south wrap must not count as a large turn")
+    }
+
     @MainActor func testInspectionAimsWithoutPitchingAircraftAndReleasesOnFlight() {
         let camera=CameraController();camera.mode = .cockpit
         var state=FlightState();state.position=[0,130,100];state.airspeed=0;state.velocity = .zero
@@ -2473,6 +2490,26 @@ final class WildlifeInspectionCameraTests:XCTestCase {
 
 
 final class EarthWildlifeTests:XCTestCase {
+    func testScenicArrivalsClearTerrainAndTreeContacts() {
+        for stop in EarthWildlife.ScenicStop.allCases { for radius:Float in [12,80,180] {
+            let p=stop.arrival(clearance:radius+80)
+            XCTAssertFalse(EarthWildlife.field.impact(from:p,to:p,radius:radius),stop.title)
+            XCTAssertTrue(simd_length(stop.target-p)>100)
+            XCTAssertTrue(stop.target.y.isFinite)
+        } }
+        XCTAssertGreaterThan(EarthWildlife.ScenicStop.coast.target.x,EarthWildlife.ScenicStop.coast.arrival(clearance:80).x)
+    }
+    func testWalkingPausesWithoutReversingOrLeavingSafeLoop() {
+        var last=EarthWildlife.walkingAngle(index:0,time:0)
+        var minimum:Float=1,maximum:Float=0
+        for step in 1...640 {
+            let t=Float(step)*0.1,a=EarthWildlife.walkingAngle(index:0,time:t)
+            XCTAssertGreaterThanOrEqual(a,last-0.00001)
+            minimum=min(minimum,EarthWildlife.walkingEnergy(time:t));maximum=max(maximum,EarthWildlife.walkingEnergy(time:t));last=a
+        }
+        XCTAssertLessThan(minimum,0.01);XCTAssertGreaterThan(maximum,0.99)
+    }
+
     func testHerdsStayOnDryGroundAndAvoidTrees() {
         let sites=EarthWildlife.sites(reduced:false),field=EarthWildlife.field
         print("Earth deer population",sites.count)
@@ -2480,7 +2517,7 @@ final class EarthWildlifeTests:XCTestCase {
         XCTAssertEqual(EarthWildlife.sites(reduced:true).count,sites.count/2)
         XCTAssertGreaterThan(sites.map(\.z).max()!-sites.map(\.z).min()!,17000)
         for (i,site) in sites.enumerated() { for step in 0..<64 {
-            let p=EarthWildlife.position(site:site,index:i,time:Float(step))
+            let p=EarthWildlife.position(site:site,index:i,time:Float(step)*3)
             XCTAssertEqual(p.y,field.height(x:p.x,z:p.z),accuracy:0.001)
             XCTAssertGreaterThan(p.y,max(4,field.riverLevel(z:p.z)+2))
             XCTAssertFalse(field.scenerySolids.contains { $0.hits(from:p+[0,5,0],to:p+[0,5,0],radius:12) })

@@ -110,15 +110,24 @@ final class PlanetWildlifeRenderer {
                 guard visible else { continue }
                 animal.root.components.set(OpacityComponent(opacity:max(0,min(1,(1500-distance)/500))))
             }
-            let angle=time*0.1+Float(i)*1.7
+            let angle=planet == nil ? EarthWildlife.walkingAngle(index:i,time:time):time*0.1+Float(i)*1.7
             animal.root.position=planet.map { PlanetWildlife.position(site:animal.site,index:i,time:time,planet:$0) } ?? EarthWildlife.position(site:animal.site,index:i,time:time)
-            animal.root.orientation=simd_quatf(angle:atan2(-sin(angle),cos(angle)),axis:[0,1,0])
+            let yaw=atan2(-sin(angle),cos(angle))
+            var orientation=simd_quatf(angle:yaw,axis:[0,1,0])
+            if planet == nil {
+                let p=animal.root.position,forward=SIMD3<Float>(sin(yaw),0,cos(yaw)),right=SIMD3<Float>(cos(yaw),0,-sin(yaw))
+                func height(_ offset:SIMD3<Float>) -> Float { EarthWildlife.field.height(x:p.x+offset.x,z:p.z+offset.z) }
+                let pitch=clamp(atan2(height(-forward*5)-height(forward*5),10),-0.3,0.3)
+                let bank=clamp(atan2(height(right*3)-height(-right*3),6),-0.3,0.3)
+                orientation *= simd_quatf(angle:pitch,axis:[1,0,0])*simd_quatf(angle:bank,axis:[0,0,1])
+            }
+            animal.root.orientation=orientation
             let graze=max(0,sin(time*0.28+Float(i)))
             animal.head.orientation=simd_quatf(angle:graze*0.3,axis:[1,0,0])*simd_quatf(angle:sin(time*0.6+Float(i))*0.15,axis:[0,1,0])
             animal.tail.orientation=simd_quatf(angle:sin(time*1.2+Float(i))*0.35,axis:[0,0,1])
             for (legIndex,leg) in animal.legs.enumerated() {
                 let sign:Float = legIndex == 0 || legIndex == 3 ? 1:-1
-                leg.orientation=simd_quatf(angle:PlanetWildlife.stride(index:i,time:time)*sign,axis:[1,0,0])
+                leg.orientation=simd_quatf(angle:PlanetWildlife.stride(index:i,time:time)*sign*(planet == nil ? EarthWildlife.walkingEnergy(time:time):1),axis:[1,0,0])
             }
         }
     }
@@ -136,17 +145,19 @@ final class EarthWildlifeRenderer {
         root.name="Earth valley wildlife"
         deer=PlanetWildlifeRenderer(earthReduced:reduced);root.addChild(deer.root)
         var descriptor=MeshDescriptor(name:"Shared Earth gull wing")
-        descriptor.positions = .init([[0,0,0],[3,0,-2],[7,0,2],[3.5,0,1]])
-        descriptor.normals = .init(Array(repeating:[0,1,0],count:4))
-        descriptor.primitives = .triangles([0,1,3,1,2,3])
+        descriptor.positions = .init([[0,0,0.6],[2.5,0.2,-0.8],[5.5,0.1,-0.2],[7.5,0,1.6],[4.5,0,1.8],[2,0,1.4]])
+        descriptor.normals = .init(Array(repeating:[0,1,0],count:6))
+        descriptor.primitives = .triangles([0,1,5,1,2,4,1,4,5,2,3,4])
         guard let wing=try? MeshResource.generate(from:[descriptor]) else { return }
         let round=MeshResource.generateSphere(radius:1)
         var white=UnlitMaterial(color:UIColor(white:0.88,alpha:1));white.faceCulling = .none
+        let tailMesh=MeshResource.generateBox(size:[2.0,0.15,1.6])
         let amber=UnlitMaterial(color:.init(red:0.88,green:0.57,blue:0.12,alpha:1))
         for i in 0..<EarthWildlife.birdCount(reduced:reduced) {
             let bird=Entity();bird.name="Earth river gull \(i+1)";bird.scale=SIMD3(repeating:3.5)
             let body=ModelEntity(mesh:round,materials:[white]);body.scale=[1.0,0.7,2.4];bird.addChild(body)
             let head=ModelEntity(mesh:round,materials:[white]);head.position=[0,0.4,2];head.scale=[0.65,0.65,0.8];bird.addChild(head)
+            let tail=ModelEntity(mesh:tailMesh,materials:[white]);tail.position=[0,0,-2.4];tail.orientation=simd_quatf(angle:-0.12,axis:[1,0,0]);bird.addChild(tail)
             let beak=ModelEntity(mesh:round,materials:[amber]);beak.position=[0,0.2,2.9];beak.scale=[0.27,0.20,0.65];bird.addChild(beak)
             let left=ModelEntity(mesh:wing,materials:[white]),right=ModelEntity(mesh:wing,materials:[white]);right.scale.x = -1
             bird.addChild(left);bird.addChild(right);root.addChild(bird)

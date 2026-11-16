@@ -53,3 +53,45 @@ installed; physical-device performance/appearance and installation remain untest
 
 Pictures: [Earth deer](../../Screenshots/EarthWildlife-20261116/earth-deer-lookout.png),
 [orbit entry controls](../../Screenshots/EarthWildlife-20261116/solar-orbit-controls.png).
+
+## Earth scenic polish
+
+Flight Tools on Earth now offers Waterfall approach and Coastal overlook. The
+first places a hovering ship upstream of the existing falls; the second frames
+the ocean from the landward coast. Both use terrain-relative clearances with
+extra room for large aircraft. The inspection gaze is independent of flight
+pitch. No new economy rewards, physics forces or collision rules were added.
+
+Earth deer now vary their walking pace through a smooth monotonic path phase,
+slowing to near-rest periodically. Leg motion eases with that walking energy.
+Four local terrain samples add bounded body pitch/bank on slopes. All accepted
+placement loops are checked around a full circle, independent of walking speed.
+Gulls have tapered segmented wings and tail feathers. Two prepared meadow batches
+add stems and low-poly golden flowers near the herd areas; these small decorative
+plants have no collision behaviour. The existing waterfall mist gently drifts
+and changes native opacity without scaling world-space batch coordinates.
+
+The visual pass found that inspection was being cancelled for any nonzero ship
+heading. CameraController now remembers the initial inspection heading and only
+releases on an actual turn (with angle-wrap handling), pitch/bank input or forward
+movement. This keeps non-north-facing sightseeing views framed while preserving
+the existing resume-flight behaviour.
+
+
+Validation for this polish pass: thirteen distinct focused checks passed across
+the wildlife, routes and inspection-camera sets. The final seven-check rerun
+covers full deer loops, dry ground and tree avoidance, birds, scene animation,
+culling, safe scenic arrivals for three hull radii, monotonic walking/near-rest,
+and non-north inspection plus angle-wrap/release behaviour. The complete phone
+UI flow passed after the camera correction: Earth entry, wildlife lookout, both
+immediately accessible scenic shortcuts, and return to orbit. Final screenshots
+show the waterfall framed and the coast looking out over the ocean.
+
+Mac Catalyst and signed generic iOS Debug builds passed. The updated Mac app is
+installed. Physical-device frame time, memory and appearance remain unmeasured.
+The meadow geometry is batched and decorative; the terrain remains the existing
+stylised procedural expedition, not a geographic reconstruction.
+
+Pictures: [coastal overlook](../../Screenshots/EarthScenicPolish-20261116/coastal-overlook.png),
+[waterfall approach](../../Screenshots/EarthScenicPolish-20261116/waterfall-approach.png),
+[meadow wildlife](../../Screenshots/EarthScenicPolish-20261116/meadow-wildlife.png).
