@@ -33,7 +33,7 @@ final class PlanetWildlifeRenderer {
         for (index,site) in PlanetWildlife.sites(on:planet,reduced:reduced).enumerated() {
             let animal=Entity(),head=Entity(),tail=Entity()
             animal.name=(large ? "Bantha":kind == .forestDeer ? "Forest deer":"Tauntaun")+" \(index+1)"
-            animal.scale=SIMD3(repeating:index.isMultiple(of:2) ? 1:0.78)
+            animal.scale=SIMD3(repeating:PlanetWildlife.scale(index:index))
             let hip:Float = large ? 2.2:kind == .forestDeer ? 1.6:2.2
             part(animal,sphere,[0,hip+0.8,0],large ? [1.7,1.5,2.7]:kind == .forestDeer ? [0.7,0.8,1.7]:[1.0,1.4,1.4],fur)
             if large {
@@ -93,10 +93,17 @@ final class PlanetWildlifeRenderer {
         descriptor.positions = .init(positions);descriptor.normals = .init(positions);descriptor.primitives = .triangles(indices)
         return try MeshResource.generate(from:[descriptor])
     }
-    func update(time:Float) {
+    func update(time:Float,viewer:SIMD3<Float>?=nil) {
         guard lastTime<0 || abs(time-lastTime)>=1/30 else { return }
         lastTime=time
         for (i,animal) in animals.enumerated() {
+            if let viewer {
+                let distance=simd_distance(SIMD2(viewer.x,viewer.z),SIMD2(animal.site.x,animal.site.z))
+                let visible=distance<1500
+                if animal.root.isEnabled != visible { animal.root.isEnabled=visible }
+                guard visible else { continue }
+                animal.root.components.set(OpacityComponent(opacity:max(0,min(1,(1500-distance)/500))))
+            }
             let angle=time*0.1+Float(i)*1.7
             animal.root.position=PlanetWildlife.position(site:animal.site,index:i,time:time,planet:planet)
             animal.root.orientation=simd_quatf(angle:atan2(-sin(angle),cos(angle)),axis:[0,1,0])

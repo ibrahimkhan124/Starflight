@@ -267,8 +267,8 @@ final class PlanetSurfaceRenderer {
         guard let wingMesh=try? MeshResource.generate(from:[descriptor]) else { return }
         var paint=UnlitMaterial(color:UIColor(red:0.14,green:0.10,blue:0.07,alpha:1));paint.faceCulling = .none
         let bodyMesh=MeshResource.generateBox(size:[1.3,0.8,3.4])
-        for i in 0..<(reducedDetail ? 4:10) {
-            let bird=Entity();bird.name="Soaring canyon glider \(i+1)";bird.scale=SIMD3(repeating:2+Float(i%3)*0.12)
+        for i in 0..<CanyonLife.birdCount(reduced:reducedDetail) {
+            let bird=Entity();bird.name="Soaring canyon glider \(i+1)";bird.scale=SIMD3(repeating:CanyonLife.birdScale(i))
             let body=ModelEntity(mesh:bodyMesh,materials:[paint])
             let left=ModelEntity(mesh:wingMesh,materials:[paint]),right=ModelEntity(mesh:wingMesh,materials:[paint])
             right.scale.x = -1
@@ -277,13 +277,20 @@ final class PlanetSurfaceRenderer {
         }
         updateCanyonLife()
     }
-    private func updateCanyonLife() {
+    private func updateCanyonLife(viewer:SIMD3<Float>?=nil) {
         for (i,funnel) in canyonFunnels.enumerated() {
             funnel.orientation=simd_quatf(angle:time*0.32+Float(i)*2,axis:[0,1,0])
         }
         for (i,bird) in canyonBirds.enumerated() {
             let pose=CanyonLife.bird(i,time:time)
-            bird.root.position=TatooineCanyon.origin+pose.position
+            let world=TatooineCanyon.origin+pose.position
+            if let viewer {
+                let distance=simd_distance(world,viewer),visible=distance<3000
+                if bird.root.isEnabled != visible { bird.root.isEnabled=visible }
+                guard visible else { continue }
+                bird.root.components.set(OpacityComponent(opacity:max(0,min(1,(3000-distance)/800))))
+            }
+            bird.root.position=world
             bird.root.orientation=simd_quatf(angle:pose.heading,axis:[0,1,0])*simd_quatf(angle:pose.bank,axis:[0,0,1])
             bird.left.orientation=simd_quatf(angle:pose.wing,axis:[0,0,1])
             bird.right.orientation=simd_quatf(angle:-pose.wing,axis:[0,0,1])
@@ -882,8 +889,8 @@ final class PlanetSurfaceRenderer {
     func update(camera:SIMD3<Float>,dt:Float,passed:Int,surfaceTime:Float?=nil,aircraftPosition:SIMD3<Float>?=nil) {
         sky.position = camera
         time += min(dt,0.1)
-        updateCanyonLife()
-        wildlife?.update(time:surfaceTime ?? time)
+        updateCanyonLife(viewer:aircraftPosition ?? camera)
+        wildlife?.update(time:surfaceTime ?? time,viewer:aircraftPosition ?? camera)
         updateSandWash(position:aircraftPosition)
         mirage?.update(time:surfaceTime ?? time)
         cloudLayer?.position = [sin(time*0.013)*180,0,cos(time*0.009)*120]

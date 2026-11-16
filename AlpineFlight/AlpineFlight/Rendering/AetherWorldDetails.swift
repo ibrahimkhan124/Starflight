@@ -118,20 +118,29 @@ enum CanyonLife {
             [Float(i % (funnelSegments+1))/Float(funnelSegments),p.y/110]
         }
     }
-    static let birdFloor:Float = {
-        let ground=PlanetExploration(planet:.tatooine),origin=TatooineCanyon.origin
-        var top:Float = 0
-        for i in 0..<64 {
-            let a=Float(i)*Float.pi*2/64
-            let x=origin.x-410+cos(a)*95,z=origin.z-100+sin(a)*150
-            top=max(top,ground.groundHeight(x:x,z:z)-origin.y)
+    static let flockCount=8
+    static func birdCount(reduced:Bool) -> Int { flockCount*(reduced ? 1:3) }
+    static func birdScale(_ index:Int) -> Float { 3.5+Float(index%3)*0.2 }
+    private static let flockHomes:[SIMD3<Float>] = {
+        let ground=PlanetExploration(planet:.tatooine)
+        let routeZ:[Float]=[7800,5600,3400,1200,-1000,-3200,-5400,-7600]
+        return routeZ.enumerated().map { i,z -> SIMD3<Float> in
+            let side:Float=i.isMultiple(of:2) ? -1:1
+            let x=ground.canyonCenter(z:z)+side*260
+            var ceiling:Float=0
+            for n in 0..<48 {
+                let a=Float(n)*2 * .pi/48
+                ceiling=max(ceiling,ground.groundHeight(x:x+cos(a)*140,z:z+sin(a)*220))
+            }
+            return [x,ceiling+150,z]
         }
-        return top+150
     }()
     static func bird(_ index:Int,time:Float) -> BirdPose {
-        let phase=Float(index)*1.31,a=time*0.13+phase
-        let position=SIMD3<Float>(-410+cos(a)*95,birdFloor+sin(time*0.21+phase)*14,-100+sin(a)*150)
-        let heading=atan2(-sin(a)*95,cos(a)*150)
+        let home=flockHomes[index%flockCount]
+        let phase=Float(index)*1.31,a=time*0.1+phase
+        let world=home+SIMD3<Float>(cos(a)*140,sin(time*0.21+phase)*14,sin(a)*220)
+        let position=world-TatooineCanyon.origin
+        let heading=atan2(-sin(a)*140,cos(a)*220)
         // Long glides interrupted by short wingbeats, rather than constant flutter.
         let beat=max(0,sin(time*0.38+phase))
         let wing:Float = 0.12+sin(time*5.5+phase)*0.52*beat*beat

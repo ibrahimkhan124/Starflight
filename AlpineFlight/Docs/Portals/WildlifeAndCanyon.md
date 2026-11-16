@@ -22,14 +22,20 @@ are excluded from branch floors. The original route and stone arch remain.
 - Tatooine: shaggy brown banthas with curved horns.
 - Endor: forest deer with branching antlers.
 - Hoth: tauntauns with long necks, curled horns and tails.
-- The canyon gliders are approximately twice their previous size. Full detail
-  has ten gliders; reduced detail has four, with staggered wingbeats.
+- The canyon gliders use 3.5–3.9 model scale, spread across eight flocks along
+  the canyon. Full detail has 24 gliders; reduced detail has eight.
 
-Each ground herd has four animals (two on reduced detail), with shared prepared
-meshes, adult/juvenile scales, articulated gait, head/graze motion and tail sways.
+Ground herds are distributed along eight valley locations, plus three canyon
+branch locations on Tatooine. Safe placement can skip an obstructed location. Each
+location has two animals (one on reduced detail): 22 / 11 on Tatooine and
+16 / 8 on Endor and Hoth. They use 2.4 adult / 1.9 juvenile
+model scale, shared prepared meshes, articulated gait, head/graze motion and tail sways.
 All sites and roaming loops are checked against slope and scenery. Runtime
 positions sample the actual terrain triangles; animal transforms update at up
-to thirty Hz. Bodies share a smooth-normal 168-triangle round mesh. Curved horns
+to thirty Hz. Ground animals fade between 1,000 and 1,500 metres horizontally;
+farther animals stop animating. Birds fade between 2,200 and 3,000 metres. Shared
+placement results are cached; no terrain searches run each frame for hidden herds.
+Bodies share a smooth-normal 168-triangle round mesh. Curved horns
 use Aether ArchitecturalGeometry.moulding. There is no per-frame mesh generation,
 new AI combat, breeding or animal/aircraft collision. These are decorative,
 procedural approximations rather than imported high-detail Blender creatures.
@@ -38,10 +44,10 @@ The motion/terrain-following design is informed by Portals' `src/kit/fauna/land.
 at snapshot 210133f4e718acb7b461f2a40c90661a40a2397f. Host models and movement are
 new Swift/RealityKit composition. Existing Portals/Aether notices are retained.
 
-## Sand wash below 70 metres
+## Sand wash below 150 metres
 
 Tatooine has a prepared sand-puff emitter beneath the aircraft. Its intensity
-fades from zero at 70 metres of actual ground clearance to full at 15 metres.
+fades from zero at 150 metres of actual ground clearance to full at 15 metres.
 Two reduced-detail or three full-detail batches expand, rise, swirl and fade,
 reusing the native soft-mist texture. Native opacity components avoid another
 custom transparent shader. All meshes/entities are prepared once. Above the
@@ -82,3 +88,28 @@ Pictures: [bantha inspection](../../Screenshots/WildlifeAndCanyon-20261115/banth
 captured during the preceding camera pass; the final inspection now aims the
 camera without pitching the aircraft. The canyon shortcut keeps the tested normal
 chase view, rather than pointing directly into the ground.
+
+
+## Wildlife visibility update — 2026-11-16
+
+Six focused checks passed: enlarged species roam safely on actual terrain triangles,
+each planet's ground wildlife spans over 12 km, eight bird flocks span over 14 km,
+all sampled bird orbits retain terrain clearance, prepared birds animate in full
+and reduced detail, ground animals hide/reappear with viewer distance, and sand
+activates below 150 m (including 100 m) and disables above it. Branch connections
+and independent inspection-camera behaviour remain covered.
+
+Both UI checks passed: the normal sculpted-canyon flight and the immediately
+accessible wildlife/canyon shortcuts. The first combined run used an obsolete
+camera location in the bird animation check; the corrected focused rerun passed
+all six checks. Simulator captures show the larger bantha and wildlife alongside
+the normal flight route. Existing simulator custom-material pipeline warnings
+remain; these wildlife bodies and sand use native materials.
+
+Mac Catalyst and signed generic iOS Debug builds passed. Aether package tests
+passed at the existing pinned revision. The installed Mac application was updated.
+Physical-device frame time, memory, touch handling and appearance are unmeasured.
+
+Pictures: [larger bantha](../../Screenshots/WildlifeSpread-20261116/larger-bantha.png),
+[wildlife along a normal flight](../../Screenshots/WildlifeSpread-20261116/wildlife-along-flight-route.png),
+[canyon branches](../../Screenshots/WildlifeSpread-20261116/canyon-branches.png).

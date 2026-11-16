@@ -833,7 +833,7 @@ final class GameEngine: ObservableObject {
         state.heading=0;state.roll=0;throttle=0
         state.pitch=0
         cameraMode = .cockpit;world?.camera.mode = .cockpit
-        pilotTracker?.relocate();world?.camera.reset();world?.camera.inspectionTarget=site+[0,3,0];publishHUD()
+        pilotTracker?.relocate();world?.camera.reset();world?.camera.inspectionTarget=site+[0,7,0];publishHUD()
     }
     func returnToPlanetOrbit() {
         clearCityJob()
