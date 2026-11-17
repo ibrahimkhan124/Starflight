@@ -890,12 +890,12 @@ private struct ShipLightsHUDButton:View {
     @ObservedObject var engine:GameEngine
     var body:some View {
         Button { engine.shipLightsEnabled.toggle() } label: {
-            Label(engine.shipLightsEnabled ? "Lights on":"Lights off",systemImage:engine.shipLightsEnabled ? "flashlight.on.fill":"flashlight.off.fill")
+            Label(engine.shipLightsEnabled ? "Lights off":"Lights on",systemImage:engine.shipLightsEnabled ? "flashlight.on.fill":"flashlight.off.fill")
                 .font(.system(size:11,weight:.semibold)).foregroundStyle(engine.shipLightsEnabled ? FlightPalette.cyan:.white)
                 .frame(minHeight:24).padding(.horizontal,4)
         }.flightButtonGlass().buttonStyle(.plain)
-            .accessibilityLabel("Ship lights").accessibilityValue(engine.shipLightsEnabled ? "On":"Off")
-            .accessibilityHint("Turns the forward ship spotlight on or off, including in cockpit view.")
+            .accessibilityLabel(engine.shipLightsEnabled ? "Lights off":"Lights on").accessibilityValue(engine.shipLightsEnabled ? "On":"Off")
+            .accessibilityHint("Turns the outward-facing ship lights on or off, including in cockpit view.")
             .accessibilityIdentifier("Ship lights")
     }
 }

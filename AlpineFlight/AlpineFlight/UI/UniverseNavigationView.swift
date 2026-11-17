@@ -23,9 +23,7 @@ struct UniverseNavigationView:View {
             VStack(alignment:.leading,spacing:verticalSize == .compact ? 12:18) {
                 Text("UNIVERSE EXPLORER").font(FlightStyle.displayFont(verticalSize == .compact ? 16:23)).textCase(.lowercase).foregroundStyle(FlightPalette.gold)
                 Text(engine.currentGalaxy.name + " · " + engine.currentUniverseLocation).font(.headline).accessibilityIdentifier("Current galaxy")
-                Picker("Exploration scale",selection:$section) {
-                    Text("Galaxies").tag(0); Text("Astronomy").tag(1); Text("Solar System").tag(2)
-                }.pickerStyle(.segmented).accessibilityIdentifier("Universe sections")
+                UniverseSectionPicker(selection:$section).frame(height:44)
                 if let restriction = engine.universeTravelRestriction {
                     Text(restriction).font(.subheadline).foregroundStyle(FlightPalette.gold)
                 }
@@ -285,5 +283,30 @@ struct AsteroidScanOverlay: View {
                 }
             }.accessibilityLabel("Asteroid scan locked. Scan again to select a new target.").accessibilityIdentifier("Persistent asteroid scan")
         }
+    }
+}
+
+
+/// Keep the native segmented appearance with a full, stable touch area in sheets.
+private struct UniverseSectionPicker:UIViewRepresentable {
+    @Binding var selection:Int
+    func makeCoordinator() -> Coordinator { Coordinator(selection:$selection) }
+    func makeUIView(context:Context) -> UISegmentedControl {
+        let control=UISegmentedControl(items:["Galaxies","Astronomy","Solar System"])
+        control.accessibilityIdentifier="Universe sections"
+        control.accessibilityLabel="Exploration scale"
+        control.selectedSegmentIndex=selection
+        control.apportionsSegmentWidthsByContent=false
+        control.addTarget(context.coordinator,action:#selector(Coordinator.changed(_:)),for:.valueChanged)
+        control.setContentHuggingPriority(.defaultLow,for:.horizontal)
+        return control
+    }
+    func updateUIView(_ control:UISegmentedControl,context:Context) {
+        if control.selectedSegmentIndex != selection { control.selectedSegmentIndex=selection }
+    }
+    final class Coordinator:NSObject {
+        @Binding var selection:Int
+        init(selection:Binding<Int>) { _selection=selection }
+        @objc func changed(_ control:UISegmentedControl) { selection=control.selectedSegmentIndex }
     }
 }

@@ -2548,6 +2548,19 @@ final class EarthWildlifeTests:XCTestCase {
 
 
 final class EarthCityAndShipLightTests:XCTestCase {
+    func testRiversideCityProtectsChannelAndClearsUrbanTrees() {
+        let field=EarthWildlife.field,z=EarthCity.center.y
+        let riverX=field.riverCenter(z:z)
+        XCTAssertEqual(EarthCity.center.x-riverX,1450,accuracy:0.01)
+        XCTAssertEqual(EarthCity.foundation-field.riverLevel(z:z),70,accuracy:0.01)
+        let westEdge=EarthCity.buildings.map { $0.center.x-$0.size.x/2 }.min()!
+        XCTAssertLessThan(westEdge-riverX,800)
+        for sample:Float in [z-1500,z,z+1500] { for bank:Float in [-250,0,250] {
+            XCTAssertEqual(EarthCity.flattening(x:field.riverCenter(z:sample)+bank,z:sample),0,accuracy:0.0001)
+        } }
+        for tree in field.scenerySolids { XCTAssertFalse(EarthCity.clearsScenery(x:tree.base.x,z:tree.base.z)) }
+    }
+
     func testCityPlateauAndSweptBuildingContacts() {
         let field=EarthWildlife.field
         XCTAssertEqual(EarthCity.buildings.count,36)
@@ -2578,12 +2591,21 @@ final class EarthCityAndShipLightTests:XCTestCase {
         XCTAssertTrue(lights.root.isEnabled);XCTAssertEqual(lights.root.position,state.position)
         let lamp=lights.root.findEntity(named:"Forward ship spotlight")!
         XCTAssertNotNil(lamp.components[SpotLightComponent.self])
-        XCTAssertEqual(lamp.components[SpotLightComponent.self]?.attenuationRadius,450)
+        XCTAssertEqual(lamp.components[SpotLightComponent.self]?.attenuationRadius,650)
         XCTAssertGreaterThan(simd_dot(lights.root.orientation.act([0,0,-1]),state.forward),0.999)
+        let right=lights.root.findEntity(named:"Starboard ship spotlight")!
+        XCTAssertTrue(right.isEnabled)
+        XCTAssertLessThan(lamp.position.x,0);XCTAssertGreaterThan(right.position.x,0)
+        XCTAssertLessThan(lamp.orientation.act([0,0,-1]).x,-0.08)
+        XCTAssertGreaterThan(right.orientation.act([0,0,-1]).x,0.08)
+        XCTAssertLessThan(lamp.orientation.act([0,0,-1]).y,0)
+        XCTAssertNotNil(lights.root.findEntity(named:"Outward headlight beam 1"))
         lights.update(state:state,aircraft:.xwing,enabled:false,reduced:false);XCTAssertFalse(lights.root.isEnabled)
         lights.update(state:state,aircraft:.xwing,enabled:true,reduced:true,showLenses:false)
         XCTAssertTrue(lights.root.isEnabled)
         XCTAssertFalse(lights.root.findEntity(named:"Ship lamp lens 1")!.isEnabled)
-        XCTAssertEqual(lamp.components[SpotLightComponent.self]?.attenuationRadius,280)
+        XCTAssertFalse(right.isEnabled)
+        XCTAssertEqual(lamp.position.x,0)
+        XCTAssertEqual(lamp.components[SpotLightComponent.self]?.attenuationRadius,350)
     }
 }

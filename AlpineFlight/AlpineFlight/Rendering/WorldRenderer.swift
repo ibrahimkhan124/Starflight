@@ -344,7 +344,7 @@ final class WorldRenderer {
     }
 
     func update(state: FlightState, throttle: Float, dt: Float, nextCheckpoint: Int, crashTime: Float?, bolts: [TurretBolt], pursuers: [Pursuer], playerBolts: [PlayerBolt], racers: [RaceOpponent], collectedBoostPads: Set<Int>, boosting: Bool = false, skidding: Bool = false, impactEnergy: Float = 0, freeRoamZone: FreeRoamZone = .atmosphere, portals: [FreeRoamPortal] = [], returnPortalPosition: SIMD3<Float> = .zero, asteroids: [SpaceAsteroid] = [], surfacePlanet: SpacePlanet? = nil, surfaceBeacons: Int = 0, comets:[PlanetComet] = [], arenaMode: Bool = false, relaxedSpace: Bool = false, solarSurface: SolarBody? = nil, surfaceTime:Float=0,shipLightsEnabled:Bool=false) {
-        shipLighting.update(state:state,aircraft:aircraftType,enabled:shipLightsEnabled && crashTime == nil,reduced:performanceMode || surfaceReducedDetail,showLenses:camera.mode == .chase)
+        shipLighting.update(state:state,aircraft:aircraftType,enabled:shipLightsEnabled && crashTime == nil,reduced:performanceMode || surfaceReducedDetail,showLenses:camera.mode == .chase,beamVisibility:surfacePlanet == .coruscant || (freeRoamZone != .atmosphere && solarSurface == nil) ? 0.4:0.08)
         arenaBoundary.isEnabled = arenaMode
         let awayFromAtmosphere = freeRoamZone != .atmosphere
         let inSpace = freeRoamZone == .asteroidField
@@ -922,35 +922,74 @@ private enum PlanetSurfaceMesh {
 }
 
 
-/// A single real spotlight, independent of the hidden cockpit aircraft model.
+/// Outward headlamps stay active when the cockpit hides the aircraft model.
 @MainActor
 final class ShipLighting {
     let root=Entity()
-    private let lamp=Entity()
+    private let lamp=Entity(),starboard=Entity()
     private let lenses:[ModelEntity]
+    private var beams:[ModelEntity]=[]
     private var configuredReduced:Bool?
     init() {
-        root.name="Pilot controlled ship lights";lamp.name="Forward ship spotlight"
+        root.name="Pilot controlled ship lights";lamp.name="Forward ship spotlight";starboard.name="Starboard ship spotlight"
         let mesh=MeshResource.generateSphere(radius:1),paint=UnlitMaterial(color:.init(red:0.78,green:0.90,blue:1,alpha:1))
-        lenses=(0..<2).map { _ in ModelEntity(mesh:mesh,materials:[paint]) }
-        root.addChild(lamp);for lens in lenses { root.addChild(lens) }
+        lenses=(0..<2).map { i in let lens=ModelEntity(mesh:mesh,materials:[paint]);lens.name="Ship lamp lens \(i+1)";return lens }
+        root.addChild(lamp);root.addChild(starboard);for lens in lenses { root.addChild(lens) }
+        if let resource=Self.beamResource {
+            for i in 0..<2 { let beam=ModelEntity(mesh:resource.0,materials:[resource.1]);beam.name="Outward headlight beam \(i+1)";beam.components.set(DynamicLightShadowComponent(castsShadow:false));root.addChild(beam);beams.append(beam) }
+        }
         root.isEnabled=false
     }
-    func update(state:FlightState,aircraft:AircraftType,enabled:Bool,reduced:Bool,showLenses:Bool=true) {
+    private static let beamResource:(MeshResource,UnlitMaterial)? = {
+        var positions:[SIMD3<Float>]=[],normals:[SIMD3<Float>]=[],uv:[SIMD2<Float>]=[],indices:[UInt32]=[]
+        for ring in 0...1 { for i in 0...24 {
+            let a=Float(i)*2 * .pi/24,r:Float=ring == 0 ? 0.0005:0.07
+            positions.append([cos(a)*r,sin(a)*r,-Float(ring)])
+            normals.append(simd_normalize(SIMD3<Float>(cos(a),sin(a),0.07)));uv.append([Float(i)/24,Float(ring)])
+        } }
+        for i in 0..<24 { let a=UInt32(i),b=a+25;indices += [a,b,a+1,a+1,b,b+1] }
+        var descriptor=MeshDescriptor(name:"Shared fading headlight cone")
+        descriptor.positions = .init(positions);descriptor.normals = .init(normals);descriptor.textureCoordinates = .init(uv);descriptor.primitives = .triangles(indices)
+        guard let mesh=try? MeshResource.generate(from:[descriptor]) else { return nil }
+        let format=UIGraphicsImageRendererFormat();format.scale=1
+        let image=UIGraphicsImageRenderer(size:CGSize(width:8,height:64),format:format).image { context in
+            for row in 0..<64 {
+                let t=Float(row)/63,fade=min(1,t/0.08)*pow(1-t,1.6)*0.35
+                context.cgContext.setFillColor(UIColor(white:1,alpha:CGFloat(fade)).cgColor)
+                context.cgContext.fill(CGRect(x:0,y:row,width:8,height:1))
+            }
+        }
+        var material=UnlitMaterial(color:UIColor(red:0.70,green:0.84,blue:1,alpha:1));material.faceCulling = .none
+        material.blending = .transparent(opacity:.init(floatLiteral:0.08))
+        if let cg=image.cgImage,let texture=try? TextureResource.generate(from:cg,options:.init(semantic:.color)) { material.color = .init(tint:UIColor(red:0.70,green:0.84,blue:1,alpha:1),texture:.init(texture)) }
+        return (mesh,material)
+    }()
+    func update(state:FlightState,aircraft:AircraftType,enabled:Bool,reduced:Bool,showLenses:Bool=true,beamVisibility:Float=0.4) {
         root.isEnabled=enabled
         guard enabled else { return }
         root.position=state.position;root.orientation=state.orientation
-        let height=max(0.6,aircraft.bodyRadius*0.25),nose = -aircraft.length*0.48
-        lamp.position=[0,height,nose]
+        let height=max(0.6,aircraft.bodyRadius*0.25),nose = -aircraft.length*0.48,spread=min(aircraft.wingspan*0.16,12)
+        let range:Float=reduced ? 350:650
         if configuredReduced != reduced {
-            lamp.components.set(SpotLightComponent(color:.init(red:0.82,green:0.91,blue:1,alpha:1),intensity:2_000_000,innerAngleInDegrees:18,outerAngleInDegrees:42,attenuationRadius:reduced ? 280:450))
+            for light in [lamp,starboard] {
+                light.components.set(SpotLightComponent(color:.init(red:0.82,green:0.91,blue:1,alpha:1),intensity:reduced ? 5_000_000:3_000_000,innerAngleInDegrees:24,outerAngleInDegrees:reduced ? 65:55,attenuationRadius:range))
+            }
             configuredReduced=reduced
         }
-        for (i,lens) in lenses.enumerated() {
-            lens.isEnabled=showLenses
-            lens.name="Ship lamp lens \(i+1)"
-            lens.position=[(i == 0 ? -1:1)*min(aircraft.wingspan*0.16,12),height,nose]
-            lens.scale=SIMD3(repeating:max(0.18,min(0.7,aircraft.bodyRadius*0.04)))
+        starboard.isEnabled = !reduced
+        for i in 0..<2 {
+            let side:Float=i == 0 ? -1:1
+            let position=SIMD3<Float>(side*spread,height,nose)
+            let outward=simd_quatf(angle:-side*0.12,axis:[0,1,0])*simd_quatf(angle:-0.06,axis:[1,0,0])
+            let light=i == 0 ? lamp:starboard
+            light.position=reduced && i == 0 ? [0,height,nose]:position
+            light.orientation=reduced && i == 0 ? simd_quatf(angle:-0.06,axis:[1,0,0]):outward
+            lenses[i].isEnabled=showLenses;lenses[i].position=position
+            lenses[i].scale=SIMD3(repeating:max(0.18,min(0.7,aircraft.bodyRadius*0.04)))
+            if beams.indices.contains(i) {
+                beams[i].position=position;beams[i].orientation=outward;beams[i].scale=SIMD3(repeating:range*0.45)
+                beams[i].components.set(OpacityComponent(opacity:beamVisibility))
+            }
         }
     }
 }

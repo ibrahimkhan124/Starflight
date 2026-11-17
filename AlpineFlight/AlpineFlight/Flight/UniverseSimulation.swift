@@ -384,6 +384,7 @@ struct SolarLandscape {
                     x = Float(i%2 == 0 ? -1:1)*(1800+Float(i%7)*160)
                     radius = 45; height = 36
                 }
+                if body.name == "Earth",EarthCity.clearsScenery(x:x,z:z) { continue }
                 solids.append(.init(base:[x,field.height(x:x,z:z)-2,z],radius:radius,height:height))
             }
             result[body.name] = solids
@@ -444,8 +445,9 @@ enum StarSkyGeometry {
 
 /// One bounded city recipe drives the plateau, visible blocks and swept contacts.
 enum EarthCity {
-    static let center=SIMD2<Float>(4200,-6200)
-    static let foundation:Float=600
+    private static let earth=SolarLandscape(body:SolarBody.all.first { $0.name == "Earth" }!)
+    static let center=SIMD2<Float>(earth.riverCenter(z:-6200)+1450,-6200)
+    static let foundation:Float=earth.riverLevel(z:center.y)+70
     struct Building {
         let center:SIMD3<Float>,size:SIMD3<Float>
         func hits(from a:SIMD3<Float>,to b:SIMD3<Float>,radius:Float) -> Bool {
@@ -472,7 +474,11 @@ enum EarthCity {
     }
     static func flattening(x:Float,z:Float) -> Float {
         let d=max(abs(x-center.x),abs(z-center.y)),t=clamp((d-850)/750,0,1)
-        return 1-t*t*(3-2*t)
+        let riverDistance=abs(x-earth.riverCenter(z:z)),bank=clamp((riverDistance-320)/100,0,1)
+        return (1-t*t*(3-2*t))*bank*bank*(3-2*bank)
+    }
+    static func clearsScenery(x:Float,z:Float) -> Bool {
+        abs(x-center.x)<900 && abs(z-center.y)<900
     }
     static func hits(from a:SIMD3<Float>,to b:SIMD3<Float>,radius:Float) -> Bool {
         guard min(a.x,b.x)-radius<center.x+850,max(a.x,b.x)+radius>center.x-850,

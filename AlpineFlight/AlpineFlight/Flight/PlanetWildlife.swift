@@ -111,7 +111,7 @@ enum EarthWildlife {
                 (0..<24).allSatisfy { step in
                     let a=Float(step)*2 * .pi/24,x=site.x+cos(a)*3,z=site.z+sin(a)*3
                     let p=SIMD3<Float>(x,field.height(x:x,z:z),z)
-                    return abs(p.y-site.y)<2.5 && p.y>max(4,field.riverLevel(z:p.z)+2) &&
+                    return !EarthCity.clearsScenery(x:p.x,z:p.z) && abs(p.y-site.y)<2.5 && p.y>max(4,field.riverLevel(z:p.z)+2) &&
                         !field.scenerySolids.contains { tree in
                             simd_distance(SIMD2(p.x,p.z),SIMD2(tree.base.x,tree.base.z))<tree.height*0.4+18
                         }
@@ -142,9 +142,9 @@ enum EarthWildlife {
         }
         func arrival(clearance:Float) -> SIMD3<Float> {
             if self == .city {
-                let x=EarthCity.center.x,z=EarthCity.center.y+1150
+                let z=EarthCity.center.y+1150,x=field.riverCenter(z:z)-400
                 let ground=field.height(x:x,z:z)
-                return [x,max(ground,EarthCity.foundation+280)+max(300,clearance),z]
+                return [x,max(ground,EarthCity.foundation+280)+max(400,clearance),z]
             }
             let x:Float=self == .river ? field.riverCenter(z:650):6500
             let z:Float=self == .river ? 650:1800
