@@ -210,6 +210,7 @@ final class GameEngine: ObservableObject {
     let droidVoice = DroidVoiceController()
     var stick = SIMD2<Float>.zero
     var rudder: Float = 0
+    @Published var shipLightsEnabled=false
     var firing = false
     var boosting = false
     var skidding = false
@@ -1536,7 +1537,8 @@ final class GameEngine: ObservableObject {
                     } else if let body = universe.surfaceBody {
                         let landscape = SolarLandscape(body:body)
                         if landscape.impact(from:previous.position,to:state.position,radius:aircraft.bodyRadius) {
-                            crash(cause:body.name + (body.isCloudWorld ? " deep-atmosphere pressure" : " surface impact"),world:world)
+                            let cityImpact=body.name == "Earth" && EarthCity.hits(from:previous.position,to:state.position,radius:aircraft.bodyRadius)
+                            crash(cause:cityImpact ? "Earth city building collision":body.name + (body.isCloudWorld ? " deep-atmosphere pressure" : " surface impact"),world:world)
                         } else if state.position.y > 3000 || max(abs(state.position.x),abs(state.position.z)) > 11500 {
                             engageUniverseJump(.solarSystem)
                         }
@@ -1687,7 +1689,7 @@ final class GameEngine: ObservableObject {
                      skidding: skidding || keyboard.skidding, impactEnergy: race.collisionShake,
                      freeRoamZone: universe.jumping ? .hyperspace:hyperspace.zone, portals: level.isFreeRoam ? hyperspace.portals : [],
                      returnPortalPosition: hyperspace.returnPortal,
-                     asteroids: universe.jumping ? []:hyperspace.asteroids, surfacePlanet: hyperspace.surfacePlanet, surfaceBeacons: hyperspace.surfaceBeacons,comets:planetComets.comets,arenaMode:arenaSelected,relaxedSpace:hyperspace.relaxedSpace,solarSurface:universe.surfaceBody,surfaceTime:hyperspace.surfaceTime)
+                     asteroids: universe.jumping ? []:hyperspace.asteroids, surfacePlanet: hyperspace.surfacePlanet, surfaceBeacons: hyperspace.surfaceBeacons,comets:planetComets.comets,arenaMode:arenaSelected,relaxedSpace:hyperspace.relaxedSpace,solarSurface:universe.surfaceBody,surfaceTime:hyperspace.surfaceTime,shipLightsEnabled:shipLightsEnabled)
         world.updateUniverse(universe,active:universeActive,state:displayState,dt:phase == .flying ? dt:0,target:universeWaypoint)
         world.updateAdventures(ghost:ghostState,platform:emergencyFlight?.target,weather:effectiveWeather,
                                weatherActive:weatherActive,state:displayState,dt:phase == .flying ? dt:0)

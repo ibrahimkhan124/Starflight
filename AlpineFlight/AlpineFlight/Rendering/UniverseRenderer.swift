@@ -106,7 +106,6 @@ final class UniverseRenderer {
     private var wildlifeReduced:Bool?
     private var aetherWorld: Entity?
     private var aetherPreparation: Task<Void,Never>?
-    private var earthMist:Entity?
     private var cloudCyclone: Entity?
     private var planetDetails: [PlanetOrbitDetail] = []
     private let courseMarker:ModelEntity
@@ -213,7 +212,6 @@ final class UniverseRenderer {
                     if let aetherWorld { landscape.addChild(aetherWorld) }
                 } else { SolarArtwork.populate(landscape,body:body) }
             }
-            earthMist=landscape.findEntity(named:"Waterfall plume mist")
             cloudCyclone = landscape.findEntity(named: "Jupiter rotating cyclone")
             landscapeName = flight.surfaceBody?.name
         }
@@ -224,11 +222,6 @@ final class UniverseRenderer {
                 landscape.addChild(wildlife.root);earthWildlife=wildlife;wildlifeReduced=reduced
             }
             earthWildlife?.update(time:clock,viewer:state.position)
-        }
-        if let earthMist {
-            earthMist.position.y=sin(clock*0.45)*2
-            earthMist.position.x=sin(clock*0.28)*1.5
-            earthMist.components.set(OpacityComponent(opacity:0.9+sin(clock*0.3)*0.1))
         }
         cloudCyclone?.orientation = simd_quatf(angle: clock * 0.018, axis: [0,1,0])
         landscape.isEnabled = flight.surfaceBody != nil && !flight.jumping
@@ -379,6 +372,7 @@ private enum SolarArtwork {
             guard let resource = try? MeshResource.generate(from:[descriptor]) else { return }
             let paint:any RealityKit.Material
             if unlit { paint = UniverseMeshes.material(color,opacity:opacity) }
+            else if kind == "city" { paint=SimpleMaterial(color:color,roughness:0.65,isMetallic:false) }
             else if kind == "water" {
                 paint = ScenicMaterials.water(color:color)
             } else { paint = ScenicMaterials.terrain(color:color,kind:kind,planet:planet ?? root.name.split(separator:" ").first.map(String.init),continuous:continuous) }
@@ -497,28 +491,16 @@ private enum SolarArtwork {
     }
     private static func color(_ r:Float,_ g:Float,_ b:Float) -> UIColor { UIColor(red:CGFloat(r),green:CGFloat(g),blue:CGFloat(b),alpha:1) }
     private static func populateEarth(_ root:Entity,field:SolarLandscape) {
-        var river = ExpeditionBatch(), foam = ExpeditionBatch(), mist = ExpeditionBatch(), trunks = ExpeditionBatch(), branches = ExpeditionBatch()
+        var river = ExpeditionBatch(), trunks = ExpeditionBatch(), branches = ExpeditionBatch()
         var leaves = Array(repeating:ExpeditionBatch(),count:3)
-        for i in 0..<280 {
-            let z = -SolarLandscape.extent+Float(i)*100, next = z+100
-            let x = field.riverCenter(z:z), nx = field.riverCenter(z:next)
-            river.quad([x-65,field.riverLevel(z:z),z],[nx-65,field.riverLevel(z:next),next],[nx+65,field.riverLevel(z:next),next],[x+65,field.riverLevel(z:z),z])
+        var z:Float = -SolarLandscape.extent
+        while z<SolarLandscape.extent {
+            let step:Float=70
+            let next=min(SolarLandscape.extent,z+step)
+            river.quad(EarthRiver.surface(z:z,across:-65),EarthRiver.surface(z:next,across:-65),EarthRiver.surface(z:next,across:65),EarthRiver.surface(z:z,across:65))
+            z=next
         }
-        for z:Float in [0,-3470] {
-            let x = field.riverCenter(z:z), top = field.riverLevel(z:z+160), bottom = field.riverLevel(z:z-160)
-            foam.quad([x-66,bottom,z-65],[x+66,bottom,z-65],[x+66,top,z+65],[x-66,top,z+65])
-            foam.ellipsoid([x,bottom+10,z-110],[95,15,80])
-            // Narrow streams break up the sheet; spray climbs around the plunge
-            // pool so the falls remain readable from the normal approach.
-            for i in 0..<26 {
-                let offset = -62+Float(i)*5, front = z-67-Float(i%3)*2
-                foam.quad([x+offset,bottom+6,front],[x+offset+1.8,bottom+6,front],[x+offset+1.8,top-4,z+66],[x+offset,top-4,z+66])
-            }
-            for i in 0..<14 {
-                let angle = Float(i)*2.39996, radius = Float(25+i%4*12)
-                mist.ellipsoid([x+cos(angle)*radius,bottom+18+Float(i%5)*13,z-95+sin(angle)*40],[30,22,22])
-            }
-        }
+        populateEarthCity(root)
         for (index,solid) in field.scenerySolids.enumerated() {
             trunks.frustum(solid.base+[0,solid.height/2,0],radius:solid.radius,height:solid.height,top:1,sides:10)
             for tier in 0..<6 {
@@ -547,11 +529,41 @@ private enum SolarArtwork {
         sea.quad([-14000,0,-14000],[-14000,0,14000],[14000,0,14000],[14000,0,-14000])
         sea.append(to:root,name:"Earth coastal sea",color:color(0.025,0.14,0.23),kind:"water")
         river.append(to:root,name:"Winding valley river",color:color(0.08,0.28,0.34),kind:"water")
-        foam.append(to:root,name:"Waterfall curtains and spray",color:color(0.74,0.88,0.91),unlit:true)
-        mist.append(to:root,name:"Waterfall plume mist",color:color(0.76,0.87,0.89),unlit:true,opacity:0.2)
         trunks.append(to:root,name:"Valley tree trunks",color:color(0.23,0.17,0.12),kind:"bark")
         branches.append(to:root,name:"Valley tree branches",color:color(0.19,0.15,0.10),kind:"bark")
         for i in leaves.indices { leaves[i].append(to:root,name:"Valley forest canopy \(i)",color:color(0.10+Float(i)*0.025,0.23+Float(i)*0.035,0.13+Float(i)*0.018),kind:"moss") }
+    }
+    private static func populateEarthCity(_ root:Entity) {
+        var buildings=ExpeditionBatch(),roofs=ExpeditionBatch(),glass=ExpeditionBatch(),roads=ExpeditionBatch(),markers=ExpeditionBatch()
+        for (i,building) in EarthCity.buildings.enumerated() {
+            let c=building.center,size=building.size,base=EarthCity.foundation
+            buildings.box(c-[0,size.y*0.05,0],size*SIMD3<Float>(1,0.9,1))
+            roofs.box(c+[0,size.y*0.45,0],[size.x*0.82,size.y*0.10,size.z*0.82])
+            for floor in 0..<5 {
+                let y=base+18+Float(floor)*(size.y-28)/5
+                for side:Float in [-1,1] {
+                    let z=c.z+side*(size.z/2+0.3)
+                    let a=SIMD3<Float>(c.x-size.x*0.38,y,z),b=SIMD3<Float>(c.x+size.x*0.38,y,z),d=SIMD3<Float>(c.x-size.x*0.38,y+5,z),e=SIMD3<Float>(c.x+size.x*0.38,y+5,z)
+                    if side>0 { glass.quad(a,b,e,d) } else { glass.quad(d,e,b,a) }
+                    let x=c.x+side*(size.x/2+0.3)
+                    let f=SIMD3<Float>(x,y,c.z-size.z*0.38),g=SIMD3<Float>(x,y+5,c.z-size.z*0.38),h=SIMD3<Float>(x,y+5,c.z+size.z*0.38),j=SIMD3<Float>(x,y,c.z+size.z*0.38)
+                    if side>0 { glass.quad(f,g,h,j) } else { glass.quad(j,h,g,f) }
+                }
+            }
+            if i.isMultiple(of:3) { markers.box([c.x,base+size.y+0.3,c.z],[size.x*0.65,0.5,2]) }
+        }
+        for n in -4...3 {
+            let offset=Float(n)*230+115
+            let x=EarthCity.center.x+offset,z=EarthCity.center.y+offset,y=EarthCity.foundation+0.2
+            roads.box([x,y,EarthCity.center.y],[40,0.3,1660]);roads.box([EarthCity.center.x,y,z],[1660,0.3,40])
+        }
+        roads.box([EarthCity.center.x,EarthCity.foundation+0.3,EarthCity.center.y],[90,0.3,1660])
+        roads.box([EarthCity.center.x,EarthCity.foundation+0.3,EarthCity.center.y],[1660,0.3,90])
+        buildings.append(to:root,name:"Earth city collision matched buildings",color:color(0.64,0.69,0.71),kind:"city")
+        roofs.append(to:root,name:"Earth city roof terraces",color:color(0.31,0.39,0.43),kind:"city")
+        glass.append(to:root,name:"Earth city blue glass",color:color(0.20,0.48,0.61),kind:"city")
+        roads.append(to:root,name:"Earth city street grid",color:color(0.17,0.20,0.22),kind:"city")
+        markers.append(to:root,name:"Earth city roof lights",color:color(0.95,0.77,0.4),unlit:true)
     }
     private static func populateVenus(_ root:Entity,field:SolarLandscape) {
         var basalt = ExpeditionBatch(), vents = ExpeditionBatch()

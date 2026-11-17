@@ -28,6 +28,7 @@ struct HUDView: View {
                         HyperspaceHUDButton(action:onOpenUniverse)
                         InstrumentButton(icon:"map",label:"Space map",action:onOpenMap)
                     }
+                    ShipLightsHUDButton(engine:engine)
                     InstrumentButton(icon: "slider.horizontal.3", label: "Flight tools", action: onOpenTools)
                     InstrumentButton(icon: "pause.fill", label: "Pause flight") { engine.pause() }
                 }
@@ -419,6 +420,7 @@ private struct MobileFlightHUD: View {
 
     private var auxiliaryControls: some View {
         HStack(spacing: 8) {
+            ShipLightsHUDButton(engine:engine)
             if engine.settings.handControlEnabled && engine.hand.available { HandSteeringStatus(hand: engine.hand) }
             if engine.hud.landed {
                 Button("Take off") { engine.takeOffFreeRoam() }.flightButtonGlass().buttonStyle(GlowingFlightButton())
@@ -609,13 +611,21 @@ struct FlightToolsView: View {
                         Button { engine.visitWildlifeLookout();dismiss() } label: {
                             Label("Earth wildlife lookout",systemImage:"pawprint.fill").frame(maxWidth:.infinity).padding(10)
                         }.flightButtonGlass().accessibilityIdentifier("Visit Earth wildlife lookout")
-                        HStack(spacing:12) {
+                        ViewThatFits(in:.horizontal) {
+                        HStack(spacing:8) {
                             ForEach(EarthWildlife.ScenicStop.allCases,id:\.self) { stop in
                                 Button { engine.visitEarthScenicStop(stop);dismiss() } label: {
-                                    Label(stop.title,systemImage:stop == .waterfalls ? "water.waves":"sun.horizon")
+                                    Label(stop.title,systemImage:stop == .river ? "water.waves":stop == .city ? "building.2":"sun.horizon")
                                         .frame(maxWidth:.infinity).padding(10)
                                 }.flightButtonGlass().accessibilityIdentifier("Visit Earth "+stop.rawValue)
                             }
+                        }
+                        VStack(spacing:8) {
+                            ForEach(EarthWildlife.ScenicStop.allCases,id:\.self) { stop in
+                                Button(stop.title) { engine.visitEarthScenicStop(stop);dismiss() }
+                                    .flightButtonGlass().accessibilityIdentifier("Visit Earth "+stop.rawValue)
+                            }
+                        }
                         }
                     }
                     if engine.level.isFreeRoam && engine.isRelaxedSpace && engine.homePlanetsAvailable {
@@ -872,5 +882,20 @@ private struct WeaponFeedback: View {
                 .accessibilityIdentifier("Weapon feedback").allowsHitTesting(false)
         }
         }
+    }
+}
+
+
+private struct ShipLightsHUDButton:View {
+    @ObservedObject var engine:GameEngine
+    var body:some View {
+        Button { engine.shipLightsEnabled.toggle() } label: {
+            Label(engine.shipLightsEnabled ? "Lights on":"Lights off",systemImage:engine.shipLightsEnabled ? "flashlight.on.fill":"flashlight.off.fill")
+                .font(.system(size:11,weight:.semibold)).foregroundStyle(engine.shipLightsEnabled ? FlightPalette.cyan:.white)
+                .frame(minHeight:24).padding(.horizontal,4)
+        }.flightButtonGlass().buttonStyle(.plain)
+            .accessibilityLabel("Ship lights").accessibilityValue(engine.shipLightsEnabled ? "On":"Off")
+            .accessibilityHint("Turns the forward ship spotlight on or off, including in cockpit view.")
+            .accessibilityIdentifier("Ship lights")
     }
 }

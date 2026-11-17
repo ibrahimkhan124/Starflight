@@ -495,7 +495,7 @@ final class PlanetSurfaceRenderer {
                 }
                 scenery[style].box(center:[center.x,base+size.y*0.90,center.z],size:[size.x*0.25,size.y*0.10,size.z*0.30])
                 trim.box(center:[center.x,base+size.y*0.96,center.z],size:[size.x*0.06,size.y*0.08,size.z*0.06])
-                let floors = detail ? 10 : 4
+                let floors = detail ? 12 : 4
                 for floor in 0..<floors {
                     let fraction = 0.20 + Float(floor)*0.60/Float(floors)
                     let y = base+size.y*fraction
@@ -509,7 +509,7 @@ final class PlanetSurfaceRenderer {
                         for column in 0..<columns {
                             let along = (Float(column)+0.5)/Float(columns)-0.5
                             let length = style == 1 ? size.x*0.27 : size.x*inset*(style == 2 ? 0.75 : 1.55)
-                            if (column+floor+index)%5 != 0 {
+                            if (column+floor+index)%7 != 0 {
                                 let x = center.x+facade*size.x+along*length
                                 if (column+floor+index)%4 == 0 {
                                     signs.panel(center:[x,y,center.z+size.z*inset+0.6],size:[length/Float(columns)*0.55,3,1])
@@ -537,6 +537,12 @@ final class PlanetSurfaceRenderer {
                     }
                 }
                 let roof = base+size.y+0.7
+                if index.isMultiple(of:3) {
+                    for side:Float in [-1,1] {
+                        accents.panel(center:[center.x+side*size.x*0.38,roof,center.z],size:[2,1,size.z*0.76])
+                        violet.panel(center:[center.x,roof,center.z+side*size.z*0.38],size:[size.x*0.76,1,2])
+                    }
+                }
                 accents.panel(center:[center.x,roof,center.z],size:[size.x*0.055,1,size.z*0.055])
                 if detail {
                     for side:Float in [-1,1] {

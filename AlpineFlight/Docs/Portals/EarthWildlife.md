@@ -1,5 +1,10 @@
 # Earth valley wildlife
 
+Current update (2026-11-17): Earth waterfalls have been removed in favour of a
+gentler river. River valley replaces Waterfall approach, and Earth city is now
+available. See [current city/lighting notes](EarthCityAndShipLights.md). The
+waterfall references below record historical builds.
+
 Earth is a SolarLandscape expedition, separate from the SpacePlanet home-sector
 renderer. Wildlife added to Endor/Hoth/Coruscant therefore did not appear here.
 

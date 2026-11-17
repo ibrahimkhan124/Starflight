@@ -240,7 +240,7 @@ struct SolarLandscape {
     func riverCenter(z:Float) -> Float { 900*sin(z/2700)+250*sin(z/1100) }
     func riverLevel(z:Float) -> Float {
         let upstream = 40+(z+Self.extent)*0.006 +
-            190*softEdge(-100,100,z)+110*softEdge(-3600,-3340,z)
+            190*softEdge(-3500,3500,z)+110*softEdge(-6500,-500,z)
         // A gentle estuary joins the coastal sea rather than ending the river
         // above sea level at the edge of the prepared region.
         return upstream*softEdge(-14000,-11400,z)
@@ -281,7 +281,9 @@ struct SolarLandscape {
             let inland = riverLevel(z:z)-7+shoulder*mountains+detail*40*clamp(distance/700,0,1)
             let shore = 6500+850*noise(z/3200+7,3)+420*noise(z/1450-9,11)
             let coast = softEdge(shore,shore+2500,abs(x))
-            return inland*(1-coast)-45*coast
+            let natural=inland*(1-coast)-45*coast
+            let town=EarthCity.flattening(x:x,z:z)
+            return natural*(1-town)+EarthCity.foundation*town
         case "Mercury":
             var value = 170+100*broad+22*detail
             for crater in Self.mercuryCraters {
@@ -394,6 +396,7 @@ struct SolarLandscape {
            AetherWorldDetails.hits(from:a,to:b,radius:radius,placements:asset.scatter.placements) { return true }
         if body.name == AetherPlanet.name, AetherPlanet.hitsArch(from:a,to:b,radius:radius) { return true }
         guard !body.isCloudWorld else { return b.y < -400 }
+        if body.name == "Earth",EarthCity.hits(from:a,to:b,radius:radius) { return true }
         if scenerySolids.contains(where:{ $0.hits(from:a,to:b,radius:radius) }) { return true }
         let steps = min(256,max(1,Int(ceil(simd_distance(a,b)/20))))
         for index in 0...steps {
@@ -435,5 +438,53 @@ enum StarSkyGeometry {
             }
         }
         return direction
+    }
+}
+
+
+/// One bounded city recipe drives the plateau, visible blocks and swept contacts.
+enum EarthCity {
+    static let center=SIMD2<Float>(4200,-6200)
+    static let foundation:Float=600
+    struct Building {
+        let center:SIMD3<Float>,size:SIMD3<Float>
+        func hits(from a:SIMD3<Float>,to b:SIMD3<Float>,radius:Float) -> Bool {
+            let low=center-size/2-SIMD3(repeating:radius),high=center+size/2+SIMD3(repeating:radius),delta=b-a
+            var enter:Float=0,leave:Float=1
+            for axis in 0..<3 {
+                if abs(delta[axis])<0.00001 { if a[axis]<low[axis] || a[axis]>high[axis] { return false } }
+                else {
+                    let first=(low[axis]-a[axis])/delta[axis],second=(high[axis]-a[axis])/delta[axis]
+                    enter=max(enter,min(first,second));leave=min(leave,max(first,second))
+                    if enter>leave { return false }
+                }
+            }
+            return true
+        }
+    }
+    static let buildings:[Building] = (-3...3).flatMap { i -> [Building] in
+        (-3...3).compactMap { j in
+            guard i != 0,j != 0 else { return nil }
+            let height:Float=(i == -1 && j == -1) ? 260:70+Float(abs(i*71+j*113)%145)
+            let width:Float=110+Float(abs(i*29+j*19)%30)
+            return Building(center:[center.x+Float(i)*230,foundation+height/2,center.y+Float(j)*230],size:[width,height,width])
+        }
+    }
+    static func flattening(x:Float,z:Float) -> Float {
+        let d=max(abs(x-center.x),abs(z-center.y)),t=clamp((d-850)/750,0,1)
+        return 1-t*t*(3-2*t)
+    }
+    static func hits(from a:SIMD3<Float>,to b:SIMD3<Float>,radius:Float) -> Bool {
+        guard min(a.x,b.x)-radius<center.x+850,max(a.x,b.x)+radius>center.x-850,
+              min(a.z,b.z)-radius<center.y+850,max(a.z,b.z)+radius>center.y-850 else { return false }
+        return buildings.contains { $0.hits(from:a,to:b,radius:radius) }
+    }
+}
+
+
+enum EarthRiver {
+    static func surface(z:Float,across:Float=0,raise:Float=0) -> SIMD3<Float> {
+        let field=EarthWildlife.field,x=field.riverCenter(z:z)+across
+        return [x,max(field.riverLevel(z:z),field.height(x:x,z:z)+1.2)+raise,z]
     }
 }

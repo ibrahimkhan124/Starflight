@@ -2545,3 +2545,45 @@ final class EarthWildlifeTests:XCTestCase {
         }
     }
 }
+
+
+final class EarthCityAndShipLightTests:XCTestCase {
+    func testCityPlateauAndSweptBuildingContacts() {
+        let field=EarthWildlife.field
+        XCTAssertEqual(EarthCity.buildings.count,36)
+        for building in EarthCity.buildings {
+            let c=building.center,s=building.size
+            for dx in [-s.x/2,s.x/2] { for dz in [-s.z/2,s.z/2] {
+                XCTAssertEqual(field.height(x:c.x+dx,z:c.z+dz),EarthCity.foundation,accuracy:0.01)
+            } }
+            let a=c+SIMD3<Float>(-500,0,0),b=c+SIMD3<Float>(500,0,0)
+            XCTAssertTrue(field.impact(from:a,to:b,radius:3),"Fast flight must hit the rendered city block")
+        }
+        let x=EarthCity.center.x,z=EarthCity.center.y
+        XCTAssertFalse(field.impact(from:[x,EarthCity.foundation+80,z-700],to:[x,EarthCity.foundation+80,z+700],radius:12),"Central avenue stays flyable")
+        XCTAssertEqual(EarthCity.flattening(x:x+1700,z:z),0)
+    }
+    func testRiverSurfaceHasNoWaterfallStepsOrTerrainIntersections() {
+        for n in 0...140 { for across:Float in [-65,0,65] {
+            let z:Float = -13900+Float(n)*198,p=EarthRiver.surface(z:z,across:across)
+            XCTAssertEqual(p.x,EarthWildlife.field.riverCenter(z:z)+across,accuracy:0.001)
+            XCTAssertGreaterThanOrEqual(p.y,EarthWildlife.field.height(x:p.x,z:p.z)+1)
+            let next=EarthRiver.surface(z:z+20,across:across)
+            XCTAssertLessThan(abs(next.y-p.y),8,"The river must not contain the old abrupt drops")
+        } }
+    }
+    @MainActor func testShipSpotlightTogglePoseAndReducedRange() {
+        let lights=ShipLighting();var state=FlightState();state.position=[120,400,-700];state.heading=0.8
+        lights.update(state:state,aircraft:.xwing,enabled:true,reduced:false)
+        XCTAssertTrue(lights.root.isEnabled);XCTAssertEqual(lights.root.position,state.position)
+        let lamp=lights.root.findEntity(named:"Forward ship spotlight")!
+        XCTAssertNotNil(lamp.components[SpotLightComponent.self])
+        XCTAssertEqual(lamp.components[SpotLightComponent.self]?.attenuationRadius,450)
+        XCTAssertGreaterThan(simd_dot(lights.root.orientation.act([0,0,-1]),state.forward),0.999)
+        lights.update(state:state,aircraft:.xwing,enabled:false,reduced:false);XCTAssertFalse(lights.root.isEnabled)
+        lights.update(state:state,aircraft:.xwing,enabled:true,reduced:true,showLenses:false)
+        XCTAssertTrue(lights.root.isEnabled)
+        XCTAssertFalse(lights.root.findEntity(named:"Ship lamp lens 1")!.isEnabled)
+        XCTAssertEqual(lamp.components[SpotLightComponent.self]?.attenuationRadius,280)
+    }
+}

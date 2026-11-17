@@ -131,14 +131,23 @@ enum EarthWildlife {
         time*0.07+sin(time*0.3)*(0.07/0.3)+Float(index)*1.7
     }
     static func walkingEnergy(time:Float) -> Float { (1+cos(time*0.3))*0.5 }
-    enum ScenicStop:String,CaseIterable { case waterfalls,coast
-        var title:String { self == .waterfalls ? "Waterfall approach":"Coastal overlook" }
+    enum ScenicStop:String,CaseIterable { case river,coast,city
+        var title:String { switch self { case .river:return "River valley";case .coast:return "Coastal overlook";case .city:return "Earth city" } }
         var target:SIMD3<Float> {
-            self == .waterfalls ? [field.riverCenter(z:0),field.riverLevel(z:-160)+60,0]:[10500,0,1800]
+            switch self {
+            case .river:return [field.riverCenter(z:0),field.riverLevel(z:0)+20,0]
+            case .coast:return [10500,0,1800]
+            case .city:return [EarthCity.center.x,EarthCity.foundation+70,EarthCity.center.y]
+            }
         }
         func arrival(clearance:Float) -> SIMD3<Float> {
-            let x:Float=self == .waterfalls ? field.riverCenter(z:650):6500
-            let z:Float=self == .waterfalls ? 650:1800
+            if self == .city {
+                let x=EarthCity.center.x,z=EarthCity.center.y+1150
+                let ground=field.height(x:x,z:z)
+                return [x,max(ground,EarthCity.foundation+280)+max(300,clearance),z]
+            }
+            let x:Float=self == .river ? field.riverCenter(z:650):6500
+            let z:Float=self == .river ? 650:1800
             return [x,max(0,field.height(x:x,z:z))+max(220,clearance),z]
         }
     }

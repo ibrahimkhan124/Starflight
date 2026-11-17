@@ -40,6 +40,7 @@ final class WorldRenderer {
     private var gates: [Entity] = []
     private let sky: ModelEntity
     private let impact = Entity()
+    private let shipLighting=ShipLighting()
     private let adventures = FlightAdventureRenderer()
     private let universeScenery = UniverseRenderer()
     private let sun = DirectionalLight()
@@ -114,6 +115,7 @@ final class WorldRenderer {
         installDroid(droid, on: aircraft, aircraftType: type)
         anchor.addChild(camera.entity)
         anchor.addChild(impact)
+        anchor.addChild(shipLighting.root)
         anchor.addChild(adventures.root)
         sky.components.set(DynamicLightShadowComponent(castsShadow:false))
         sun.name = "Expedition sunlight"
@@ -341,7 +343,8 @@ final class WorldRenderer {
         explosion = nil
     }
 
-    func update(state: FlightState, throttle: Float, dt: Float, nextCheckpoint: Int, crashTime: Float?, bolts: [TurretBolt], pursuers: [Pursuer], playerBolts: [PlayerBolt], racers: [RaceOpponent], collectedBoostPads: Set<Int>, boosting: Bool = false, skidding: Bool = false, impactEnergy: Float = 0, freeRoamZone: FreeRoamZone = .atmosphere, portals: [FreeRoamPortal] = [], returnPortalPosition: SIMD3<Float> = .zero, asteroids: [SpaceAsteroid] = [], surfacePlanet: SpacePlanet? = nil, surfaceBeacons: Int = 0, comets:[PlanetComet] = [], arenaMode: Bool = false, relaxedSpace: Bool = false, solarSurface: SolarBody? = nil, surfaceTime:Float=0) {
+    func update(state: FlightState, throttle: Float, dt: Float, nextCheckpoint: Int, crashTime: Float?, bolts: [TurretBolt], pursuers: [Pursuer], playerBolts: [PlayerBolt], racers: [RaceOpponent], collectedBoostPads: Set<Int>, boosting: Bool = false, skidding: Bool = false, impactEnergy: Float = 0, freeRoamZone: FreeRoamZone = .atmosphere, portals: [FreeRoamPortal] = [], returnPortalPosition: SIMD3<Float> = .zero, asteroids: [SpaceAsteroid] = [], surfacePlanet: SpacePlanet? = nil, surfaceBeacons: Int = 0, comets:[PlanetComet] = [], arenaMode: Bool = false, relaxedSpace: Bool = false, solarSurface: SolarBody? = nil, surfaceTime:Float=0,shipLightsEnabled:Bool=false) {
+        shipLighting.update(state:state,aircraft:aircraftType,enabled:shipLightsEnabled && crashTime == nil,reduced:performanceMode || surfaceReducedDetail,showLenses:camera.mode == .chase)
         arenaBoundary.isEnabled = arenaMode
         let awayFromAtmosphere = freeRoamZone != .atmosphere
         let inSpace = freeRoamZone == .asteroidField
@@ -915,5 +918,39 @@ private enum PlanetSurfaceMesh {
         descriptor.normals = MeshBuffers.Normals(normals)
         descriptor.primitives = .triangles(indices)
         return (try? MeshResource.generate(from: [descriptor])) ?? .generateSphere(radius: planet.radius)
+    }
+}
+
+
+/// A single real spotlight, independent of the hidden cockpit aircraft model.
+@MainActor
+final class ShipLighting {
+    let root=Entity()
+    private let lamp=Entity()
+    private let lenses:[ModelEntity]
+    private var configuredReduced:Bool?
+    init() {
+        root.name="Pilot controlled ship lights";lamp.name="Forward ship spotlight"
+        let mesh=MeshResource.generateSphere(radius:1),paint=UnlitMaterial(color:.init(red:0.78,green:0.90,blue:1,alpha:1))
+        lenses=(0..<2).map { _ in ModelEntity(mesh:mesh,materials:[paint]) }
+        root.addChild(lamp);for lens in lenses { root.addChild(lens) }
+        root.isEnabled=false
+    }
+    func update(state:FlightState,aircraft:AircraftType,enabled:Bool,reduced:Bool,showLenses:Bool=true) {
+        root.isEnabled=enabled
+        guard enabled else { return }
+        root.position=state.position;root.orientation=state.orientation
+        let height=max(0.6,aircraft.bodyRadius*0.25),nose = -aircraft.length*0.48
+        lamp.position=[0,height,nose]
+        if configuredReduced != reduced {
+            lamp.components.set(SpotLightComponent(color:.init(red:0.82,green:0.91,blue:1,alpha:1),intensity:2_000_000,innerAngleInDegrees:18,outerAngleInDegrees:42,attenuationRadius:reduced ? 280:450))
+            configuredReduced=reduced
+        }
+        for (i,lens) in lenses.enumerated() {
+            lens.isEnabled=showLenses
+            lens.name="Ship lamp lens \(i+1)"
+            lens.position=[(i == 0 ? -1:1)*min(aircraft.wingspan*0.16,12),height,nose]
+            lens.scale=SIMD3(repeating:max(0.18,min(0.7,aircraft.bodyRadius*0.04)))
+        }
     }
 }

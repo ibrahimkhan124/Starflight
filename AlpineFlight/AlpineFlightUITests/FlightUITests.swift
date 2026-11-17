@@ -137,6 +137,8 @@ final class FlightUITests: XCTestCase {
         Thread.sleep(forTimeInterval:6)
         XCTAssertTrue(app.buttons["Pause flight"].exists)
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format:"label CONTAINS %@","Coruscant")).firstMatch.exists)
+        let lights=app.buttons["Ship lights"];XCTAssertTrue(lights.isHittable);lights.tap()
+        XCTAssertEqual(lights.value as? String,"On")
         capture(app,name:"Coruscant rooftop birds lookout")
         app.terminate()
     }
@@ -280,14 +282,17 @@ final class FlightUITests: XCTestCase {
         let lookout=app.buttons["Visit Earth wildlife lookout"];XCTAssertTrue(lookout.isHittable);lookout.tap()
         Thread.sleep(forTimeInterval:3)
         XCTAssertTrue(app.buttons["Return solar orbit"].exists)
+        let lights=app.buttons["Ship lights"];XCTAssertTrue(lights.isHittable);lights.tap()
+        XCTAssertEqual(lights.value as? String,"On")
         capture(app,name:"Earth deer valley wildlife lookout")
-        for stop in ["waterfalls","coast"] {
+        for stop in ["river","coast","city"] {
             app.buttons["Flight tools"].tap()
             let visit=app.buttons["Visit Earth "+stop];XCTAssertTrue(visit.isHittable);visit.tap()
             Thread.sleep(forTimeInterval:4)
             XCTAssertTrue(app.buttons["Return solar orbit"].exists)
             capture(app,name:"Earth scenic "+stop)
         }
+        lights.tap();XCTAssertEqual(lights.value as? String,"Off")
         app.buttons["Return solar orbit"].tap();waitForUniverseArrival(app)
         XCTAssertTrue(app.buttons["Enter selected solar planet"].exists)
         capture(app,name:"Returned to Solar System orbit after Earth wildlife")
