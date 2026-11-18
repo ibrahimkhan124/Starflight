@@ -89,13 +89,15 @@ final class EngineEffects {
         aircraft.addChild(root)
         update(throttle:0,boosting:false,dt:0)
     }
-    func update(throttle:Float,boosting:Bool,dt:Float) {
+    func update(throttle:Float,boosting:Bool,dt:Float,reduceMotion:Bool=UIAccessibility.isReduceMotionEnabled) {
         let delta = dt.isFinite ? clamp(dt,0,0.1) : 0
-        time += delta
+        time = (time+delta).truncatingRemainder(dividingBy:120 * .pi)
         let target = throttle.isFinite ? clamp(abs(throttle),0,1) : 0
         strength += (target-strength)*(1-exp(-delta*9))
         for (index,jet) in jets.enumerated() {
-            let pulse = 1+0.055*sin(time*23+Float(index)*1.7)
+            // Layer a slow plume swell over a smaller fast shimmer.
+            let offset=Float(index)*1.7
+            let pulse:Float = reduceMotion ? 1 : 1+0.035*sin(time*7+offset)+0.012*sin(time*23+offset)
             let radius = jet.2*(0.6+strength*0.4)*pulse
             let length = (0.25+strength*3.6)*(boosting ? 1.7 : 1)*jet.2
             jet.0.scale = [radius*0.65,radius*0.65,length*0.45]

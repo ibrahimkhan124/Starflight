@@ -94,6 +94,23 @@ enum SpaceScenery {
         return root
     }
 
+    /// Wallpaper-style independent layer motion. Catalogue stars remain untouched.
+    /// Only the cached nebula transform changes; meshes and textures stay prepared.
+    final class BackdropAnimation {
+        private let nebula:Entity?
+        private var phase:Double = 0
+        init(backdrop:Entity) { nebula=backdrop.findEntity(named:"Distant violet nebula") }
+        func update(dt:Float,active:Bool,reduced:Bool,reduceMotion:Bool) {
+            guard let nebula else { return }
+            if reduceMotion || reduced { nebula.orientation=simd_quatf();return }
+            guard active,dt.isFinite,dt>0 else { return }
+            // Shared 120-second period is continuous when the phase wraps.
+            phase=(phase+Double(min(dt,0.1))*2 * .pi/120).truncatingRemainder(dividingBy:2 * .pi)
+            nebula.orientation=simd_quatf(angle:Float(sin(phase))*0.025,axis:[0,1,0]) *
+                simd_quatf(angle:Float(sin(phase*2))*0.008,axis:[0,0,1])
+        }
+    }
+
     /// Prebuilt white coma and soft, fading ice/dust ribbons. Only transforms change in flight.
     static func makePlanetComets(reducedDetail:Bool) -> Entity {
         let root = Entity(); root.name = "Planet comet pool"

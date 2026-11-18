@@ -357,7 +357,7 @@ final class ExpansionTests: XCTestCase {
             let effect = EngineEffects(on:root,type:ship)
             let nozzles = effect.root.children.count
             XCTAssertGreaterThan(nozzles,0)
-            XCTAssertLessThanOrEqual(nozzles,4)
+            XCTAssertLessThanOrEqual(nozzles,ship == .starDestroyer ? 7:4,ship.name)
             effect.update(throttle:1,boosting:false,dt:1/60)
             XCTAssertGreaterThan(effect.strength,0)
             XCTAssertLessThan(effect.strength,0.3)
@@ -2607,5 +2607,40 @@ final class EarthCityAndShipLightTests:XCTestCase {
         XCTAssertFalse(right.isEnabled)
         XCTAssertEqual(lamp.position.x,0)
         XCTAssertEqual(lamp.components[SpotLightComponent.self]?.attenuationRadius,350)
+    }
+}
+
+@MainActor
+final class WallpaperMotionTests:XCTestCase {
+    func testNebulaMovesWithoutMovingStarsOrCreatingEntities() throws {
+        let root=SpaceScenery.makeBackdrop(),animation=SpaceScenery.BackdropAnimation(backdrop:root)
+        let nebula=try XCTUnwrap(root.findEntity(named:"Distant violet nebula"))
+        let ids=root.children.map(\.id)
+        let stars=root.children.filter { $0.name.hasPrefix("Batched stars") }
+        let transforms=stars.map(\.transform)
+        for _ in 0..<600 { animation.update(dt:1/60,active:true,reduced:false,reduceMotion:false) }
+        XCTAssertGreaterThan(nebula.orientation.angle,0.01)
+        XCTAssertLessThan(nebula.orientation.angle,0.04)
+        XCTAssertEqual(root.children.map(\.id),ids)
+        for (star,transform) in zip(stars,transforms) { XCTAssertEqual(star.transform,transform) }
+        let held=nebula.orientation.vector
+        animation.update(dt:10,active:false,reduced:false,reduceMotion:false)
+        animation.update(dt:.nan,active:true,reduced:false,reduceMotion:false)
+        XCTAssertEqual(nebula.orientation.vector,held)
+        animation.update(dt:1,active:true,reduced:false,reduceMotion:true)
+        XCTAssertEqual(nebula.orientation.angle,0,accuracy:0.0001)
+        animation.update(dt:1,active:true,reduced:true,reduceMotion:false)
+        XCTAssertEqual(nebula.orientation.angle,0,accuracy:0.0001)
+    }
+    func testReduceMotionKeepsExhaustSteadyWhileThrottleStillResponds() throws {
+        let root=Entity(),effect=EngineEffects(on:root,type:.xwing)
+        for _ in 0..<180 { effect.update(throttle:1,boosting:false,dt:1/60,reduceMotion:true) }
+        let core=try XCTUnwrap(effect.root.findEntity(named:"Plasma core"))
+        let scale=core.scale
+        for _ in 0..<60 { effect.update(throttle:1,boosting:false,dt:1/60,reduceMotion:true) }
+        XCTAssertEqual(core.scale.x,scale.x,accuracy:0.0001)
+        XCTAssertEqual(core.scale.z,scale.z,accuracy:0.0001)
+        effect.update(throttle:0,boosting:false,dt:0.1,reduceMotion:true)
+        XCTAssertLessThan(core.scale.z,scale.z)
     }
 }

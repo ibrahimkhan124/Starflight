@@ -27,6 +27,7 @@ final class WorldRenderer {
     private var hyperspaceStreaks: [ModelEntity] = []
     private var planetEntities: [Entity] = []
     private let spaceBackdrop = Entity()
+    private var backdropAnimation:SpaceScenery.BackdropAnimation?
     private var cometScenery = Entity()
     private var bountyMarker:ModelEntity?
     private let residences = CityResidenceRenderer()
@@ -379,6 +380,7 @@ final class WorldRenderer {
         terrain.root.isEnabled = terrain.ready && !awayFromAtmosphere
         sky.isEnabled = !awayFromAtmosphere
         spaceBackdrop.isEnabled = awayFromAtmosphere && surfacePlanet == nil
+        backdropAnimation?.update(dt:dt,active:spaceBackdrop.isEnabled && solarSurface == nil,reduced:performanceMode || surfaceReducedDetail,reduceMotion:UIAccessibility.isReduceMotionEnabled)
         cometScenery.isEnabled = surfacePlanet != nil
         residences.root.isEnabled = surfacePlanet == .coruscant
         SpaceScenery.updatePlanetComets(cometScenery,comets:comets)
@@ -518,7 +520,9 @@ final class WorldRenderer {
         hyperspaceLights.isEnabled = false
         anchor.addChild(hyperspaceLights)
 
-        spaceBackdrop.addChild(SpaceScenery.makeBackdrop())
+        let backdrop=SpaceScenery.makeBackdrop()
+        spaceBackdrop.addChild(backdrop)
+        backdropAnimation=SpaceScenery.BackdropAnimation(backdrop:backdrop)
         anchor.addChild(universeScenery.root)
         cometScenery = SpaceScenery.makePlanetComets(reducedDetail:reducedDetail)
         anchor.addChild(cometScenery)
