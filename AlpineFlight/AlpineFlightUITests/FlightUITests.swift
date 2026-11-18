@@ -260,12 +260,12 @@ final class FlightUITests: XCTestCase {
         }
         if onlyEndor { app.buttons["Pause flight"].tap(); return }
         app.buttons["Hyperspace"].tap()
-        app.segmentedControls["Universe sections"].buttons["Solar System"].tap()
+        selectUniverseSection("Solar System",in:app)
         let travel = app.buttons["Engage Solar System jump"]
         revealStoryControl(travel, in: app); travel.tap(); waitForUniverseArrival(app)
         for name in onlySolar.map({ [$0] }) ?? ["Mercury", "Venus", "Earth", "Mars", "Jupiter"] {
             app.buttons["Hyperspace"].tap()
-            app.segmentedControls["Universe sections"].buttons["Solar System"].tap()
+            selectUniverseSection("Solar System",in:app)
             let entry = app.buttons["Enter solar " + name]
             revealStoryControl(entry, in: app); entry.tap(); waitForUniverseArrival(app)
             XCTAssertTrue(app.buttons["Return solar orbit"].waitForExistence(timeout: 10), name)
@@ -278,7 +278,7 @@ final class FlightUITests: XCTestCase {
     @MainActor
     func testEarthWildlifeLookout() {
         let app=XCUIApplication();startUniverseFlight(app,extraArguments:["-reducedDetail","YES"])
-        app.buttons["Hyperspace"].tap();app.segmentedControls["Universe sections"].buttons["Solar System"].tap()
+        app.buttons["Hyperspace"].tap();selectUniverseSection("Solar System",in:app)
         let jump=app.buttons["Engage Solar System jump"];revealStoryControl(jump,in:app);jump.tap();waitForUniverseArrival(app)
         app.buttons["Enter selected solar planet"].tap();waitForUniverseArrival(app)
         app.buttons["Flight tools"].tap()
@@ -303,9 +303,47 @@ final class FlightUITests: XCTestCase {
     }
 
     @MainActor
+    func testAnimatedPlanetEntryAndPause() {
+        let app=XCUIApplication();startUniverseFlight(app)
+        app.buttons["Hyperspace"].tap();selectUniverseSection("Solar System",in:app)
+        let solar=app.buttons["Engage Solar System jump"];revealStoryControl(solar,in:app);solar.tap();waitForUniverseArrival(app)
+        app.buttons["Enter selected solar planet"].tap()
+        let title=app.staticTexts["Planet entry title"]
+        XCTAssertTrue(title.waitForExistence(timeout:8));XCTAssertEqual(title.label,"Entering Earth")
+        capture(app,name:"Earth layered orbital approach")
+        let cancel=app.buttons["Cancel planet approach"]
+        XCTAssertTrue(cancel.isHittable);cancel.tap()
+        XCTAssertTrue(app.buttons["Enter selected solar planet"].isHittable)
+        app.buttons["Enter selected solar planet"].tap()
+        XCTAssertTrue(title.waitForExistence(timeout:8))
+        let pause=app.buttons["Pause planet entry"]
+        XCTAssertTrue(pause.waitForExistence(timeout:3));pause.tap()
+        XCTAssertTrue(app.buttons["Resume flight"].waitForExistence(timeout:5))
+        Thread.sleep(forTimeInterval:3)
+        app.buttons["Resume flight"].tap()
+        XCTAssertTrue(title.waitForExistence(timeout:3))
+        expectation(for:NSPredicate(format:"exists == false"),evaluatedWith:cancel);waitForExpectations(timeout:20)
+        capture(app,name:"Earth atmosphere reveal")
+        expectation(for:NSPredicate(format:"exists == false"),evaluatedWith:title);waitForExpectations(timeout:15)
+        XCTAssertTrue(app.buttons["Return solar orbit"].isHittable)
+        capture(app,name:"Earth entered surface flight")
+        app.buttons["Return solar orbit"].tap();waitForUniverseArrival(app)
+        app.buttons["Hyperspace"].tap();selectUniverseSection("Galaxies",in:app)
+        let milkyWay=app.buttons["Galaxy milkyWay"];revealStoryControl(milkyWay,in:app);milkyWay.tap()
+        let home=app.buttons["Engage galaxy jump"];revealStoryControl(home,in:app);home.tap();waitForUniverseArrival(app)
+        app.buttons["Flight tools"].tap()
+        let hoth=app.buttons["Enter Hoth"];revealStoryControl(hoth,in:app);hoth.tap()
+        XCTAssertTrue(title.waitForExistence(timeout:5));XCTAssertEqual(title.label,"Entering Hoth")
+        capture(app,name:"Hoth layered planet entry")
+        expectation(for:NSPredicate(format:"exists == false"),evaluatedWith:title);waitForExpectations(timeout:15)
+        XCTAssertTrue(app.buttons["Pause flight"].isHittable)
+        app.terminate()
+    }
+
+    @MainActor
     func testSolarSurfaceEntryAndOrbitReturn() {
         let app = XCUIApplication(); startUniverseFlight(app)
-        app.buttons["Hyperspace"].tap(); app.segmentedControls["Universe sections"].buttons["Solar System"].tap()
+        app.buttons["Hyperspace"].tap(); selectUniverseSection("Solar System",in:app)
         let jump = app.buttons["Engage Solar System jump"]; revealStoryControl(jump,in:app); jump.tap(); waitForUniverseArrival(app)
         XCTAssertTrue(app.buttons["Enter selected solar planet"].waitForExistence(timeout:10))
         capture(app,name:"Solar System entry control and detailed planets")
@@ -438,11 +476,20 @@ final class FlightUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Hyperspace"].waitForExistence(timeout:15))
     }
     @MainActor
+    private func selectUniverseSection(_ name:String,in app:XCUIApplication) {
+        let tab=app.buttons["Universe tab "+name]
+        XCTAssertTrue(tab.waitForExistence(timeout:10));tab.tap()
+        expectation(for:NSPredicate(format:"value BEGINSWITH %@","Selected"),evaluatedWith:tab)
+        waitForExpectations(timeout:5)
+    }
+    @MainActor
     private func waitForUniverseArrival(_ app:XCUIApplication) {
         let jump = app.descendants(matching:.any)["Galaxy jump status"].firstMatch
         XCTAssertTrue(jump.waitForExistence(timeout:8))
-        capture(app,name:"Five second hyperspace streak tunnel")
+        capture(app,name:"Five second travel presentation")
         expectation(for:NSPredicate(format:"exists == false"),evaluatedWith:jump); waitForExpectations(timeout:20)
+        let entry=app.staticTexts["Planet entry title"]
+        if entry.exists { expectation(for:NSPredicate(format:"exists == false"),evaluatedWith:entry);waitForExpectations(timeout:15) }
         XCTAssertTrue(app.buttons["Hyperspace"].waitForExistence(timeout:10))
     }
     @MainActor
@@ -469,7 +516,7 @@ final class FlightUITests: XCTestCase {
     @MainActor
     func testRealStarSearchJumpAndSolarSystemFlyby() {
         let app = XCUIApplication(); startUniverseFlight(app); app.buttons["Hyperspace"].tap()
-        app.segmentedControls["Universe sections"].buttons["Astronomy"].tap()
+        selectUniverseSection("Astronomy",in:app)
         XCTAssertTrue(app.staticTexts["Star catalogue count"].label.contains("3,000"))
         let search = app.textFields["Star catalogue search"]; revealStoryControl(search,in:app); search.tap(); search.typeText("Sirius")
         app.keyboards.buttons["Search"].tap()
@@ -485,10 +532,10 @@ final class FlightUITests: XCTestCase {
         capture(app,name:"Paused star fact callout pointing to Sirius")
         app.buttons["Close star facts"].tap()
         XCTAssertTrue(app.buttons["Hyperspace"].waitForExistence(timeout:5))
-        app.buttons["Hyperspace"].tap(); app.segmentedControls["Universe sections"].buttons["Solar System"].tap()
+        app.buttons["Hyperspace"].tap(); selectUniverseSection("Solar System",in:app)
         let solar = app.buttons["Engage Solar System jump"]; revealStoryControl(solar,in:app); solar.tap(); waitForUniverseArrival(app)
         capture(app,name:"Solar System flyby scene with the Sun and planets")
-        app.buttons["Hyperspace"].tap(); app.segmentedControls["Universe sections"].buttons["Solar System"].tap()
+        app.buttons["Hyperspace"].tap(); selectUniverseSection("Solar System",in:app)
         let earth = app.buttons["Solar body Earth"]; revealStoryControl(earth,in:app); earth.tap()
         app.buttons["Close universe map"].tap(); app.buttons["Pause flight"].tap()
     }

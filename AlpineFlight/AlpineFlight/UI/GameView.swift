@@ -154,6 +154,11 @@ struct GameView: View {
         .overlay {
             if let inspection = engine.starInspection { StarFactCallout(engine: engine, inspection: inspection) }
         }
+        .overlay {
+            if engine.phase == .flying,let entry=engine.hud.planetEntry {
+                PlanetEntryOverlay(entry:entry,canCancel:engine.galaxyJumpActive,reducedDetail:engine.settings.performanceMode || engine.settings.terrainReducedDetail,onCancel:engine.cancelUniverseJump,onPause:engine.pause).ignoresSafeArea()
+            }
+        }
         .overlay(alignment: .center) { AsteroidScanOverlay(engine: engine).ignoresSafeArea().allowsHitTesting(false) }
         .overlay {
             if let planet = engine.arrivingPlanetName, engine.error == nil {

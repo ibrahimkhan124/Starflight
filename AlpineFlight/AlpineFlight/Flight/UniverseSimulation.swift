@@ -171,6 +171,31 @@ struct SolarBody:Identifiable {
         .init(name:"Uranus",radius:72,position:[1700,0,-5300],tint:[0.4,0.85,0.88]),
         .init(name:"Neptune",radius:70,position:[-1800,0,-6500],tint:[0.17,0.31,0.9]),
         .init(name:"Moon",radius:14,position:[-1270,0,-1000],tint:[0.65,0.65,0.67])]
+    /// Compressed orbits need a smaller capture shell around close neighbours (Earth/Moon).
+    var entryClearance:Float {
+        let gap=Self.all.filter { $0.name != name }.map { simd_distance(position,$0.position)-radius-$0.radius }.min() ?? 400
+        return max(12,min(120,gap*0.35))
+    }
+    /// First swept encounter: enter a planet's approach shell, but never enter the Sun.
+    static func entryEncounter(from a:SIMD3<Float>,to b:SIMD3<Float>,radius:Float) -> SolarBody? {
+        let delta=b-a,length=simd_length_squared(delta)
+        var first:(Float,SolarBody)?
+        for body in all {
+            let r=body.radius+max(0,radius)+(body.name == "Sun" ? 0:body.entryClearance)
+            let offset=a-body.position,c=simd_length_squared(offset)-r*r
+            let t:Float
+            if c<=0 { t=0 }
+            else {
+                guard length>0.000001 else { continue }
+                let projection=simd_dot(offset,delta),discriminant=projection*projection-length*c
+                guard discriminant>=0 else { continue }
+                t=(-projection-sqrt(discriminant))/length
+                guard t>=0,t<=1 else { continue }
+            }
+            if first == nil || t<first!.0 { first=(t,body) }
+        }
+        return first?.1
+    }
     static func impact(from a:SIMD3<Float>,to b:SIMD3<Float>,radius:Float) -> SolarBody? {
         let segment = b-a, length = max(0.001,simd_length_squared(segment))
         return all.first { body in
@@ -492,5 +517,36 @@ enum EarthRiver {
     static func surface(z:Float,across:Float=0,raise:Float=0) -> SIMD3<Float> {
         let field=EarthWildlife.field,x=field.riverCenter(z:z)+across
         return [x,max(field.riverLevel(z:z),field.height(x:x,z:z)+1.2)+raise,z]
+    }
+}
+
+/// Original native layered entry presentation, inspired by wallpaper scene composition.
+struct PlanetEntryVisual {
+    let name:String
+    let tint:SIMD3<Float>
+    let progress:Float
+    let hasAtmosphere:Bool
+    let cloudWorld:Bool
+    var stage:String {
+        if progress<0.38 { return "ORBITAL APPROACH" }
+        if progress<0.72 { return hasAtmosphere ? "CROSSING THE CLOUD LAYER":"DESCENDING TO THE SURFACE" }
+        return cloudWorld ? "CLOUD FLIGHT READY":"SURFACE FLIGHT READY"
+    }
+}
+struct PlanetArrivalSequence {
+    static let duration:Float=3
+    let name:String
+    let tint:SIMD3<Float>
+    let hasAtmosphere:Bool
+    let cloudWorld:Bool
+    let revealOnly:Bool
+    private(set) var remaining:Float=duration
+    var visual:PlanetEntryVisual {
+        let p=1-remaining/Self.duration
+        return .init(name:name,tint:tint,progress:revealOnly ? 0.68+p*0.32:p,hasAtmosphere:hasAtmosphere,cloudWorld:cloudWorld)
+    }
+    mutating func advance(dt:Float) -> Bool {
+        guard dt.isFinite,dt>0 else { return false }
+        remaining=max(0,remaining-min(dt,0.1));return remaining == 0
     }
 }

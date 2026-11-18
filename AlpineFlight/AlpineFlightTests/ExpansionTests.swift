@@ -2644,3 +2644,45 @@ final class WallpaperMotionTests:XCTestCase {
         XCTAssertLessThan(core.scale.z,scale.z)
     }
 }
+
+final class PlanetEntryTests:XCTestCase {
+    func testSweptEntryFindsEveryPlanetAndKeepsTheSunHazardous() {
+        for body in SolarBody.all {
+            let found=SolarBody.entryEncounter(from:body.position+[0,800,0],to:body.position-[0,800,0],radius:2)
+            XCTAssertEqual(found?.name,body.name,body.name)
+            XCTAssertNil(SolarBody.entryEncounter(from:body.position+[0,800,0],to:body.position+[0,700,0],radius:2),body.name)
+        }
+        let earth=SolarBody.all.first { $0.name == "Earth" }!,moon=SolarBody.all.first { $0.name == "Moon" }!
+        XCTAssertLessThan(earth.radius+earth.entryClearance+moon.radius+moon.entryClearance+4,simd_distance(earth.position,moon.position))
+    }
+    func testEachPlanetArrivesSafelyAndCanReturnToOrbit() {
+        for body in SolarBody.all where body.name != "Sun" {
+            var flight=UniverseFlight(),state=FlightState()
+            XCTAssertTrue(flight.begin(.solarSystem,state:state))
+            for _ in 0..<601 { _=flight.advanceJump(state:&state,dt:1/120) }
+            XCTAssertTrue(flight.begin(.surface(body.name),state:state))
+            for _ in 0..<601 { _=flight.advanceJump(state:&state,dt:1/120) }
+            XCTAssertEqual(flight.surfaceBody?.name,body.name)
+            if !body.isCloudWorld { XCTAssertGreaterThan(state.position.y-SolarLandscape(body:body).height(x:state.position.x,z:state.position.z),399) }
+            XCTAssertTrue(flight.begin(.solarSystem,state:state))
+            for _ in 0..<601 { _=flight.advanceJump(state:&state,dt:1/120) }
+            XCTAssertNil(flight.surfaceBody)
+        }
+    }
+    func testEntryProgressHoldsOnPauseAndRejectsInvalidTime() {
+        var sequence=PlanetArrivalSequence(name:"Hoth",tint:[0.7,0.8,1],hasAtmosphere:true,cloudWorld:false,revealOnly:false)
+        XCTAssertEqual(sequence.visual.progress,0)
+        XCTAssertFalse(sequence.advance(dt:.nan));XCTAssertFalse(sequence.advance(dt:0))
+        XCTAssertEqual(sequence.visual.progress,0)
+        for _ in 0..<90 { _=sequence.advance(dt:1/60) }
+        XCTAssertEqual(sequence.visual.progress,0.5,accuracy:0.001)
+        let held=sequence.remaining;_=sequence.advance(dt:-1);XCTAssertEqual(sequence.remaining,held)
+        for _ in 0..<91 { _=sequence.advance(dt:1/60) }
+        XCTAssertEqual(sequence.visual.progress,1)
+        XCTAssertTrue(sequence.advance(dt:1/60))
+        let cloud=PlanetArrivalSequence(name:"Jupiter",tint:[1,0.7,0.4],hasAtmosphere:true,cloudWorld:true,revealOnly:true)
+        XCTAssertEqual(cloud.visual.progress,0.68,accuracy:0.001)
+        let vacuum=PlanetEntryVisual(name:"Moon",tint:[1,1,1],progress:0.5,hasAtmosphere:false,cloudWorld:false)
+        XCTAssertEqual(vacuum.stage,"DESCENDING TO THE SURFACE")
+    }
+}

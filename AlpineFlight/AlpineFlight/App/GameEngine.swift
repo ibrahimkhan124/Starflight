@@ -73,6 +73,7 @@ struct HUDSnapshot {
     var weaponsActive = false
     var weaponHit = ""
     var celestialDistanceLabel:String?
+    var planetEntry:PlanetEntryVisual?
 }
 
 @MainActor
@@ -87,6 +88,8 @@ final class GameEngine: ObservableObject {
     private var bountyState = CityBountyHunt()
     private var planetComets = PlanetCometField()
     private var universe = UniverseFlight()
+    private var planetArrival:PlanetArrivalSequence?
+    private var solarEntryCooldown:Float=0
     private var universeTargetStar:Int?
     private var universeTargetHole = false
     private var solarTarget = "Earth"
@@ -566,7 +569,7 @@ final class GameEngine: ObservableObject {
     func enterSpaceFreeRoam() {
         guard level.isFreeRoam, phase == .flying || phase == .paused else { return }
         clearCityJob()
-        universe = UniverseFlight(); universeTargetStar = nil; universeTargetHole = false
+        universe = UniverseFlight(); planetArrival=nil;solarEntryCooldown=0; universeTargetStar = nil; universeTargetHole = false
         activities = FreeRoamActivities(); clearControls(); weapons.reset()
         settings.spaceFreeRoam = true; settings.save(defaults: progress.defaults)
         hyperspace.beginRelaxedSpace(state: &state, speed: aircraft.cruiseSpeed)
@@ -798,12 +801,27 @@ final class GameEngine: ObservableObject {
         if cityJobNotice != nil && elapsed > cityNoticeUntil { cityJobNotice = nil }
     }
 
+    private func beginPlanetArrival(_ planet:SpacePlanet) {
+        let tint:SIMD3<Float>
+        switch planet { case .hoth:tint=[0.65,0.82,1];case .tatooine:tint=[0.9,0.64,0.33];case .endor:tint=[0.25,0.65,0.4];case .coruscant:tint=[0.38,0.28,0.68] }
+        planetArrival = .init(name:planet.name,tint:tint,hasAtmosphere:true,cloudWorld:false,revealOnly:false)
+        throttle=0;clearControls();weapons.reset()
+    }
+    private var planetEntryVisual:PlanetEntryVisual? {
+        if let arrival=planetArrival { return arrival.visual }
+        if case .surface(let name)? = universe.destination,
+           let body=SolarBody.all.first(where:{ $0.name == name }) {
+            return .init(name:name,tint:body.tint,progress:(1-universe.remaining/UniverseFlight.jumpDuration)*0.68,hasAtmosphere:!["Mercury","Moon"].contains(name),cloudWorld:body.isCloudWorld)
+        }
+        return nil
+    }
     var currentSurfacePlanet: SpacePlanet? { hyperspace.surfacePlanet }
     func enterPlanetSurface(_ planet: SpacePlanet) {
         guard level.isFreeRoam, hyperspace.relaxedSpace,universe.homePlanets else { return }
         clearCityJob()
         emergencyFlight = nil; emergencyDocking = false; flightReplay.reset()
         hyperspace.enterPlanet(planet, state: &state)
+        beginPlanetArrival(planet)
 #if DEBUG
         if planet == .tatooine,ProcessInfo.processInfo.environment["STARFLIGHT_CANYON_CAPTURE"] == "1" {
             state.position=TatooineCanyon.origin+[0,170,1250]
@@ -861,6 +879,7 @@ final class GameEngine: ObservableObject {
         pilotTracker?.relocate();world?.camera.reset();world?.camera.inspectionTarget=site+[0,planet == .coruscant ? 0:7,0];publishHUD()
     }
     func returnToPlanetOrbit() {
+        planetArrival=nil
         clearCityJob()
         emergencyFlight = nil; emergencyDocking = false; flightReplay.reset()
         let departed = hyperspace.surfacePlanet
@@ -1268,7 +1287,7 @@ final class GameEngine: ObservableObject {
     private func resetFlight() {
         starInspection = nil; oreSurvey = nil
         clearCityJob()
-        universe = UniverseFlight(); universeTargetStar = nil; universeTargetHole = false
+        universe = UniverseFlight(); planetArrival=nil;solarEntryCooldown=0; universeTargetStar = nil; universeTargetHole = false
         if travelScore == nil { finishPilotFlight(.returned) }
         bankFlightRewards()
         if travelScore == nil { fuel = FlightFuel() }
@@ -1413,6 +1432,13 @@ final class GameEngine: ObservableObject {
             while accumulator >= FlightPhysics.step && phase == .flying {
                 let previous = state
                 renderPreviousState = previous
+                solarEntryCooldown=max(0,solarEntryCooldown-FlightPhysics.step)
+                if planetArrival != nil {
+                    if planetArrival!.advance(dt:FlightPhysics.step) { planetArrival=nil;clearControls();world.camera.reset() }
+                    renderPreviousState=state
+                    elapsed += FlightPhysics.step;accumulator -= FlightPhysics.step
+                    continue
+                }
                 if universe.jumping {
                     if let arrived = universe.advanceJump(state:&state,dt:FlightPhysics.step) { finishUniverseJump(arrived) }
                     renderPreviousState = state
@@ -1510,6 +1536,7 @@ final class GameEngine: ObservableObject {
                     world.camera.reset()
                     audio.hyperspace(enabled: settings.soundEnabled)
                 case .enteredSpace, .returnedToAtmosphere:
+                    if previousSurface == nil,let entered=hyperspace.surfacePlanet { beginPlanetArrival(entered) }
                     if let previousSurface, hyperspace.surfacePlanet == nil { recordStoryEvent(.orbit(previousSurface)) }
                     if hyperspaceEvent == .returnedToAtmosphere { throttle = max(0,throttle); settings.spaceFreeRoam = false; settings.save(defaults: progress.defaults) }
                     world.camera.reset()
@@ -1542,8 +1569,13 @@ final class GameEngine: ObservableObject {
                         } else if state.position.y > 3000 || max(abs(state.position.x),abs(state.position.z)) > 11500 {
                             engageUniverseJump(.solarSystem)
                         }
-                    } else if universe.sector == .solarSystem,let body = SolarBody.impact(from:previous.position,to:state.position,radius:aircraft.bodyRadius) {
-                        crash(cause:"Solar collision: " + body.name,world:world)
+                    } else if universe.sector == .solarSystem {
+                        if solarEntryCooldown<=0,universeTravelRestriction == nil,let body=SolarBody.entryEncounter(from:previous.position,to:state.position,radius:aircraft.bodyRadius) {
+                            if body.name == "Sun" { crash(cause:"Solar collision: Sun",world:world) }
+                            else { state=previous;enterSolarBody(body) }
+                        } else if let body=SolarBody.impact(from:previous.position,to:state.position,radius:aircraft.bodyRadius) {
+                            crash(cause:"Solar collision: " + body.name,world:world)
+                        }
                     }
                 }
                 if phase == .flying, let planet = hyperspace.surfacePlanet {
@@ -1705,7 +1737,7 @@ final class GameEngine: ObservableObject {
                      boosting:(race.isBoosting || state.driftBoostRemaining > 0) && phase == .flying,
                      skidding:skidding || keyboard.skidding,cockpit:cameraMode == .cockpit,weather:effectiveWeather,weatherActive:weatherActive)
         hudClock += dt
-        if hudClock > 0.1 {
+        if hudClock >= (planetEntryVisual == nil ? 0.1:1.0/30.0) {
             if phase == .flying {
                 publishHUD()
                 audioWasFlying = true
@@ -1818,7 +1850,7 @@ final class GameEngine: ObservableObject {
                           cityJobDetail: cityServiceDetail + cityDeadline,
                           controlAxes:controlAxes, weaponsActive:elapsed < shotUntil && phase == .flying,
                           weaponHit:elapsed < hitUntil && phase == .flying ? hitDescription : "",
-                          celestialDistanceLabel:universeActive ? selectedUniverseStar.map { String(format:"%.2f ly",simd_distance($0.positionPC,universe.observerPC(local:state.position))*3.26156) }:nil)
+                          celestialDistanceLabel:universeActive ? selectedUniverseStar.map { String(format:"%.2f ly",simd_distance($0.positionPC,universe.observerPC(local:state.position))*3.26156) }:nil,planetEntry:planetEntryVisual)
         if hyperspace.surfacePlanet == .coruscant || cityJobs.active != nil { cityJobs = cityJobState }
         if hyperspace.surfacePlanet == .coruscant || homeLanding.plot != nil { homeLanding = homeDock }
         if hyperspace.surfacePlanet == .coruscant || bounty.contract != nil { bounty = bountyState }
@@ -2172,7 +2204,10 @@ extension GameEngine {
     var selectedSolarBody: SolarBody? { SolarBody.all.first { $0.name == solarTarget } }
     var solarSystemActive:Bool { universeActive && universe.sector == .solarSystem && universe.surfaceBody == nil }
     var currentSolarSurface: SolarBody? { universe.surfaceBody }
-    func enterSolarBody(_ body: SolarBody) { engageUniverseJump(.surface(body.name)) }
+    func enterSolarBody(_ body: SolarBody) {
+        guard body.name != "Sun",SolarBody.all.contains(where:{ $0.name == body.name }) else { return }
+        solarTarget=body.name;engageUniverseJump(.surface(body.name))
+    }
     var galaxyJumpActive:Bool { universe.jumping }
     var galaxyJumpRemaining:Float { universe.remaining }
     var galaxyJumpTitle:String { universe.destination?.title ?? "Hyperspace" }
@@ -2248,7 +2283,12 @@ extension GameEngine {
         universeTravelID += 1; publishHUD()
     }
     func cancelUniverseJump() {
-        universe.cancel(state:&state); throttle = departureThrottle; renderPreviousState = state
+        solarEntryCooldown=3
+        var surfaceApproach=false
+        if case .surface(_)? = universe.destination { surfaceApproach=true }
+        universe.cancel(state:&state)
+        if surfaceApproach { state.velocity = .zero;state.airspeed=0 }
+        throttle = surfaceApproach ? 0:departureThrottle; renderPreviousState = state
         world?.camera.reset(); publishHUD()
     }
     private func finishUniverseJump(_ destination:UniverseDestination) {
@@ -2261,6 +2301,9 @@ extension GameEngine {
         pilotTracker?.relocate(); flightReplay.reset(); world?.camera.reset()
         var wallet = FlightEconomy.load(from:progress.defaults); wallet.recordUniverseVisit(universe.galaxy,star:universe.observerHIP)
         wallet.save(to:progress.defaults); economy = wallet
+        if let body=universe.surfaceBody {
+            planetArrival = .init(name:body.name,tint:body.tint,hasAtmosphere:!["Mercury","Moon"].contains(body.name),cloudWorld:body.isCloudWorld,revealOnly:true)
+        }
         audio.arrival(enabled:settings.soundEnabled); acknowledge("ARRIVED · " + universe.location.uppercased()); publishHUD()
     }
     private func updateAstronomyReadout() {

@@ -19,11 +19,14 @@ struct UniverseNavigationView:View {
         return Array(StarCatalogue.all.filter { query.isEmpty || $0.title.localizedCaseInsensitiveContains(query) || String($0.hip).contains(query) }.prefix(24))
     }
     var body:some View {
+        VStack(spacing:0) {
+            UniverseSectionPicker(selection:$section)
+                .padding(.horizontal,20).padding(.top,20).padding(.bottom,12)
+                .frame(maxWidth:800).frame(maxWidth:.infinity)
         ScrollView {
             VStack(alignment:.leading,spacing:verticalSize == .compact ? 12:18) {
                 Text("UNIVERSE EXPLORER").font(FlightStyle.displayFont(verticalSize == .compact ? 16:23)).textCase(.lowercase).foregroundStyle(FlightPalette.gold)
                 Text(engine.currentGalaxy.name + " · " + engine.currentUniverseLocation).font(.headline).accessibilityIdentifier("Current galaxy")
-                UniverseSectionPicker(selection:$section).frame(height:44)
                 if let restriction = engine.universeTravelRestriction {
                     Text(restriction).font(.subheadline).foregroundStyle(FlightPalette.gold)
                 }
@@ -122,6 +125,7 @@ struct UniverseNavigationView:View {
                 Text("Travel uses bounded local scenes rather than enormous world coordinates. Galaxies beyond the Milky Way use original procedural scenery; their stars are not labelled as catalogue observations.")
                     .font(.caption2).foregroundStyle(FlightPalette.secondary)
             }.padding(20).frame(maxWidth:800).frame(maxWidth:.infinity)
+        }
         }.background(FlightStyle.ink).foregroundStyle(.white)
             .navigationTitle("Galaxy map & hyperspace")
             .toolbar { ToolbarItem(placement:.confirmationAction) { Button("Done") { dismiss() }.flightButtonGlass().accessibilityIdentifier("Close universe map") } }
@@ -215,9 +219,12 @@ struct UniverseFlightStrip:View {
             }.font(.caption.bold()).padding(8).background(.black.opacity(0.8),in:Capsule()).accessibilityElement(children:.contain).accessibilityIdentifier("Galaxy jump status")
         } else if engine.solarSystemActive, let body = engine.selectedSolarBody {
             HStack {
-                Text("SOLAR SYSTEM · " + body.name.uppercased()).font(.caption.bold())
+                VStack(alignment:.leading,spacing:2) {
+                    Text("SOLAR SYSTEM · " + body.name.uppercased()).font(.caption.bold())
+                    Text("Fly towards the globe to enter").font(.caption2)
+                }
                 if body.name != "Sun" {
-                    Button(body.isCloudWorld ? "Explore clouds" : "Enter planet") { engine.enterSolarBody(body) }.flightButtonGlass().accessibilityIdentifier("Enter selected solar planet")
+                    Button(body.isCloudWorld ? "Enter clouds" : "Enter " + body.name) { engine.enterSolarBody(body) }.flightButtonGlass().accessibilityIdentifier("Enter selected solar planet")
                 }
             }.padding(8).foregroundStyle(.cyan).background(.black.opacity(0.8), in:Capsule())
         } else if let body = engine.currentSolarSurface {
@@ -287,26 +294,105 @@ struct AsteroidScanOverlay: View {
 }
 
 
-/// Keep the native segmented appearance with a full, stable touch area in sheets.
-private struct UniverseSectionPicker:UIViewRepresentable {
+/// Direct bindings avoid stale UIKit selection updates while the sheet appears.
+private struct UniverseSectionPicker:View {
     @Binding var selection:Int
-    func makeCoordinator() -> Coordinator { Coordinator(selection:$selection) }
-    func makeUIView(context:Context) -> UISegmentedControl {
-        let control=UISegmentedControl(items:["Galaxies","Astronomy","Solar System"])
-        control.accessibilityIdentifier="Universe sections"
-        control.accessibilityLabel="Exploration scale"
-        control.selectedSegmentIndex=selection
-        control.apportionsSegmentWidthsByContent=false
-        control.addTarget(context.coordinator,action:#selector(Coordinator.changed(_:)),for:.valueChanged)
-        control.setContentHuggingPriority(.defaultLow,for:.horizontal)
-        return control
+    private let titles=["Galaxies","Astronomy","Solar System"]
+    var body:some View {
+        HStack(spacing:4) {
+            ForEach(titles.indices,id:\.self) { index in
+                Button { selection=index } label: {
+                    Text(titles[index]).font(.subheadline.weight(.semibold))
+                        .foregroundStyle(selection == index ? Color.white:Color.white.opacity(0.75))
+                        .frame(maxWidth:.infinity,minHeight:44)
+                        .background(selection == index ? Color.white.opacity(0.17):Color.clear,in:Capsule())
+                        .contentShape(Capsule())
+                }.buttonStyle(.plain)
+                    .accessibilityIdentifier("Universe tab " + titles[index])
+                    .accessibilityValue(selection == index ? "Selected":"Not selected")
+                    .accessibilityAddTraits(selection == index ? .isSelected:[])
+            }
+        }.padding(4).background(.ultraThinMaterial,in:Capsule())
+            .accessibilityElement(children:.contain).accessibilityLabel("Exploration scale")
     }
-    func updateUIView(_ control:UISegmentedControl,context:Context) {
-        if control.selectedSegmentIndex != selection { control.selectedSegmentIndex=selection }
-    }
-    final class Coordinator:NSObject {
-        @Binding var selection:Int
-        init(selection:Binding<Int>) { _selection=selection }
-        @objc func changed(_ control:UISegmentedControl) { selection=control.selectedSegmentIndex }
+}
+
+/// Bounded native layers, driven by simulation time so pause freezes the approach.
+struct PlanetEntryOverlay:View {
+    let entry:PlanetEntryVisual
+    let canCancel:Bool
+    let reducedDetail:Bool
+    let onCancel:()->Void
+    let onPause:()->Void
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    private var p:Double { Double(entry.progress) }
+    private var tint:Color { Color(red:Double(entry.tint.x),green:Double(entry.tint.y),blue:Double(entry.tint.z)) }
+    private func ease(_ value:Double) -> Double { let t=min(1,max(0,value));return t*t*(3-2*t) }
+    var body:some View {
+        GeometryReader { geometry in
+            let size=geometry.size
+            let reveal=ease((p-0.68)/0.32)
+            ZStack {
+                Color.black.opacity(1-reveal)
+                if !reduceMotion && p<0.72 {
+                    let diameter=min(hypot(size.width,size.height)*1.25,min(size.width,size.height)*(0.36+ease(p/0.68)*4.8))
+                    ZStack {
+                        Circle().fill(tint).overlay {
+                            if ["Earth","Mars","Venus","Jupiter"].contains(entry.name) {
+                                Image("Orbital"+entry.name).resizable().scaledToFill().clipShape(Circle())
+                            } else {
+                                Circle().fill(LinearGradient(colors:[.white.opacity(0.3),.clear,.black.opacity(0.8)],startPoint:.topLeading,endPoint:.bottomTrailing))
+                            }
+                        }
+                        Circle().stroke(tint.opacity(0.45),lineWidth:8).blur(radius:8)
+                        Circle().fill(LinearGradient(colors:[.clear,.black.opacity(0.75)],startPoint:.topLeading,endPoint:.bottomTrailing))
+                    }.frame(width:diameter,height:diameter)
+                        .rotationEffect(.degrees(-8+p*22))
+                        .position(x:size.width*0.5,y:size.height*0.55)
+                        .opacity(1-ease((p-0.5)/0.18)).accessibilityHidden(true)
+                }
+                Canvas { context,canvas in
+                    guard !reduceMotion,!reducedDetail else { return }
+                    // Fixed pools: no particle objects or frame-time randomisation.
+                    if p<0.65 {
+                        for i in 0..<24 {
+                            let a=Double(i)*2.3999632,r=0.25+Double(i%7)*0.08+p*0.4
+                            let origin=CGPoint(x:canvas.width*0.5+cos(a)*canvas.width*r,y:canvas.height*0.5+sin(a)*canvas.height*r)
+                            var path=Path();path.move(to:origin)
+                            let length=28+ease(p/0.68)*120
+                            path.addLine(to:CGPoint(x:origin.x+cos(a)*length,y:origin.y+sin(a)*length))
+                            context.stroke(path,with:.color(.white.opacity((1-p/0.65)*0.45)),lineWidth:1)
+                        }
+                    }
+                    if entry.hasAtmosphere {
+                        let density=sin(min(1,max(0,(p-0.22)/0.78)) * .pi)
+                        context.addFilter(.blur(radius:18))
+                        for i in 0..<16 {
+                            let side=i.isMultiple(of:2) ? -1.0:1.0
+                            let travel=(p-0.45)*side*canvas.width*1.4
+                            let x=canvas.width*Double(i%4)/3+travel
+                            let y=canvas.height*Double(i/4)/3
+                            let rect=CGRect(x:x-canvas.width*0.32,y:y-canvas.height*0.14,width:canvas.width*0.64,height:canvas.height*0.3)
+                            context.fill(Path(ellipseIn:rect),with:.color(Color(red:0.7+Double(entry.tint.x)*0.3,green:0.7+Double(entry.tint.y)*0.3,blue:0.7+Double(entry.tint.z)*0.3).opacity(density*0.55)))
+                        }
+                    }
+                }
+                VStack {
+                    HStack {
+                        Spacer()
+                        if canCancel {
+                            Button("Cancel approach",action:onCancel).frame(minHeight:44).accessibilityIdentifier("Cancel planet approach")
+                        }
+                        Button(action:onPause) { Label("Pause",systemImage:"pause.fill") }.frame(minHeight:44).accessibilityIdentifier("Pause planet entry")
+                    }.font(.subheadline.bold()).buttonStyle(.bordered).tint(.cyan)
+                    Spacer()
+                    VStack(alignment:.leading,spacing:6) {
+                        Text("Entering " + entry.name).font(.title3.weight(.semibold)).accessibilityIdentifier("Planet entry title")
+                        Text(entry.stage).font(.caption2.monospaced().bold()).foregroundStyle(.white.opacity(0.8))
+                    }.frame(maxWidth:.infinity,alignment:.leading)
+                        .shadow(color:.black.opacity(0.9),radius:4)
+                }.padding(.horizontal,64).padding(.vertical,30)
+            }.foregroundStyle(.white).clipped()
+        }.background(Color.black.opacity(0.001)).accessibilityElement(children:.contain)
     }
 }
