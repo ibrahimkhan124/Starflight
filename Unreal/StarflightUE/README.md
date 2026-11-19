@@ -1,43 +1,30 @@
 # Starflight — Unreal Engine 5 migration prototype
 
-Status: **source foundation only; Unreal compilation, editor play and device packaging
-are pending an installed UE5 engine.** The existing Swift app is unchanged and
-remains the playable release. This folder is not yet a graphics replacement.
+Status: **UE 5.8.4 editor module compiled successfully on this Mac.**
+The terrain material has been created with the installed editor. A graphical game run and eight engine integration checks passed. Hands-on input
+acceptance and device packaging remain separate validation gates. The existing Swift app is
+unchanged and remains the playable release.
 
-## Install Unreal
+## Verified engine and toolchain
 
-Download **Epic Games Launcher for Mac** from
-https://www.unrealengine.com/download. Sign in, open **Unreal Engine → Library**,
-install a UE5 version and include the **iOS platform support** option. The user
-accepts Epic's account/licence terms directly. No launcher or engine was installed
-by this migration change.
+Unreal Engine **5.8.4** is installed at
+`/Users/ibrahimkhan/Development/UE_5.8`. This project uses the 5.8 engine association,
+V7 build defaults and Unreal5_8 include order. The editor module compiled with
+Xcode **27.2**, Mac SDK **27.2** and Apple clang **21.0.0**. The installed engine's
+`Engine/Config/Apple/Apple_SDK.json` permits Xcode through 27.9.0; the actual build
+accepted this toolchain. No global Xcode selection or production signing changed.
 
-Record the engine version before building. The checked API skeleton assumes UE
-5.4 or later, but has not been compiled with any UE version yet. `EngineAssociation`
-is deliberately empty until the installed version is verified.
+## Build and open
 
-The current Mac has Xcode **27.2**. Its compatibility with the chosen UE release
-must be checked first. Epic's current requirements page lists Xcode 26.1.1 as
-recommended for UE5.8 and explicitly excludes Xcode 26.4; that does not establish
-support for this machine's newer Xcode. If needed, install a compatible Xcode
-alongside the current one and pass `DEVELOPER_DIR` to the build. Do not change the
-Swift project's signing, deployment target or global Xcode selection.
-
-## First editor build (pending verification)
-
-1. Run `Tools/build_editor.sh "/path/to/UE_5.x"` with the actual engine folder.
-2. Open `StarflightUE.uproject` in the same editor version.
-3. Enable the built-in Python editor plugin if prompted, then run
-   `Tools/create_prototype_assets.py` from the editor's Python scripting menu.
-   It creates a simple vertex-colour terrain material. Python is an asset setup
-   tool only; it does not ship inside the game.
+1. Run `Tools/build_editor.sh "/Users/ibrahimkhan/Development/UE_5.8"`.
+2. Open `StarflightUE.uproject` with that engine.
+3. The checked-in `Content/Starflight/Materials/M_Terrain.uasset` provides terrain
+   vertex colour. To recreate it, run `Tools/create_prototype_assets.py` using the
+   editor's Python scripting tools. Python is an asset preparation tool only.
 4. Open `/Engine/Maps/Entry` and press Play. The configured game mode creates the
-   whole bounded mountain region, lights and flight pawn. If the engine version
-   does not expose this engine map, create/save an empty game map and set it as
-   the startup/default map before packaging.
-5. Verify mesh winding, lighting, camera roll direction, touch hit areas and
-   swept terrain collision in the actual editor. Fix adapter/API issues before
-   treating this as playable or exporting any device build.
+   whole bounded mountain region, lights and flight pawn.
+5. Verify lighting, camera, input, pause/restart and swept collision in the actual
+   game before treating this as a production graphics replacement.
 
 ## Controls wired in the source
 
@@ -50,10 +37,31 @@ Swift project's signing, deployment target or global Xcode selection.
   restarts. No weapons, shop, accounts, jobs or saves are migrated in this slice.
 
 These are source-level implementations, not verified device controls. Landscape
-orientation is configured. The Unreal iOS minimum version and provisioning still
-need version-specific setup; the production Swift app retains its iOS 26 floor.
+orientation and the Unreal `IOS_26` minimum are configured. iOS packaging,
+provisioning and real-device controls remain unverified; the production Swift
+app retains its existing deployment and signing settings.
 
-## What is tested now
+## Engine validation on 19 November 2026
+
+The game ran through the Metal renderer on this Mac (Apple M2 Pro). An opt-in
+`-StarflightSmoke` run passed eight checks: rendered-terrain collision height,
+forward thrust, cockpit camera, chase camera, terrain impact, restart, pause and
+resume. It writes a real game-frame screenshot after exposure settles. Physical
+sun intensity requires extended auto-exposure luminance range, now configured.
+
+Run `Tools/run_smoke.sh "/Users/ibrahimkhan/Development/UE_5.8"` after building.
+The test drives the actual pawn and physics world; it does not simulate OS
+keyboard/touch events and does not establish frame rate. Editor interaction via
+automation did not reliably start Play, so manual input acceptance is still open.
+See `Screenshots/unreal-first-flight.png` for the verified rendered prototype.
+
+An unsigned IOS Development build was attempted. UBT stopped before compilation:
+“Missing files required to build IOS targets.” Install the **iOS** optional
+component under Epic Launcher → Unreal Engine → Library → 5.8.4 → Options.
+No certificate, account, production bundle identifier or capability was changed.
+An installed SDK being detected as valid does not replace those engine binaries.
+
+## Portable core tests
 
 Run `Tests/run_core_tests.sh` on this Mac. It compiles the engine-independent C++20
 core with strict warnings, AddressSanitizer and UndefinedBehaviorSanitizer. It

@@ -18,7 +18,7 @@ engine manages the graphics; it does not remove Metal from Apple rendering.
 The shared chat discussed both Unreal and a different custom C++/Metal path.
 The user's explicit Unreal decision takes precedence over that recommendation.
 
-## Stage 1 — foundation (source prepared, engine validation pending)
+## Stage 1 — foundation (Mac engine checks passed, input/device gates open)
 
 - Isolated `.uproject`, runtime module, Mac/iOS targets and build helper.
 - App-owned Swift `advanceSpace` and alpine height recipe ported to a portable
@@ -29,12 +29,16 @@ The user's explicit Unreal decision takes precedence over that recommendation.
 - A whole bounded mountain mesh, chase/cockpit camera, touch/keyboard bindings,
   HUD and restartable swept-collision crash flow in the Unreal adapter source.
 - Portable core tests pass, including 11 Swift reference samples and sanitizer
-  checks. The UE adapter is uncompiled; it must be debugged with the real SDK.
+  checks. The UE adapter compiled against installed UE 5.8.4 and Xcode 27.2;
+  the terrain material was generated using the real editor commandlet.
 
 Gate: install/locate engine; confirm toolchain compatibility; compile; play;
 confirm winding, camera rotation sign, input, pause, restart, visible terrain and
 mesh collision; run one Mac build and one real iPhone/iPad development build.
-Until then no claim of a running Unreal Starflight is made.
+The 5.8.4 editor module now builds, and a graphical Mac run passed eight engine
+integration checks with a captured frame. Hands-on keyboard/touch acceptance,
+packaged Mac builds and iOS device testing remain open. The attempted iOS build
+requires installing Epic Launcher's optional iOS engine component first.
 
 ## Stage 2 — one visually convincing world and actual ship
 

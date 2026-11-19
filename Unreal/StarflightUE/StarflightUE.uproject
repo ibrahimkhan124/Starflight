@@ -1,9 +1,30 @@
 {
   "FileVersion": 3,
-  "EngineAssociation": "",
+  "EngineAssociation": "5.8",
   "Category": "Starflight Migration",
-  "Description": "Separate UE5 vertical slice. Unreal build pending installed engine validation.",
-  "Modules": [{"Name":"StarflightUE","Type":"Runtime","LoadingPhase":"Default"}],
-  "Plugins": [{"Name":"ProceduralMeshComponent","Enabled":true},{"Name":"PythonScriptPlugin","Enabled":true,"TargetAllowList":["Editor"]}],
-  "TargetPlatforms": ["Mac","IOS"]
+  "Description": "UE 5.8.4 migration prototype: mountain flight and engine smoke checks.",
+  "Modules": [
+    {
+      "Name": "StarflightUE",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ],
+  "Plugins": [
+    {
+      "Name": "ProceduralMeshComponent",
+      "Enabled": true
+    },
+    {
+      "Name": "PythonScriptPlugin",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
+    }
+  ],
+  "TargetPlatforms": [
+    "Mac",
+    "IOS"
+  ]
 }

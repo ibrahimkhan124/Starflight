@@ -46,6 +46,11 @@ private:
     FVector2D StickOrigin=FVector2D::ZeroVector,TouchAxes=FVector2D::ZeroVector;
     int32 StickFinger=INDEX_NONE,ThrottleFinger=INDEX_NONE;
     bool CockpitActive=false;
+#if !UE_BUILD_SHIPPING
+    int32 SmokeFrame=0;
+    bool SmokeEnabled=false,SmokeFailed=false;
+    void TickSmokeCheck();
+#endif
     void SetPitch(float V) { PitchAxis=V; }
     void SetRoll(float V) { RollAxis=V; }
     void SetYaw(float V) { YawAxis=V; }

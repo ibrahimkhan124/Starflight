@@ -7,11 +7,14 @@
 #include "GameFramework/PlayerController.h"
 #include "Components/InputComponent.h"
 #include "Engine/Canvas.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
+#include "HAL/PlatformMisc.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/DirectionalLight.h"
 #include "Engine/SkyLight.h"
-#include "Engine/SkyAtmosphere.h"
+#include "Components/SkyAtmosphereComponent.h"
 #include "Engine/ExponentialHeightFog.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Components/SkyLightComponent.h"
@@ -69,12 +72,17 @@ AStarflightPawn::AStarflightPawn() {
     Hull->SetRelativeScale3D(FVector(6,1.2,0.7));Wing->SetRelativeScale3D(FVector(1.4,8,0.15));
     Hull->SetCollisionEnabled(ECollisionEnabled::NoCollision);Wing->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     Boom=CreateDefaultSubobject<USpringArmComponent>(TEXT("ChaseArm"));Boom->SetupAttachment(Collision);
-    Boom->TargetArmLength=1800;Boom->SocketOffset=FVector(0,0,500);Boom->bDoCollisionTest=true;
+    Boom->bInheritRoll=false;Boom->TargetArmLength=1800;Boom->SocketOffset=FVector(0,0,500);Boom->bDoCollisionTest=true;
     Chase=CreateDefaultSubobject<UCameraComponent>(TEXT("ChaseCamera"));Chase->SetupAttachment(Boom);
     Cockpit=CreateDefaultSubobject<UCameraComponent>(TEXT("CockpitCamera"));Cockpit->SetupAttachment(Collision);
     Cockpit->SetRelativeLocation(FVector(320,0,90));Cockpit->SetAutoActivate(false);
 }
-void AStarflightPawn::BeginPlay() { Super::BeginPlay();RestartFlight(); }
+void AStarflightPawn::BeginPlay() {
+    Super::BeginPlay();RestartFlight();
+#if !UE_BUILD_SHIPPING
+    SmokeEnabled=FParse::Param(FCommandLine::Get(),TEXT("StarflightSmoke"));
+#endif
+}
 void AStarflightPawn::RestartFlight() {
     Flight=starflight::State{};Throttle=0;Crashed=false;Accumulator=0;
     PitchAxis=RollAxis=YawAxis=ThrottleAxis=0;TouchAxes=FVector2D::ZeroVector;
@@ -83,6 +91,9 @@ void AStarflightPawn::RestartFlight() {
 }
 void AStarflightPawn::Tick(float Delta) {
     Super::Tick(Delta);
+#if !UE_BUILD_SHIPPING
+    if(SmokeEnabled) TickSmokeCheck();
+#endif
     if(Crashed || !FMath::IsFinite(Delta) || Delta<=0) return;
     Throttle=FMath::Clamp(Throttle+ThrottleAxis*FMath::Min(Delta,0.1f)*0.5f,-1.0f,1.0f);
     Accumulator+=FMath::Min(Delta,0.1f);
@@ -104,6 +115,43 @@ void AStarflightPawn::Tick(float Delta) {
         Accumulator-=starflight::Step;
     }
 }
+#if !UE_BUILD_SHIPPING
+// Opt-in engine integration check. It drives real pawn movement and physics sweeps;
+// keyboard/touch event delivery remains a separate hands-on acceptance check.
+void AStarflightPawn::TickSmokeCheck() {
+    ++SmokeFrame;
+    auto Check=[this](bool Pass,const TCHAR* What) {
+        SmokeFailed|=!Pass;
+        UE_LOG(LogTemp,Display,TEXT("STARFLIGHT_SMOKE %s: %s"),Pass?TEXT("PASS"):TEXT("FAIL"),What);
+    };
+    if(SmokeFrame==1) {
+        FHitResult Ground;
+        const auto P=GetActorLocation();
+        FCollisionQueryParams Params;Params.AddIgnoredActor(this);
+        const bool Hit=GetWorld()->LineTraceSingleByChannel(Ground,P,P-FVector(0,0,200000),ECC_Visibility,Params);
+        const starflight::Terrain Field;
+        Check(Hit && FMath::Abs(Ground.ImpactPoint.Z/100-Field.Surface(Flight.position.x,Flight.position.z))<0.1,TEXT("visible terrain matches collision height"));
+    }
+    if(SmokeFrame<120) Throttle=0.5f;
+    if(SmokeFrame==120) {
+        Check(!Crashed && Flight.position.z<240,TEXT("forward thrust moves pawn"));
+        if(auto* PC=Cast<APlayerController>(GetController())) PC->ConsoleCommand(TEXT("HighResShot 1"));
+    }
+    if(SmokeFrame==150) { ToggleCamera();Check(Cockpit->IsActive() && !Chase->IsActive(),TEXT("cockpit camera")); }
+    if(SmokeFrame==180) {
+        ToggleCamera();Check(Chase->IsActive() && !Cockpit->IsActive(),TEXT("chase camera"));
+        RestartFlight();Flight.pitch=-UE_PI/2;Throttle=1;
+    }
+    if(SmokeFrame==450) {
+        Check(Crashed,TEXT("terrain impact stops flight"));
+        RestartFlight();Check(!Crashed && Flight.position.y==430 && Throttle==0,TEXT("restart restores flight"));
+        TogglePause();Check(UGameplayStatics::IsGamePaused(this),TEXT("pause"));
+        TogglePause();Check(!UGameplayStatics::IsGamePaused(this),TEXT("resume"));
+        UE_LOG(LogTemp,Display,TEXT("STARFLIGHT_SMOKE RESULT: %s"),SmokeFailed?TEXT("FAIL"):TEXT("PASS"));
+        FPlatformMisc::RequestExitWithStatus(false,SmokeFailed?1:0);
+    }
+}
+#endif
 void AStarflightPawn::ToggleCamera() {
     CockpitActive=!CockpitActive;Cockpit->SetActive(CockpitActive);Chase->SetActive(!CockpitActive);
     Hull->SetVisibility(!CockpitActive);Wing->SetVisibility(!CockpitActive);
