@@ -1,0 +1,11 @@
+// Shared noise for the Unreal materials that compile onto Apple Metal.
+struct SurfaceNoise {
+    float Hash(float2 q) { return frac(sin(dot(q,float2(127.1,311.7))) * 43758.5453); }
+    float Value(float2 q) {
+        float2 i=floor(q), f=frac(q);
+        f=f*f*(3.0-2.0*f);
+        return lerp(lerp(Hash(i),Hash(i+float2(1,0)),f.x),
+                    lerp(Hash(i+float2(0,1)),Hash(i+1),f.x),f.y);
+    }
+};
+SurfaceNoise n;

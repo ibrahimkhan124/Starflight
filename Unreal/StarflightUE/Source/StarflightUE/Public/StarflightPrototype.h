@@ -12,14 +12,21 @@ class USpringArmComponent;
 class UCameraComponent;
 class UStaticMeshComponent;
 class UProceduralMeshComponent;
+enum class EStarflightWorld : uint8;
 
 UCLASS()
 class STARFLIGHTUE_API AStarflightRegion : public AActor {
     GENERATED_BODY()
 public:
     AStarflightRegion();
-    virtual void BeginPlay() override;
+    bool Prepare(EStarflightWorld Planet);
+    float Surface(float X, float Z) const;
+    bool Contains(starflight::Vec3 P) const { return FMath::Abs(P.x)<=Extent && FMath::Abs(P.z)<=Extent; }
+    starflight::Vec3 Arrival{0,430,8400};
 private:
+    TArray<float> Heights;
+    float Extent=12000;
+    int32 Cells=0;
     UPROPERTY(VisibleAnywhere) TObjectPtr<UProceduralMeshComponent> TerrainMesh;
 };
 
@@ -33,12 +40,13 @@ public:
     virtual void SetupPlayerInputComponent(UInputComponent* Input) override;
     float Throttle=0;
     bool Crashed=false;
+    bool RockWarning=false,RockImpact=false;
     starflight::State Flight;
     void RestartFlight();
+    UPROPERTY() TObjectPtr<AStarflightRegion> Region;
 private:
     UPROPERTY(VisibleAnywhere) TObjectPtr<USphereComponent> Collision;
     UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> Hull;
-    UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> Wing;
     UPROPERTY(VisibleAnywhere) TObjectPtr<USpringArmComponent> Boom;
     UPROPERTY(VisibleAnywhere) TObjectPtr<UCameraComponent> Chase;
     UPROPERTY(VisibleAnywhere) TObjectPtr<UCameraComponent> Cockpit;
@@ -57,6 +65,8 @@ private:
     void SetThrottleAxis(float V) { ThrottleAxis=V; }
     void ToggleCamera();
     void TogglePause();
+    void SelectWorld(EStarflightWorld Planet);
+    void ShowFlightPlanner();
     void TouchBegin(ETouchIndex::Type Finger,FVector Location);
     void TouchMove(ETouchIndex::Type Finger,FVector Location);
     void TouchEnd(ETouchIndex::Type Finger,FVector Location);
@@ -74,5 +84,7 @@ class STARFLIGHTUE_API AStarflightGameMode : public AGameModeBase {
     GENERATED_BODY()
 public:
     AStarflightGameMode();
+    virtual void InitGame(const FString& MapName,const FString& Options,FString& Error) override;
     virtual void StartPlay() override;
+    EStarflightWorld Planet;
 };

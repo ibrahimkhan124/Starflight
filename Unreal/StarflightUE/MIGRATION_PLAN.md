@@ -40,18 +40,17 @@ integration checks with a captured frame. Hands-on keyboard/touch acceptance,
 packaged Mac builds and iOS device testing remain open. The attempted iOS build
 requires installing Epic Launcher's optional iOS engine component first.
 
-## Stage 2 — one visually convincing world and actual ship
+## Stage 2 — native Starflight surfaces and a detailed ship
 
-Import `../../AlpineFlight/Art/BlenderLibrary/Ships/Ship_xwing.blend` via an
-editor-verified Blender → FBX/glTF pipeline, preserving metres and hull thickness.
-Create PBR material assets, terrain layers, atmosphere, clouds, shadows and engine
-FX in Unreal. Replace the placeholder ship and author a small scenic route.
-Use reference images and matching camera shots to judge the improvement rather
-than assuming a C++ rewrite automatically raises graphics quality.
+The prototype loads Hoth, Tatooine, Endor and Coruscant from the existing Swift
+world definitions. Each landscape has its own lighting and surface palette,
+custom scenery, and the original Peregrine survey ship created for Unreal.
+The SwiftUI Flight Planner lives in the Unreal process and passes selection to
+C++ via an Objective-C++ bridge. The renderer and world data stay in Unreal.
 
-Gate: measured frame time/memory on the target Mac and an older supported iPhone
-or iPad; equivalent route/input checks; shader/asset preparation without visible
-terrain reshaping. Do not promise desktop effects on the mobile renderer.
+Gate: measured frame time and memory on an older supported iPhone or iPad,
+hands-on touch controls and matching gameplay routes. Each region prepares
+before flight, with baked world data and instanced scenery.
 
 ## Stage 3 — planets, space and travel
 

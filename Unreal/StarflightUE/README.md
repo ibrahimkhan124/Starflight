@@ -1,88 +1,61 @@
-# Starflight — Unreal Engine 5 migration prototype
+# Starflight — Unreal Engine 5 prototype
 
-Status: **UE 5.8.4 editor module compiled successfully on this Mac.**
-The terrain material has been created with the installed editor. A graphical game run and eight engine integration checks passed. Hands-on input
-acceptance and device packaging remain separate validation gates. The existing Swift app is
-unchanged and remains the playable release.
+Starflight runs in Unreal Engine **5.8.4**. The four selectable surfaces come from
+the existing Starflight world definitions. Each landscape is prepared as one
+region before flight. Terrain visuals, swept collision and altitude above ground
+use the same height samples.
 
-## Verified engine and toolchain
+## Build and fly on Mac
 
-Unreal Engine **5.8.4** is installed at
-`/Users/ibrahimkhan/Development/UE_5.8`. This project uses the 5.8 engine association,
-V7 build defaults and Unreal5_8 include order. The editor module compiled with
-Xcode **27.2**, Mac SDK **27.2** and Apple clang **21.0.0**. The installed engine's
-`Engine/Config/Apple/Apple_SDK.json` permits Xcode through 27.9.0; the actual build
-accepted this toolchain. No global Xcode selection or production signing changed.
+Build with `Tools/build_editor.sh /Users/ibrahimkhan/Development/UE_5.8`. The Mac
+editor target compiles with Xcode 27.2, including the SwiftUI Flight Planner.
+Open `StarflightUE.uproject` and press Play in the Entry map, or launch its game
+window directly:
 
-## Build and open
+```sh
+cd "/Users/ibrahimkhan/Development/UE_5.8/Engine/Binaries/Mac"
+./UnrealEditor.app/Contents/MacOS/UnrealEditor \
+  "/Users/ibrahimkhan/Documents/New project/Unreal/StarflightUE/StarflightUE.uproject" \
+  -game -windowed -ResX=1280 -ResY=720
+```
 
-1. Run `Tools/build_editor.sh "/Users/ibrahimkhan/Development/UE_5.8"`.
-2. Open `StarflightUE.uproject` with that engine.
-3. The checked-in `Content/Starflight/Materials/M_Terrain.uasset` provides terrain
-   vertex colour. To recreate it, run `Tools/create_prototype_assets.py` using the
-   editor's Python scripting tools. Python is an asset preparation tool only.
-4. Open `/Engine/Maps/Entry` and press Play. The configured game mode creates the
-   whole bounded mountain region, lights and flight pawn.
-5. Verify lighting, camera, input, pause/restart and swept collision in the actual
-   game before treating this as a production graphics replacement.
+Hold **R** to add throttle and **F** to reduce or reverse it. Use **W/S** for
+pitch, **A/D** for bank, **Q/E** for yaw, **C** to change camera, **Esc** to pause,
+and **Enter** to restart. Press **M** for the SwiftUI Flight Planner, or use
+**1–4** for Hoth, Tatooine, Endor and Coruscant. Pass `-StarflightWorld=Endor`
+to start on a specific world.
 
-## Controls wired in the source
+## Graphics and SwiftUI
 
-- W/S or up/down arrows: pitch; A/D: bank; Q/E: rudder.
-- R/F: throttle from −100% through hover to +100%.
-- C: cockpit/chase camera; Escape: pause/resume; Enter: restart.
-- iPhone/iPad: lower-left drag area steers; the right bar sets signed throttle;
-  upper-right region changes camera; upper-middle region pauses/resumes.
-- A terrain sweep or region exit enters a stopped crash state; tap or Enter
-  restarts. No weapons, shop, accounts, jobs or saves are migrated in this slice.
+- `Private/Apple/StarflightApp.swift` hosts `GameView.swift` as a native SwiftUI
+  planner. The Objective-C++ adapter sends player choices to the Unreal game thread.
+- `Private/GraphicsEngine/Renderer.cpp` and `Renderer.hpp` configure the sky,
+  sun, fog and materials. `Planets.cpp` loads the native world data and constructs
+  collidable scenery. `Spaceships.cpp` handles the Peregrine ship and flight cameras.
+  `PlanetWeather.cpp` adds gusts and precipitation. Hoth and Tatooine also have
+  boulders that roll downhill, trigger a proximity warning and can hit the hull.
+- `Shaders/Lighting.ush` supplies procedural lighting and surface inputs to
+  Unreal's material pipeline, which compiles for Metal on Apple platforms.
 
-These are source-level implementations, not verified device controls. Landscape
-orientation and the Unreal `IOS_26` minimum are configured. iOS packaging,
-provisioning and real-device controls remain unverified; the production Swift
-app retains its existing deployment and signing settings.
+Weather on Hoth is snow, on Tatooine it is blowing dust, and Endor and
+Coruscant have rain. Storm haze rises and falls during flight.
 
-## Engine validation on 19 November 2026
+The Unreal prototype covers surface flight. Orbit, jobs, native saves and other
+gameplay systems still live in the Swift release.
 
-The game ran through the Metal renderer on this Mac (Apple M2 Pro). An opt-in
-`-StarflightSmoke` run passed eight checks: rendered-terrain collision height,
-forward thrust, cockpit camera, chase camera, terrain impact, restart, pause and
-resume. It writes a real game-frame screenshot after exposure settles. Physical
-sun intensity requires extended auto-exposure luminance range, now configured.
+## Recreate assets
 
-Run `Tools/run_smoke.sh "/Users/ibrahimkhan/Development/UE_5.8"` after building.
-The test drives the actual pawn and physics world; it does not simulate OS
-keyboard/touch events and does not establish frame rate. Editor interaction via
-automation did not reliably start Play, so manual input acceptance is still open.
-See `Screenshots/unreal-first-flight.png` for the verified rendered prototype.
+Run `Tools/export_home_worlds.sh` to resample the four original Swift world
+definitions. Blender runs `Tools/build_survey_ship.py` and
+`Tools/build_planet_scenery.py` in background mode to create source FBX files.
+The editor's Python commandlet runs `Tools/create_scenic_assets.py` with
+`STARFLIGHT_SHIP_FBX` set to the ship FBX and `STARFLIGHT_SCENERY_FBX` set to the
+scenery FBX folder. Prepared Unreal assets and world files are included for play.
 
-An unsigned IOS Development build was attempted. UBT stopped before compilation:
-“Missing files required to build IOS targets.” Install the **iOS** optional
-component under Epic Launcher → Unreal Engine → Library → 5.8.4 → Options.
-No certificate, account, production bundle identifier or capability was changed.
-An installed SDK being detected as valid does not replace those engine binaries.
+Run `Tools/run_smoke.sh /Users/ibrahimkhan/Development/UE_5.8 Hoth` to check a
+planet's terrain collision, movement, cameras, restart and pause. The full Mac tour passed all four planets, including map changes. A hands-on
+Mac check opened the SwiftUI planner on Coruscant and selected Tatooine.
+Screenshots in `Screenshots/Worlds` are captured directly from Unreal.
 
-## Portable core tests
-
-Run `Tests/run_core_tests.sh` on this Mac. It compiles the engine-independent C++20
-core with strict warnings, AddressSanitizer and UndefinedBehaviorSanitizer. It
-checks signed movement, bounded bank, full pitch loops, invalid time handling,
-metres/centimetres and axis conversion, seeded terrain and triangle sampling.
-Eleven reference samples compare the C++ output against extracted Swift formulas;
-the Swift reference uses native simd quaternions for flight direction.
-
-`Tests/SwiftReference.csv` is generated by `swift Tests/SwiftReference.swift`.
-These port checks do **not** compile Unreal headers, validate Unreal physics
-sweeps, test a GPU, validate materials, or establish frame rate.
-
-## Graphics budget for this slice
-
-The 4.8 × 10 km scene uses a single 50 m grid: 19,497 vertices and 38,400 triangles,
-prepared once with the same triangle diagonal used by the CPU height query. The
-current ship is explicitly a primitive placeholder. Existing Blender ships will
-be imported from the source library in the next editor-validated stage.
-
-The initial mobile-forward configuration does not require Lumen, Nanite or
-hardware ray tracing. Desktop lighting and detail can increase after profiling;
-Mac visual quality is not a promise of the same features on iPhone/iPad.
-
-See [MIGRATION_PLAN.md](MIGRATION_PLAN.md) for the full sequence and acceptance gates.
+The SwiftUI code type-checks for iOS 26. An iPhone/iPad Unreal build requires the
+iOS platform option from Epic Games Launcher and still needs device validation.
