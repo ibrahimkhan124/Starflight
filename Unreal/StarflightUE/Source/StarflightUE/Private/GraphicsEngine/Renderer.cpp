@@ -32,13 +32,13 @@ UExponentialHeightFogComponent* BuildSky(UWorld& World, EStarflightWorld Planet)
     const bool City = Planet == EStarflightWorld::Coruscant;
     const bool Desert = Planet == EStarflightWorld::Tatooine;
     const bool Forest = Planet == EStarflightWorld::Endor;
-    const float Elevation = City ? 6 : Desert ? 26 : 44;
+    const float Elevation = City ? 6 : Desert ? 26 : Forest ? 29 : 44;
     const float Azimuth = Desert ? 134 : City ? 105 : 34;
     auto* Sun = World.SpawnActor<ADirectionalLight>(FVector::ZeroVector,FRotator(-Elevation,Azimuth,0));
     auto* Light = CastChecked<UDirectionalLightComponent>(Sun->GetLightComponent());
     Light->SetMobility(EComponentMobility::Movable);
     Light->SetIntensity(City ? 650 : 32000);
-    Light->SetLightColor(Desert ? FLinearColor(1,0.79,0.59) : City ? FLinearColor(0.50,0.59,1) : FLinearColor(0.96,0.99,1));
+    Light->SetLightColor(Desert ? FLinearColor(1,0.79,0.59) : City ? FLinearColor(0.50,0.59,1) : Forest ? FLinearColor(1,0.92,0.76) : FLinearColor(0.96,0.99,1));
     Light->bAtmosphereSunLight = true;
     Light->MarkRenderStateDirty();
 
@@ -76,7 +76,18 @@ UExponentialHeightFogComponent* BuildSky(UWorld& World, EStarflightWorld Planet)
     Haze->SetFogInscatteringColor(City ? FLinearColor(0.033,0.048,0.14) :
         Desert ? FLinearColor(0.64,0.35,0.19) :
         Forest ? FLinearColor(0.28,0.37,0.28) : FLinearColor(0.42,0.56,0.73));
-    Haze->SetStartDistance(26000);
+    Haze->SetStartDistance(Forest ? 1800 : 26000);
+#if PLATFORM_MAC
+    if (Forest) {
+        Haze->SetVolumetricFog(true);
+        Haze->SetVolumetricFogDistance(310000);
+        Haze->SetVolumetricFogScatteringDistribution(0.68f);
+        Haze->SetVolumetricFogExtinctionScale(0.48f);
+        Light->SetVolumetricScatteringIntensity(1.18f);
+        Light->SetDynamicShadowDistanceMovableLight(185000);
+        Light->SetDynamicShadowCascades(3);
+    }
+#endif
 
     UMaterialInterface* CloudMaterial = ScenicMaterial(TEXT("M_CloudDeck"));
     if (City || Desert || !CloudMaterial) return Haze;

@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <limits>
 
 // Ported from Starflight's app-owned Swift maths. SI units, +Y up, forward -Z.
 // No Apple or Unreal dependency: the adapter alone converts to Unreal centimetres.
@@ -16,17 +17,28 @@ struct Vec3 {
     Vec3 operator*(float s) const { return {x*s,y*s,z*s}; }
     float Length() const { return std::sqrt(x*x+y*y+z*z); }
 };
+inline float Dot(Vec3 a,Vec3 b) { return a.x*b.x+a.y*b.y+a.z*b.z; }
+inline Vec3 Cross(Vec3 a,Vec3 b) {
+    return {a.y*b.z-a.z*b.y,a.z*b.x-a.x*b.z,a.x*b.y-a.y*b.x};
+}
+inline Vec3 Rotate(Vec3 v,Vec3 axis,float radians) {
+    const float c=std::cos(radians),s=std::sin(radians);
+    return v*c+Cross(axis,v)*s+axis*(Dot(axis,v)*(1-c));
+}
 struct Input { float pitch=0,roll=0,yaw=0,throttle=0;bool boost=false; };
 struct Handling { float cruise=165,response=4.2f,maxPitch=0.62f,maxRoll=1.35f,yawAuthority=0.38f; };
 struct State {
     Vec3 position{0,430,250},velocity{};
     float pitch=0,roll=0,heading=0,pitchRate=0,rudder=0;
+    float airspeed=0;
+    bool stalled=false;
     Vec3 Forward() const { return {std::sin(heading)*std::cos(pitch),std::sin(pitch),-std::cos(heading)*std::cos(pitch)}; }
 };
-inline void Advance(State& s,Input i,float dt,Handling h={}) {
-    if (!std::isfinite(dt) || dt<=0 || dt>0.1f) return;
+inline Input Sanitize(Input i) {
     auto axis=[](float v) { return std::isfinite(v) ? Clamp(v,-1,1):0; };
-    i.pitch=axis(i.pitch);i.roll=axis(i.roll);i.yaw=axis(i.yaw);i.throttle=axis(i.throttle);
+    return {axis(i.pitch),axis(i.roll),axis(i.yaw),axis(i.throttle),i.boost};
+}
+inline void Steer(State& s,Input i,float dt,Handling h) {
     const float neutral=std::atan2(std::sin(s.pitch),std::cos(s.pitch));
     const float target=std::abs(i.pitch)>0.04f ? i.pitch*h.maxPitch*1.6f:Clamp(-neutral*0.7f,-0.35f,0.35f);
     s.pitchRate+=(target-s.pitchRate)*(1-std::exp(-dt*7));s.pitch+=s.pitchRate*dt;
@@ -34,10 +46,64 @@ inline void Advance(State& s,Input i,float dt,Handling h={}) {
     s.roll+=(i.roll*h.maxRoll-s.roll)*(1-std::exp(-dt*h.response));
     const float rate=i.yaw*s.rudder<0 || std::abs(i.yaw)<0.01f ? 24:16;
     s.rudder+=(i.yaw-s.rudder)*(1-std::exp(-std::min(dt,0.1f)*rate));
+}
+inline void Advance(State& s,Input i,float dt,Handling h={},float speedLimit=std::numeric_limits<float>::infinity()) {
+    if (!std::isfinite(dt) || dt<=0 || dt>0.1f) return;
+    i=Sanitize(i);
+    Steer(s,i,dt,h);
     s.heading=std::fmod(s.heading+(s.rudder*h.yawAuthority+std::sin(s.roll)*0.72f)*dt,2*Pi);
-    const float speed=h.cruise*1.45f*i.throttle*(i.boost && i.throttle>0 ? 1.3f:1);
+    const float normal=h.cruise*1.45f*i.throttle*(i.boost && i.throttle>0 ? 1.3f:1);
+    const float limit=std::max(speedLimit,0.f);
+    const float speed=std::isfinite(limit) ? Clamp(normal,-limit,limit) : normal;
     s.velocity=s.velocity+(s.Forward()*speed-s.velocity)*(1-std::exp(-dt*1.6f));
     s.position=s.position+s.velocity*dt;
+    s.airspeed=s.velocity.Length();
+    s.stalled=false;
+}
+// Planet exploration uses the same small wind impulse as the native surface mode.
+inline Vec3 WeatherWind(float time,float strength) {
+    return {std::sin(time*0.63f)*strength,std::sin(time*0.37f)*strength*0.12f,std::cos(time*0.41f)*strength*0.4f};
+}
+inline void AdvanceSurface(State& s,Input i,Vec3 wind,float dt,Handling h) {
+    if (!std::isfinite(dt) || dt<=0 || dt>0.1f) return;
+    Advance(s,i,dt,h);
+    s.velocity=s.velocity+wind*(0.3f*dt);
+}
+inline void AdvanceAtmosphere(State& s,Input i,Vec3 wind,float dt,Handling h) {
+    if (!std::isfinite(dt) || dt<=0 || dt>0.1f) return;
+    i=Sanitize(i);
+    const float oldPitch=s.pitch,oldHeading=s.heading;
+    Steer(s,i,dt,h);
+    const float bank=9.81f*std::sin(s.roll)*1.8f/std::max(s.airspeed,22.f);
+    s.heading=std::fmod(s.heading+(bank+s.rudder*h.yawAuthority)*dt,2*Pi);
+    const Vec3 up{0,1,0};
+    const Vec3 pitchAxis=Rotate({1,0,0},up,-oldHeading);
+    const Vec3 air=Rotate(Rotate(s.velocity-wind,pitchAxis,s.pitch-oldPitch),up,-(s.heading-oldHeading));
+    const float speed=std::max(air.Length(),0.1f);
+    const Vec3 direction=air*(1/speed);
+    auto orient=[&](Vec3 v) {
+        return Rotate(Rotate(Rotate(v,{0,0,1},-s.roll),{1,0,0},s.pitch),up,-s.heading);
+    };
+    const Vec3 forward=s.Forward(),right=orient({1,0,0});
+    const float angle=std::atan2(-Dot(air,orient(up)),Dot(air,forward));
+    s.stalled=speed<h.cruise*(25.f/52.f)||std::abs(angle)>0.34f;
+    float coefficient=Clamp(0.32f+4.2f*angle,-0.6f,1.4f);
+    if (std::abs(angle)>0.34f) coefficient*=0.38f;
+    const Vec3 axis=Cross(right,direction);
+    const float axisLength=axis.Length();
+    const Vec3 liftDirection=axisLength>0.001f ? axis*(1/axisLength) : up;
+    const float pressure=0.5f*1.225f*speed*speed;
+    const float loading=(16.2f/850.f)*std::pow(52.f/h.cruise,2.f);
+    const float engine=std::sqrt(h.cruise/52.f);
+    const Vec3 lift=liftDirection*(pressure*loading*coefficient);
+    const Vec3 drag=direction*(-pressure*loading*(0.124f+0.06f*coefficient*coefficient)*engine);
+    const Vec3 thrust=forward*(Clamp(i.throttle,0.f,1.f)*6.3f*engine*(i.boost ? 2.25f : 1.f));
+    const Vec3 lateral=right*(-Dot(air,right)*0.7f);
+    s.velocity=air+wind+(lift+drag+thrust+lateral+Vec3{0,-9.81f,0})*dt;
+    const float backward=Dot(s.velocity-wind,forward);
+    if (backward<0) s.velocity=s.velocity-forward*backward;
+    s.position=s.position+s.velocity*dt;
+    s.airspeed=(s.velocity-wind).Length();
 }
 struct Terrain {
     std::uint32_t seed=7319;

@@ -1,5 +1,8 @@
 #include "StarflightPrototype.h"
 #include "Renderer.hpp"
+#include "Fleet.hpp"
+#include "WorldFeatures.hpp"
+#include "StaticMeshResources.h"
 #include "Apple/SwiftPlanner.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -36,15 +39,53 @@ void AStarflightPawn::BeginPlay() {
     Super::BeginPlay();
     TActorIterator<AStarflightRegion> RegionIt(GetWorld());
     if (RegionIt) Region = *RegionIt;
+    if (const auto* Mode=GetWorld()->GetAuthGameMode<AStarflightGameMode>()) ApplyShip(Mode->SelectedShip);
     RestartFlight();
 #if !UE_BUILD_SHIPPING
     SmokeEnabled=FParse::Param(FCommandLine::Get(),TEXT("StarflightSmoke"));
+    if (SmokeEnabled) {
+        if (auto* PC=GetWorld()->GetFirstPlayerController()) DisableInput(PC);
+    }
 #endif
 }
+void AStarflightPawn::ApplyShip(int32 Index) {
+    if (!FlightFleet().IsValidIndex(Index)) return;
+    UStaticMesh* Mesh=LoadFleetShip(Index);
+    if (!Mesh) return;
+    ActiveShip=Index;
+    Hull->SetStaticMesh(Mesh);
+    const auto& Profile=ShipProfile(Index);
+    const auto* Mode=GetWorld()->GetAuthGameMode<AStarflightGameMode>();
+    const bool City=Mode && Mode->Planet==EStarflightWorld::Coruscant;
+    Collision->SetSphereRadius(100*(City ? Profile.CityRadius : Profile.BodyRadius));
+    const auto Bounds=Mesh->GetBounds();
+    if (Index>0) {
+        // Blender's +Y nose imports as Unreal -Y. The mesh component already turns +90 degrees.
+        // Match the authored span and length to the Swift aircraft dimensions.
+        const FVector Scale(Profile.Span*50/Bounds.BoxExtent.X,Profile.Length*50/Bounds.BoxExtent.Y,
+            Profile.Length*50/Bounds.BoxExtent.Y);
+        Hull->SetRelativeScale3D(Scale);
+        Hull->SetRelativeLocation(-Hull->GetRelativeRotation().RotateVector(Bounds.Origin*Scale));
+    } else {
+        Hull->SetRelativeScale3D(FVector::OneVector);
+        Hull->SetRelativeLocation(FVector::ZeroVector);
+    }
+    Boom->TargetArmLength=100*(Index>0 ? FMath::Max(22.f,Profile.Length*1.7f) : 18.f);
+    Boom->SocketOffset.Z=100*FMath::Max(5.f,Profile.Length*0.34f);
+    Cockpit->SetRelativeLocation(FVector(Profile.Length*32,0,FMath::Max(90.f,Profile.BodyRadius*120)));
+    UE_LOG(LogTemp,Display,TEXT("STARFLIGHT_ACTIVE_SHIP: %s"),Profile.Name);
+}
+
 void AStarflightPawn::RestartFlight() {
     Flight=starflight::State{};
     if (Region) Flight.position=Region->Arrival;
-    Throttle=0;Crashed=false;RockImpact=false;RockWarning=false;Accumulator=0;
+    Throttle=Aerodynamic ? 0.65f : 0.f;
+    if (Aerodynamic) {
+        Flight.airspeed=ShipProfile(ActiveShip).Handling.cruise;
+        Flight.velocity=Flight.Forward()*Flight.airspeed;
+    }
+    Crashed=false;RockImpact=false;RockWarning=false;WaterImpact=false;Accumulator=0;
+    FlightTime=0;LowFlightPoints=0;
     PitchAxis=RollAxis=YawAxis=ThrottleAxis=0;TouchAxes=FVector2D::ZeroVector;
     StickFinger=ThrottleFinger=INDEX_NONE;
     SetActorLocationAndRotation(ToUE(Flight.position),FRotator::ZeroRotator,false,nullptr,ETeleportType::TeleportPhysics);
@@ -57,22 +98,35 @@ void AStarflightPawn::Tick(float Delta) {
     if(Crashed || !FMath::IsFinite(Delta) || Delta<=0) return;
     Throttle=FMath::Clamp(Throttle+ThrottleAxis*FMath::Min(Delta,0.1f)*0.5f,-1.0f,1.0f);
     Accumulator+=FMath::Min(Delta,0.1f);
+    const auto* Mode=GetWorld()->GetAuthGameMode<AStarflightGameMode>();
+    const auto World=Mode ? Mode->Planet : EStarflightWorld::Hoth;
+    const float WindStrength=World==EStarflightWorld::Hoth ? 16.f : World==EStarflightWorld::Tatooine ? 12.f : 8.f;
     while(Accumulator>=starflight::Step && !Crashed) {
         starflight::Input Input;
         Input.pitch=FMath::Clamp(PitchAxis+float(TouchAxes.Y),-1.0f,1.0f);
         Input.roll=FMath::Clamp(RollAxis+float(TouchAxes.X),-1.0f,1.0f);
         Input.yaw=YawAxis;Input.throttle=Throttle;
-        starflight::Advance(Flight,Input,starflight::Step);
+        if (auto* PC=Cast<APlayerController>(GetController())) Input.boost=PC->IsInputKeyDown(EKeys::LeftShift);
+        FlightTime+=starflight::Step;
+        const auto Wind=starflight::WeatherWind(FlightTime,WindStrength);
+        const auto Handling=ShipProfile(ActiveShip).Handling;
+        if (Aerodynamic) starflight::AdvanceAtmosphere(Flight,Input,Wind,starflight::Step,Handling);
+        else starflight::AdvanceSurface(Flight,Input,Wind,starflight::Step,Handling);
         FHitResult Hit;
         SetActorLocationAndRotation(ToUE(Flight.position),FRotator(FMath::RadiansToDegrees(Flight.pitch),FMath::RadiansToDegrees(Flight.heading),FMath::RadiansToDegrees(Flight.roll)),true,&Hit);
         // The physics sweep uses the exact visible triangles, not the smooth height recipe.
         Crashed=Hit.bBlockingHit || (Region && !Region->Contains(Flight.position));
+        if (!Crashed && Region && Flight.airspeed>=45 && Throttle>0) {
+            const float Clearance=Flight.position.y-Region->FlightSurface(Flight.position.x,Flight.position.z);
+            if (Clearance>=8 && Clearance<60) LowFlightPoints+=(1-Clearance/60)*20*starflight::Step;
+        }
         if(Crashed) {
+            WaterImpact=Hit.GetComponent() && Hit.GetComponent()->GetFName()==TEXT("LakeSurface");
             UE_LOG(LogTemp, Display, TEXT("STARFLIGHT_IMPACT: %s at %s"),
                 Hit.bBlockingHit ? *GetNameSafe(Hit.GetComponent()) : TEXT("region boundary"),
                 *GetActorLocation().ToCompactString());
             const auto P=GetActorLocation();Flight.position=starflight::FromUnreal({float(P.X),float(P.Y),float(P.Z)});
-            Flight.velocity={};Throttle=0;
+            Flight.velocity={};Flight.airspeed=0;Throttle=0;
         }
         Accumulator-=starflight::Step;
     }
@@ -91,11 +145,38 @@ void AStarflightPawn::TickSmokeCheck() {
         const auto P=GetActorLocation();
         FCollisionQueryParams Params;Params.AddIgnoredActor(this);
         const bool Hit=GetWorld()->LineTraceSingleByChannel(Ground,P,P-FVector(0,0,200000),ECC_Visibility,Params);
-            Check(Region && Hit && FMath::Abs(Ground.ImpactPoint.Z/100-Region->Surface(Flight.position.x,Flight.position.z))<0.1,TEXT("visible terrain matches collision height"));
+            Check(Region && Hit && FMath::Abs(Ground.ImpactPoint.Z/100-Region->FlightSurface(Flight.position.x,Flight.position.z))<0.1,TEXT("visible terrain matches collision height"));
+    }
+    if (SmokeFrame==1 && Region) {
+        const auto* Mode=GetWorld()->GetAuthGameMode<AStarflightGameMode>();
+        if (Mode) {
+            for (const auto& Lake : WorldLakes(Mode->Planet)) {
+                const FVector Above=ToUE({float(Lake.Centre.X),Lake.Level+80,float(Lake.Centre.Y)});
+                FHitResult Surface;
+                FCollisionQueryParams Params;
+                Params.AddIgnoredActor(this);
+                const bool Hit=GetWorld()->LineTraceSingleByChannel(Surface,Above,Above-FVector(0,0,12000),ECC_Visibility,Params);
+                Check(Hit && Surface.GetComponent() && Surface.GetComponent()->GetFName()==TEXT("LakeSurface") &&
+                      std::abs(Surface.ImpactPoint.Z/100-Lake.Level)<0.1,TEXT("lake surface matches collision"));
+            }
+        }
+        if (FParse::Param(FCommandLine::Get(),TEXT("StarflightFleetCheck"))) {
+            int32 Painted=0;
+            for (int32 Index=1; Index<FlightFleet().Num(); ++Index) {
+                const UStaticMesh* Mesh=LoadFleetShip(Index);
+                const auto* Data=Mesh ? Mesh->GetRenderData() : nullptr;
+                if (Data && !Data->LODResources.IsEmpty() && Data->LODResources[0].VertexBuffers.ColorVertexBuffer.GetNumVertices()>0) ++Painted;
+            }
+            Check(Painted==FlightFleet().Num()-1,TEXT("every Blender ship loads with its paint"));
+            UE_LOG(LogTemp,Display,TEXT("STARFLIGHT_FLEET_CHECK: %d painted Blender ships"),Painted);
+        }
     }
     if(SmokeFrame<120) Throttle=0.5f;
     if(SmokeFrame==120) {
         Check(!Crashed && Region && Flight.position.z<Region->Arrival.z-10,TEXT("forward thrust moves pawn"));
+        if (FParse::Param(FCommandLine::Get(),TEXT("StarflightScenicShots"))) VisitLake();
+    }
+    if (SmokeFrame==130) {
         if(auto* PC=Cast<APlayerController>(GetController())) PC->ConsoleCommand(TEXT("HighResShot 1"));
     }
     if(SmokeFrame==150) { ToggleCamera();Check(Cockpit->IsActive() && !Chase->IsActive(),TEXT("cockpit camera")); }
@@ -141,6 +222,11 @@ void AStarflightPawn::SetupPlayerInputComponent(UInputComponent* Input) {
     BindWorld(EKeys::Two,EStarflightWorld::Tatooine);
     BindWorld(EKeys::Three,EStarflightWorld::Endor);
     BindWorld(EKeys::Four,EStarflightWorld::Coruscant);
+    Input->BindKey(EKeys::L,IE_Pressed,this,&AStarflightPawn::VisitLake);
+    Input->BindKey(EKeys::V,IE_Pressed,this,&AStarflightPawn::ToggleAerodynamics);
+    Input->BindKey(EKeys::LeftBracket,IE_Pressed,this,&AStarflightPawn::BrowseShip);
+    Input->BindKey(EKeys::RightBracket,IE_Pressed,this,&AStarflightPawn::BrowseShip);
+    Input->BindKey(EKeys::LeftMouseButton,IE_Pressed,this,&AStarflightPawn::ClickFlightHUD);
     Input->BindKey(EKeys::M,IE_Pressed,this,&AStarflightPawn::ShowFlightPlanner);
     Input->BindAction("Camera",IE_Pressed,this,&AStarflightPawn::ToggleCamera);
     Input->BindAction("Restart",IE_Pressed,this,&AStarflightPawn::RestartFlight);
@@ -149,25 +235,80 @@ void AStarflightPawn::SetupPlayerInputComponent(UInputComponent* Input) {
     Input->BindTouch(IE_Repeat,this,&AStarflightPawn::TouchMove);
     Input->BindTouch(IE_Released,this,&AStarflightPawn::TouchEnd);
 }
-void AStarflightPawn::SelectWorld(EStarflightWorld Planet) {
-    const auto* Mode=GetWorld()->GetAuthGameMode<AStarflightGameMode>();
-    if (!Mode || Mode->Planet==Planet) return;
-    UGameplayStatics::OpenLevel(this,FName(TEXT("/Engine/Maps/Entry")),true,
-        FString(TEXT("World="))+WorldName(Planet));
+void AStarflightPawn::BrowseShip(FKey Key) {
+    const int32 Count=FlightFleet().Num();
+    ApplyShip((ActiveShip+Count+(Key==EKeys::RightBracket ? 1 : -1))%Count);
 }
+
+void AStarflightPawn::ToggleAerodynamics() {
+    Aerodynamic=!Aerodynamic;
+    if (Aerodynamic && Flight.airspeed < ShipProfile(ActiveShip).Handling.cruise*0.55f) {
+        Flight.airspeed=ShipProfile(ActiveShip).Handling.cruise*0.65f;
+        Flight.velocity=Flight.Forward()*Flight.airspeed;
+        Throttle=0.65f;
+    }
+}
+
+void AStarflightPawn::VisitLake() {
+    const auto* Mode=GetWorld()->GetAuthGameMode<AStarflightGameMode>();
+    if (!Mode || !Region) return;
+    const auto Lakes=WorldLakes(Mode->Planet);
+    if (Lakes.IsEmpty()) return;
+    const auto& Lake=Lakes[NextLake++%Lakes.Num()];
+    const bool Frozen=Mode->Planet==EStarflightWorld::Hoth;
+    const float X=Lake.Centre.X+Lake.Radii.X*(Frozen ? 0.22f : -0.15f);
+    const float Z=Lake.Centre.Y+Lake.Radii.Y*(Frozen ? 0.77f : 0.71f);
+    Aerodynamic=false;
+    if (Crashed) RestartFlight();
+    Flight=starflight::State{};
+    Flight.position={X,Region->FlightSurface(X,Z)+(Frozen ? 65.f : 43.f),Z};
+    Flight.heading=Frozen ? 0.19f : 0.12f;
+    Flight.pitch=-0.04f;
+    Throttle=0;
+    RockWarning=false;
+    Accumulator=0;
+    SetActorLocationAndRotation(ToUE(Flight.position),
+        FRotator(FMath::RadiansToDegrees(Flight.pitch),FMath::RadiansToDegrees(Flight.heading),0),
+        false,nullptr,ETeleportType::TeleportPhysics);
+}
+
+void AStarflightPawn::ClickFlightHUD() {
+#if PLATFORM_MAC
+    auto* PC=Cast<APlayerController>(GetController());
+    if (!PC) return;
+    int32 Width=0,Height=0;
+    float X=0,Y=0;
+    PC->GetViewportSize(Width,Height);
+    if (Width<=0 || !PC->GetMousePosition(X,Y)) return;
+    if (Y>=7 && Y<=39) SelectWorld(static_cast<EStarflightWorld>(FMath::Clamp(int32(X/Width*4),0,3)));
+#endif
+}
+
+void AStarflightPawn::SelectWorld(EStarflightWorld Planet,int32 Ship) {
+    const auto* Mode=GetWorld()->GetAuthGameMode<AStarflightGameMode>();
+    const int32 Choice=FlightFleet().IsValidIndex(Ship) ? Ship : ActiveShip;
+    if (!Mode || Mode->Planet==Planet) {
+        if (Choice!=ActiveShip) ApplyShip(Choice);
+        return;
+    }
+    UGameplayStatics::OpenLevel(this,FName(TEXT("/Engine/Maps/Entry")),true,
+        FString::Printf(TEXT("World=%s?Ship=%s"),WorldName(Planet),ShipProfile(Choice).Id));
+}
+
 void AStarflightPawn::ShowFlightPlanner() {
 #if PLATFORM_MAC || PLATFORM_IOS
     const auto* Mode=GetWorld()->GetAuthGameMode<AStarflightGameMode>();
     if (!Mode) return;
+    TArray<FString> Names;
+    for (const auto& Ship : FlightFleet()) Names.Add(Ship.Name);
     TWeakObjectPtr<AStarflightPawn> WeakThis(this);
-    OpenSwiftPlanner(static_cast<int32>(Mode->Planet),[WeakThis](int32 Index) {
+    OpenSwiftPlanner(static_cast<int32>(Mode->Planet),Names,ActiveShip,[WeakThis](int32 Index,int32 Ship) {
         if (Index>=0 && Index<4) {
-            if (auto* Pawn=WeakThis.Get()) Pawn->SelectWorld(static_cast<EStarflightWorld>(Index));
+            if (auto* Pawn=WeakThis.Get()) Pawn->SelectWorld(static_cast<EStarflightWorld>(Index),Ship);
         }
     });
 #endif
 }
-
 void AStarflightPawn::TouchBegin(ETouchIndex::Type Finger,FVector P) {
     auto* PC=Cast<APlayerController>(GetController());if(!PC) return;
     int32 W=0,H=0;PC->GetViewportSize(W,H);if(W<=0 || H<=0) return;

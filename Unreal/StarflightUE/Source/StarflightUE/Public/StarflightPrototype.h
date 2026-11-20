@@ -21,9 +21,11 @@ public:
     AStarflightRegion();
     bool Prepare(EStarflightWorld Planet);
     float Surface(float X, float Z) const;
+    float FlightSurface(float X, float Z) const;
     bool Contains(starflight::Vec3 P) const { return FMath::Abs(P.x)<=Extent && FMath::Abs(P.z)<=Extent; }
     starflight::Vec3 Arrival{0,430,8400};
 private:
+    EStarflightWorld World{};
     TArray<float> Heights;
     float Extent=12000;
     int32 Cells=0;
@@ -43,6 +45,10 @@ public:
     bool RockWarning=false,RockImpact=false;
     starflight::State Flight;
     void RestartFlight();
+    int32 ActiveShip = 0;
+    float LowFlightPoints = 0;
+    bool Aerodynamic = false;
+    bool WaterImpact = false;
     UPROPERTY() TObjectPtr<AStarflightRegion> Region;
 private:
     UPROPERTY(VisibleAnywhere) TObjectPtr<USphereComponent> Collision;
@@ -54,6 +60,13 @@ private:
     FVector2D StickOrigin=FVector2D::ZeroVector,TouchAxes=FVector2D::ZeroVector;
     int32 StickFinger=INDEX_NONE,ThrottleFinger=INDEX_NONE;
     bool CockpitActive=false;
+    float FlightTime = 0;
+    void ApplyShip(int32 Index);
+    void BrowseShip(FKey Key);
+    void ToggleAerodynamics();
+    void ClickFlightHUD();
+    void VisitLake();
+    int32 NextLake=0;
 #if !UE_BUILD_SHIPPING
     int32 SmokeFrame=0;
     bool SmokeEnabled=false,SmokeFailed=false;
@@ -65,7 +78,7 @@ private:
     void SetThrottleAxis(float V) { ThrottleAxis=V; }
     void ToggleCamera();
     void TogglePause();
-    void SelectWorld(EStarflightWorld Planet);
+    void SelectWorld(EStarflightWorld Planet,int32 Ship=INDEX_NONE);
     void ShowFlightPlanner();
     void TouchBegin(ETouchIndex::Type Finger,FVector Location);
     void TouchMove(ETouchIndex::Type Finger,FVector Location);
@@ -87,4 +100,5 @@ public:
     virtual void InitGame(const FString& MapName,const FString& Options,FString& Error) override;
     virtual void StartPlay() override;
     EStarflightWorld Planet;
+    int32 SelectedShip=0;
 };

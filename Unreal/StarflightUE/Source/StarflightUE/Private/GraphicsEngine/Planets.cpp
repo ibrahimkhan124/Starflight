@@ -1,5 +1,7 @@
 #include "StarflightPrototype.h"
 #include "Renderer.hpp"
+#include "WorldFeatures.hpp"
+#include "Algo/AnyOf.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInterface.h"
@@ -67,8 +69,8 @@ FLinearColor TerrainColor(EStarflightWorld Planet, float Height, float Slope, fl
             return FMath::Lerp(Sand, Rock, FMath::Clamp(Slope * 2.8f, 0.f, 1.f));
         }
         case EStarflightWorld::Endor:
-            return FMath::Lerp(FMath::Lerp(FLinearColor(0.035,0.105,0.04), FLinearColor(0.13,0.26,0.069), Var),
-                FLinearColor(0.29,0.31,0.24), FMath::Clamp(Slope * 2.2f, 0.f, 1.f));
+            return FMath::Lerp(FMath::Lerp(FLinearColor(0.032,0.065,0.026), FLinearColor(0.086,0.15,0.045), Var),
+                FLinearColor(0.19,0.173,0.109), FMath::Clamp(Slope * 2.2f, 0.f, 1.f));
         case EStarflightWorld::Coruscant:
             return FLinearColor(0.022,0.034,0.058);
     }
@@ -95,8 +97,21 @@ bool AStarflightRegion::Prepare(EStarflightWorld Planet) {
     Cells = Data.Cells;
     Arrival = Data.Arrival;
     Heights = MoveTemp(Data.Heights);
+    World = Planet;
     const int32 Stride = Cells + 1;
     const float Step = 2 * Extent / Cells;
+    const auto Lakes=WorldLakes(Planet);
+    // Apply the basin cuts once before normals, scenery heights and collision are built.
+    for (int32 Row=0; Row<=Cells; ++Row) {
+        for (int32 Column=0; Column<=Cells; ++Column) {
+            const float X=Column*Step-Extent, Z=Row*Step-Extent;
+            float& Height=Heights[Row*Stride+Column];
+            for (const auto& Lake : Lakes) {
+                if (FMath::Abs(X-Lake.Centre.X)<Lake.Radii.X*1.55 &&
+                    FMath::Abs(Z-Lake.Centre.Y)<Lake.Radii.Y*1.55) Height=Lake.Cut(Height,X,Z);
+            }
+        }
+    }
     TArray<FVector> Vertices, Normals;
     TArray<FVector2D> UVs;
     TArray<FLinearColor> Colors;
@@ -168,6 +183,9 @@ bool AStarflightRegion::Prepare(EStarflightWorld Planet) {
     for (const auto& Obstacle : Data.Obstacles) {
         auto P = Obstacle.Position;
         auto S = Obstacle.Size;
+        if (Algo::AnyOf(Lakes,[&](const FLakeBasin& Lake) {
+            return Lake.Distance(P.x,P.z)<(Crown ? 1.49f : 1.05f);
+        })) continue;
         if (Obstacle.Style == 3) {
             Add(Beacons,P,S);
         } else if (Crown) {
@@ -204,6 +222,9 @@ bool AStarflightRegion::Prepare(EStarflightWorld Planet) {
         for (int32 Index = 0; Index < 2300; ++Index) {
             const float X = Random.FRandRange(-Extent,Extent), Z = Random.FRandRange(-Extent,Extent);
             const float H = Random.FRandRange(45,180);
+            if (Algo::AnyOf(Lakes,[&](const FLakeBasin& Lake) {
+                return Lake.Distance(X,Z)<1.46f;
+            })) continue;
             Add(Young,{X,Surface(X,Z)+H*0.43f,Z},{H*0.6f,H,H*0.6f});
         }
         Crown->RegisterComponent();
@@ -211,6 +232,8 @@ bool AStarflightRegion::Prepare(EStarflightWorld Planet) {
     }
     Solid->RegisterComponent();
     Beacons->RegisterComponent();
+    AddLakeFeatures(*this,Planet,Vertices,Triangles);
+    if (Planet==EStarflightWorld::Coruscant) AddCityRoads(*this);
     UE_LOG(LogTemp, Display, TEXT("STARFLIGHT_WORLD %s: %d vertices, %d scenery records"), WorldName(Planet), Heights.Num(), Data.Obstacles.Num());
     return true;
 }
@@ -224,4 +247,12 @@ float AStarflightRegion::Surface(float X, float Z) const {
     const int32 A = Row*(Cells+1)+Col, B = A+1, C = A+Cells+1, D = C+1;
     if (V >= U) return Heights[A]*(1-V) + Heights[C]*(V-U) + Heights[D]*U;
     return Heights[A]*(1-U) + Heights[B]*(U-V) + Heights[D]*V;
+}
+
+float AStarflightRegion::FlightSurface(float X,float Z) const {
+    const float Ground=Surface(X,Z);
+    for (const auto& Lake : WorldLakes(World)) {
+        if (Ground<Lake.Level && Lake.Distance(X,Z)<1.09f) return Lake.Level;
+    }
+    return Ground;
 }

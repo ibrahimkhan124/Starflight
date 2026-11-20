@@ -131,8 +131,8 @@ void AStarflightWeather::UpdateWeather(const AStarflightPawn& Ship, float Delta,
 
 FVector2D AStarflightWeather::Slope(FVector2D P) const {
     constexpr float D = 18;
-    return FVector2D(Region->Surface(P.X+D,P.Y)-Region->Surface(P.X-D,P.Y),
-                     Region->Surface(P.X,P.Y+D)-Region->Surface(P.X,P.Y-D))/(2*D);
+    return FVector2D(Region->FlightSurface(P.X+D,P.Y)-Region->FlightSurface(P.X-D,P.Y),
+                     Region->FlightSurface(P.X,P.Y+D)-Region->FlightSurface(P.X,P.Y-D))/(2*D);
 }
 
 bool AStarflightWeather::ReleaseRocks(const AStarflightPawn& Ship) {
@@ -149,7 +149,7 @@ bool AStarflightWeather::ReleaseRocks(const AStarflightPawn& Ship) {
         const float Sign = Index % 2 ? -1.f : 1.f;
         const FVector2D Try = Centre + Forward*Random.FRandRange(390,1500)
             + Side*Sign*Random.FRandRange(320,1260);
-        const float Height = Region->Surface(Try.X,Try.Y);
+        const float Height = Region->FlightSurface(Try.X,Try.Y);
         if (!Region->Contains({float(Try.X),Height,float(Try.Y)})) continue;
         if (Height<Origin.y-380 || Height>Origin.y+650) continue;
         const float Grade = Slope(Try).Length();
@@ -188,7 +188,7 @@ void AStarflightWeather::UpdateRocks(AStarflightPawn& Ship, float Delta) {
         Rock.Velocity = Rock.Velocity.GetSafeNormal() * FMath::Min(Rock.Velocity.Length(),39.0);
         const FVector2D Old = Rock.Position;
         Rock.Position += Rock.Velocity*Delta;
-        const float Ground = Region->Surface(Rock.Position.X,Rock.Position.Y);
+        const float Ground = Region->FlightSurface(Rock.Position.X,Rock.Position.Y);
         const starflight::Vec3 Position{float(Rock.Position.X),Ground+Rock.Radius*0.68f,float(Rock.Position.Y)};
         const FVector Point = ToUE(Position);
         const FVector Axis = FVector::CrossProduct(FVector::UpVector,
@@ -198,15 +198,16 @@ void AStarflightWeather::UpdateRocks(AStarflightPawn& Ship, float Delta) {
         }
         const float Distance = (Ship.Flight.position-Position).Length();
         Ship.RockWarning |= Distance < 410 && Rock.Velocity.Length()>2;
-        const float OldGround = Region->Surface(Old.X,Old.Y);
+        const float OldGround = Region->FlightSurface(Old.X,Old.Y);
         const FVector PreviousRock = ToUE({float(Old.X),OldGround+Rock.Radius*0.68f,float(Old.Y)});
         const double SeparationSquared = FMath::PointDistToSegmentSquared(FVector::ZeroVector,
             PreviousShip-PreviousRock,CurrentShip-Point);
-        if (SeparationSquared < FMath::Square((Rock.Radius+1.5)*100.0) && !Ship.Crashed) {
+        if (SeparationSquared < FMath::Square((Rock.Radius+Ship.GetSimpleCollisionRadius()/100)*100.0) && !Ship.Crashed) {
             Ship.Crashed = true;
             Ship.RockImpact = true;
             Ship.Throttle = 0;
             Ship.Flight.velocity = {};
+            Ship.Flight.airspeed = 0;
         }
         // Leave settled rocks visible until the player has passed them.
         if (Rock.Age > RockLife && (Distance > 1800 || !Region->Contains(Position))) Boulders.RemoveAtSwap(Index);
@@ -217,7 +218,7 @@ void AStarflightWeather::UpdateRocks(AStarflightPawn& Ship, float Delta) {
     for (int32 Index=0; Index<Boulders.Num(); ++Index) {
         const auto& Rock = Boulders[Index];
         const FVector Position = ToUE({float(Rock.Position.X),
-            Region->Surface(Rock.Position.X,Rock.Position.Y)+Rock.Radius*0.68f,float(Rock.Position.Y)});
+            Region->FlightSurface(Rock.Position.X,Rock.Position.Y)+Rock.Radius*0.68f,float(Rock.Position.Y)});
         const FVector Scale(Rock.Radius*100/Bounds.SphereRadius);
         const FTransform Transform(Rock.Rotation,Position-Rock.Rotation.RotateVector(Bounds.Origin*Scale),Scale);
         if (Rebuild) Rocks->AddInstance(Transform);

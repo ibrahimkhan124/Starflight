@@ -2,18 +2,22 @@
 #include "Apple/SwiftPlanner.h"
 
 #if PLATFORM_MAC || PLATFORM_IOS
-#import <Foundation/NSObject.h>
+#import <Foundation/NSArray.h>
+#import <Foundation/NSString.h>
 #include "Async/Async.h"
 
-// Starflight SwiftUI exports this Objective-C selector. Keep the surface narrow.
 @interface StarflightSwiftUI : NSObject
-+ (void)present:(int32_t)current onSelect:(void (^)(int32_t))onSelect;
++ (void)present:(int32_t)current ships:(NSArray<NSString*>*)ships activeShip:(int32_t)activeShip
+       onSelect:(void (^)(int32_t,int32_t))onSelect;
 @end
 
-void OpenSwiftPlanner(int32 Current, TFunction<void(int32)> OnSelect) {
-    auto Callback = MakeShared<TFunction<void(int32)>,ESPMode::ThreadSafe>(MoveTemp(OnSelect));
-    [StarflightSwiftUI present:Current onSelect:^(int32_t Selected) {
-        AsyncTask(ENamedThreads::GameThread,[Callback,Selected] { (*Callback)(Selected); });
+void OpenSwiftPlanner(int32 Current,const TArray<FString>& Ships,int32 ActiveShip,
+    TFunction<void(int32,int32)> OnSelect) {
+    auto Callback=MakeShared<TFunction<void(int32,int32)>,ESPMode::ThreadSafe>(MoveTemp(OnSelect));
+    NSMutableArray<NSString*>* Names=[NSMutableArray arrayWithCapacity:Ships.Num()];
+    for (const FString& Name : Ships) [Names addObject:[NSString stringWithUTF8String:TCHAR_TO_UTF8(*Name)]];
+    [StarflightSwiftUI present:Current ships:Names activeShip:ActiveShip onSelect:^(int32_t World,int32_t Ship) {
+        AsyncTask(ENamedThreads::GameThread,[Callback,World,Ship] { (*Callback)(World,Ship); });
     }];
 }
 #endif
